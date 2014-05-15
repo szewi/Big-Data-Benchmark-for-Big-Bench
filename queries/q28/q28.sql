@@ -1,15 +1,38 @@
+-- Global hive options (see: Big-Bench/setEnvVars)
+set hive.exec.parallel=${env:BIG_BENCH_hive_exec_parallel};
+set hive.exec.parallel.thread.number=${env:BIG_BENCH_hive_exec_parallel_thread_number};
+set hive.exec.compress.intermediate=${env:BIG_BENCH_hive_exec_compress_intermediate};
+set mapred.map.output.compression.codec=${env:BIG_BENCH_mapred_map_output_compression_codec};
+set hive.exec.compress.output=${env:BIG_BENCH_hive_exec_compress_output};
+set mapred.output.compression.codec=${env:BIG_BENCH_mapred_output_compression_codec};
+
+--display settings
+set hive.exec.parallel;
+set hive.exec.parallel.thread.number;
+set hive.exec.compress.intermediate;
+set mapred.map.output.compression.codec;
+set hive.exec.compress.output;
+set mapred.output.compression.codec;
+
+-- Database
+use ${env:BIG_BENCH_HIVE_DATABASE};
+
+-- Resources
 --ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q28/mapper_q28.py;
 
-DROP TABLE IF EXISTS q28training;
-
-CREATE EXTERNAL TABLE q28training (pr_review_sk INT, pr_rating INT, pr_item_sk INT, pr_review_content STRING) 
+--Result  --------------------------------------------------------------------		
+--kepp result human readable
+set hive.exec.compress.output=false;
+set hive.exec.compress.output;
+DROP TABLE IF EXISTS q28t_raining;
+CREATE EXTERNAL TABLE q28t_raining (pr_review_sk INT, pr_rating INT, pr_item_sk INT, pr_review_content STRING) 
        ROW FORMAT DELIMITED
        FIELDS TERMINATED BY '\t'
        LINES TERMINATED BY '\n'
        STORED AS TEXTFILE
        LOCATION '${hiveconf:MH_DIR}';
 
-INSERT OVERWRITE TABLE q28training
+INSERT OVERWRITE TABLE q28t_raining
 SELECT pr_review_sk,
     (case pr_review_rating
         when 1 then 'NEG' 
@@ -23,16 +46,17 @@ SELECT pr_review_sk,
     from product_reviews
     where pmod(pr_review_sk, 5) in (1,2,3);
 
-DROP TABLE IF EXISTS q28testing;
-
-CREATE EXTERNAL TABLE q28testing (pr_review_sk INT, pr_rating INT, pr_item_sk INT, pr_review_content STRING) 
+DROP TABLE IF EXISTS q28_testing;
+set hive.exec.compress.output=false;
+set hive.exec.compress.output;
+CREATE EXTERNAL TABLE q28_testing (pr_review_sk INT, pr_rating INT, pr_item_sk INT, pr_review_content STRING) 
        ROW FORMAT DELIMITED
        FIELDS TERMINATED BY '\t'
        LINES TERMINATED BY '\n'
        STORED AS TEXTFILE
        LOCATION '${hiveconf:MH_DIR}2';
 
-INSERT OVERWRITE TABLE q28testing
+INSERT OVERWRITE TABLE q28_testing
 SELECT pr_review_sk,
     (case pr_review_rating
         when 1 then 'NEG' 

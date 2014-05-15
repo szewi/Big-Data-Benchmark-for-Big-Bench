@@ -17,24 +17,47 @@ else
 	QUERY_NAME=q$1	
 fi	
 
-
-	
-LOG_DIR_NAME="$BIG_BENCH_HOME/logs"
-LOG_FILE_NAME="$LOG_DIR_NAME/$QUERY_NAME.log"
-
-if [ ! -d $LOG_DIR_NAME ]; then
-	mkdir -p "$LOG_DIR_NAME"
-fi
+LOG_FILE_NAME="$BIG_BENCH_LOGS_DIR/$QUERY_NAME.log"
 
 echo "==============================================="
 echo "Running query: $QUERY_NAME"
 echo "log: $LOG_FILE_NAME"
 echo "==============================================="	
 
-time ("$BIG_BENCH_QUERIES_DIR/$QUERY_NAME/run.sh" ; echo  "======= $QUERY_NAME  time =========") > >(tee -a $LOG_FILE_NAME) 2>&1 
+
+### Checking required folder: logs/; tmp/; result/ if they exist, create them and set permissions 
+
+echo "checking existance of: $BIG_BENCH_LOGS_DIR "
+if [ ! -d "$BIG_BENCH_LOGS_DIR" ]; then
+	mkdir -p "$BIG_BENCH_LOGS_DIR"
+fi
+
+if [ ! -e "$LOG_FILE_NAME" ] ; then
+    touch "$LOG_FILE_NAME"
+fi
+
+if [ ! -w "$LOG_FILE_NAME" ] ; then
+    echo "ERROR: cannot write to: $LOG_FILE_NAME, no permission"
+    exit 1
+fi
+
+
+echo "checking existance of: ${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR} "
+hadoop fs -mkdir "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
+hadoop fs -chmod uga+rw "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
+
+echo "checking existance of: ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR} "
+hadoop fs -mkdir "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
+hadoop fs -chmod uga+rw "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
+
+
+
+
+
+time ("$BIG_BENCH_QUERIES_DIR/$QUERY_NAME/run.sh" ; echo  "======= $QUERY_NAME  time =========") > >(tee -a "$LOG_FILE_NAME") 2>&1 
 echo "==========================="
 
-cat $LOG_FILE_NAME >> $BIG_BENCH_HOME/logs/allQueries.log
+cat "$LOG_FILE_NAME" >> "$BIG_BENCH_LOGS_DIR/allQueries.log"
 
 
 

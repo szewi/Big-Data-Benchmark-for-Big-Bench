@@ -15,9 +15,10 @@ NODE_COUNT=${#IPs[@]}
 
 # delete any previously generated data
 echo "==============================================="
-echo "Deleting any previously generated data."
+echo "Deleting any previously generated data, results and logs."
 echo "==============================================="
-hadoop fs -rm -r -skipTrash "${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/*"
+${BIG_BENCH_HIVE_SCRIPT_DIR}/cleanBigBenchData.sh
+
 
 echo "==============================================="
 echo "Starting data generation job."

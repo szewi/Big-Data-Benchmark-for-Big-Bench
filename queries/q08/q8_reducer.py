@@ -1,36 +1,60 @@
 import sys
+import logging
+import traceback
+import os
+
 
 def npath(vals):
+	#vals ((int(c_date), int(c_time),sales_sk, wpt)
 	vals.sort()
 	ready = 0
 	for val in vals:
-		if ready == 0 and val[5] == 'review':
+		if ready == 0 and val[3] == 'review':
 			ready = 1
 			continue
-		if ready == 1 and val[4] != 'NULL':
-			print "%s\t%s" % (str(val[0]), val[4])
+		
+		if ready == 1 and val[2] != '\N':
+			c_date = val[0]
+			sales_sk= val[2]
+			#if c_date > 36403 and c_date <36403+365:
+			#	print "%s\t%s" % (c_date, sales_sk)
+			print "%s\t%s" % (c_date, sales_sk)
 			ready = 0
 
 if __name__ == "__main__":
-	
-	current_key = ''
-	vals = []
+	logging.basicConfig(level=logging.DEBUG, filename='/tmp/q8reducerErr.log')
 
-	for line in sys.stdin:
-		val1, key, val2, val3, val4, val5 = line.strip().split("\t")
-		int(val2), int(val3), val1, key, val4, val5
-		if current_key == '' :
-			current_key = key
-			vals.append((int(val2), int(val3), val1, key, val4, val5))
+	try:
+		current_key = ''
+		vals = []
+		#partition by uid
+		#order by c_date, c_time
+		#The plan: create an vals[] per uid, with layout (c_date, c_time, sales_sk, wpt)
 
-		elif current_key == key:
-			vals.append((int(val2), int(val3), val1, key, val4, val5))
+		for line in sys.stdin:
+			#print("line:" + line + "\n")
+			uid, c_date, c_time, sales_sk, wpt = line.strip().split("\t")
 
-		elif current_key != key:
-			npath(vals)
-			vals = []
-			current_key = key
-			vals.append((int(val2), int(val3), val1, key, val4, val5))
+			try:
+				c_date = int(c_date)
+				c_time = int(c_time)
+			except ValueError:
+				c_date = -1
+				c_time = -1
+				continue
 
-	npath(vals)	
-	
+			if current_key == '' :
+				current_key = uid
+				vals.append((int(c_date), int(c_time),sales_sk, wpt))
+
+			elif current_key == uid :
+				vals.append((int(c_date), int(c_time),sales_sk, wpt))
+
+			elif current_key != uid :
+				npath(vals)
+				vals = []
+				current_key = uid
+				vals.append((int(c_date), int(c_time),sales_sk, wpt))
+
+		npath(vals)	except:
+	    logging.exception("Oops:")

@@ -1,8 +1,28 @@
+-- Global hive options (see: Big-Bench/setEnvVars)
+set hive.exec.parallel=${env:BIG_BENCH_hive_exec_parallel};
+set hive.exec.parallel.thread.number=${env:BIG_BENCH_hive_exec_parallel_thread_number};
+set hive.exec.compress.intermediate=${env:BIG_BENCH_hive_exec_compress_intermediate};
+set mapred.map.output.compression.codec=${env:BIG_BENCH_mapred_map_output_compression_codec};
+set hive.exec.compress.output=${env:BIG_BENCH_hive_exec_compress_output};
+set mapred.output.compression.codec=${env:BIG_BENCH_mapred_output_compression_codec};
+
+--display settings
+set hive.exec.parallel;
+set hive.exec.parallel.thread.number;
+set hive.exec.compress.intermediate;
+set mapred.map.output.compression.codec;
+set hive.exec.compress.output;
+set mapred.output.compression.codec;
+
+-- Database
+use ${env:BIG_BENCH_HIVE_DATABASE};
+
+-- Resources
 --ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q19/mapper_19.py;
 --ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q19/reducer_19.py;
 
 
---Prepare result storage
+-- Result file configuration
 set QUERY_NUM=q19;
 set resultTableName=${hiveconf:QUERY_NUM}result;
 set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
@@ -70,38 +90,38 @@ CREATE VIEW q19_tmp_return_items AS
 	ORDER BY average desc
 	LIMIT 100;
 
----Sentiment analysis----------------------------------------------------------------
+---Sentiment analysis and Result----------------------------------------------------------------
+--- we can reuse the  sentiment analysis helper class from q10
 ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
 CREATE TEMPORARY FUNCTION extract_sentiment AS 'de.bankmark.bigbench.queries.q10.SentimentUDF';
---Do sentiment analysis
-DROP TABLE IF EXISTS q19_tmp_sentiment;	
-CREATE TABLE  q19_tmp_sentiment AS
-SELECT extract_sentiment(pr_item_sk,pr_review_content)  
-	AS(	pr_item_sk, 
-		review_sentence, 
-		sentiment, 
-		sentiment_word)  
-FROM product_reviews;
 
----RESULT---------------------------------------------------------------------------
 
---Make result table: returned items with negative sentiments	
+--Result  returned items with negative sentiment --------------------------------------------		
+--kepp result human readable
+set hive.exec.compress.output=false;
+set hive.exec.compress.output;	
+
 --CREATE RESULT TABLE. Store query result externaly in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:resultTableName};
 CREATE TABLE ${hiveconf:resultTableName}
-ROW FORMAT
-DELIMITED FIELDS TERMINATED BY ','
-LINES TERMINATED BY '\n'
-STORED AS TEXTFILE
-LOCATION '${hiveconf:resultFile}' 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
+STORED AS TEXTFILE LOCATION '${hiveconf:resultFile}' 
 AS
--- Beginn: the real query part
-SELECT s.pr_item_sk , s.review_sentence , s.sentiment , s.sentiment_word
-FROM q19_tmp_sentiment s
+---- the real query --------------
+SELECT * 
+FROM
+(
+	SELECT extract_sentiment(pr.pr_item_sk, pr.pr_review_content)  
+	AS(	pr_item_sk, 
+		review_sentence, 
+		sentiment, 
+		sentiment_word
+	)  
+	FROM product_reviews  pr
+	LEFT SEMI JOIN q19_tmp_return_items ri ON pr.pr_item_sk = ri.item
+) q19_tmp_sentiment
+WHERE q19_tmp_sentiment.sentiment = 'NEG ';
 
-	INNER JOIN q19_tmp_return_items ri ON s.pr_item_sk = ri.item
-	AND s.sentiment = 'NEG '
-;
 	
 --- cleanup---------------------------------------------------------------------------
 DROP TABLE IF EXISTS q19_tmp_date1;

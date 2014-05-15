@@ -1,3 +1,28 @@
+-- Global hive options (see: Big-Bench/setEnvVars)
+set hive.exec.parallel=${env:BIG_BENCH_hive_exec_parallel};
+set hive.exec.parallel.thread.number=${env:BIG_BENCH_hive_exec_parallel_thread_number};
+set hive.exec.compress.intermediate=${env:BIG_BENCH_hive_exec_compress_intermediate};
+set mapred.map.output.compression.codec=${env:BIG_BENCH_mapred_map_output_compression_codec};
+set hive.exec.compress.output=${env:BIG_BENCH_hive_exec_compress_output};
+set mapred.output.compression.codec=${env:BIG_BENCH_mapred_output_compression_codec};
+
+--display settings
+set hive.exec.parallel;
+set hive.exec.parallel.thread.number;
+set hive.exec.compress.intermediate;
+set mapred.map.output.compression.codec;
+set hive.exec.compress.output;
+set mapred.output.compression.codec;
+
+
+
+
+-- Database
+CREATE DATABASE IF NOT EXISTS  ${env:BIG_BENCH_HIVE_DATABASE};
+use ${env:BIG_BENCH_HIVE_DATABASE};
+
+
+
 set hdfsDataPath=${env:BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR};
 set fieldDelimiter=|;
 
@@ -27,27 +52,7 @@ set marketPricesTableName=item_marketprices;
 set clickstreamsTableName=web_clickstreams;
 set reviewsTableName=product_reviews;
 
-DROP TABLE IF EXISTS ${hiveconf:customerTableName};
-DROP TABLE IF EXISTS ${hiveconf:customerAddressTableName};
-DROP TABLE IF EXISTS ${hiveconf:customerDemographicsTableName};
-DROP TABLE IF EXISTS ${hiveconf:dateTableName};
-DROP TABLE IF EXISTS ${hiveconf:dbgenTableName};
-DROP TABLE IF EXISTS ${hiveconf:householdDemographicsTableName};
-DROP TABLE IF EXISTS ${hiveconf:incomeTableName};
-DROP TABLE IF EXISTS ${hiveconf:itemTableName};
-DROP TABLE IF EXISTS ${hiveconf:promotionTableName};
-DROP TABLE IF EXISTS ${hiveconf:reasonTableName};
-DROP TABLE IF EXISTS ${hiveconf:shipModeTableName};
-DROP TABLE IF EXISTS ${hiveconf:storeTableName};
-DROP TABLE IF EXISTS ${hiveconf:timeTableName};
-DROP TABLE IF EXISTS ${hiveconf:warehouseTableName};
-DROP TABLE IF EXISTS ${hiveconf:webSiteTableName};
-DROP TABLE IF EXISTS ${hiveconf:webPageTableName};
-DROP TABLE IF EXISTS ${hiveconf:inventoryTableName};
-DROP TABLE IF EXISTS ${hiveconf:storeSalesTableName};
-DROP TABLE IF EXISTS ${hiveconf:storeReturnsTableName};
-DROP TABLE IF EXISTS ${hiveconf:webSalesTableName};
-DROP TABLE IF EXISTS ${hiveconf:webReturnsTableName};
+
 
  CREATE EXTERNAL TABLE ${hiveconf:dbgenTableName}
   ( dv_version                string

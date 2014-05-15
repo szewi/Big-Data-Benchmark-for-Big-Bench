@@ -1,3 +1,25 @@
+-- Global hive options (see: Big-Bench/setEnvVars)
+set hive.exec.parallel=${env:BIG_BENCH_hive_exec_parallel};
+set hive.exec.parallel.thread.number=${env:BIG_BENCH_hive_exec_parallel_thread_number};
+set hive.exec.compress.intermediate=${env:BIG_BENCH_hive_exec_compress_intermediate};
+set mapred.map.output.compression.codec=${env:BIG_BENCH_mapred_map_output_compression_codec};
+set hive.exec.compress.output=${env:BIG_BENCH_hive_exec_compress_output};
+set mapred.output.compression.codec=${env:BIG_BENCH_mapred_output_compression_codec};
+
+--display settings
+set hive.exec.parallel;
+set hive.exec.parallel.thread.number;
+set hive.exec.compress.intermediate;
+set mapred.map.output.compression.codec;
+set hive.exec.compress.output;
+set mapred.output.compression.codec;
+
+-- Database
+use ${env:BIG_BENCH_HIVE_DATABASE};
+
+-- Resources
+
+-- Result file configuration
 set QUERY_NUM=q12;
 set resultTableName=${hiveconf:QUERY_NUM}result;
 set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
@@ -9,8 +31,8 @@ set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:result
 --consecutive months.
 
 --1)
-
-CREATE VIEW IF NOT EXISTS click AS
+DROP VIEW IF EXISTS q12_click;
+CREATE VIEW IF NOT EXISTS q12_click AS
  SELECT c.wcs_item_sk AS item,
         c.wcs_user_sk AS uid,
         c.wcs_click_date_sk AS c_date,
@@ -22,7 +44,9 @@ CREATE VIEW IF NOT EXISTS click AS
     AND c.wcs_click_date_sk < 36403 + 30
   ORDER BY c_date, c_time;
 
-CREATE VIEW IF NOT EXISTS sale AS 
+--2)
+DROP VIEW IF EXISTS q12_sale;
+CREATE VIEW IF NOT EXISTS q12_sale AS 
  SELECT ss.ss_item_sk AS item,
         ss.ss_customer_sk AS uid,
         ss.ss_sold_date_sk AS s_date,
@@ -34,26 +58,29 @@ CREATE VIEW IF NOT EXISTS sale AS
     AND ss.ss_sold_date_sk < 36403 + 120
   ORDER BY s_date, s_time;
 
+--Result  --------------------------------------------------------------------		
+--kepp result human readable
+set hive.exec.compress.output=false;
+set hive.exec.compress.output;	
 
 DROP TABLE IF EXISTS ${hiveconf:resultTableName};
 CREATE TABLE ${hiveconf:resultTableName}
-ROW FORMAT
-DELIMITED FIELDS TERMINATED BY ','
-LINES TERMINATED BY '\n'
-STORED AS TEXTFILE
-LOCATION '${hiveconf:resultFile}' 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
+STORED AS TEXTFILE LOCATION '${hiveconf:resultFile}' 
 AS
+-- the real query part	
 SELECT c_date, s_date, s.uid
-  FROM click c JOIN sale s
+  FROM q12_click c JOIN q12_sale s
     ON c.uid = s.uid
  WHERE c.c_date < s.s_date;
 
---have to fix partition
+--TODO: have to fix partition
 
 ------------------------ REGEX CODE GOES HERE ---------------------------------
 --TODO check this: Npath seams to be unnecssary. so this query should be done
 -------------------------------------------------------------------------------
 
-DROP VIEW IF EXISTS click;
-DROP VIEW IF EXISTS sale;
+-- cleanup -------------------------------------------------------------
+DROP VIEW IF EXISTS q12_click;
+DROP VIEW IF EXISTS q12_sale;
 

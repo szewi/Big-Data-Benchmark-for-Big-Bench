@@ -31,6 +31,7 @@ if [ $# -lt 1 ] || [ $1 -eq 1 ] ; then
 	echo "========================="
 	hadoop fs -rm -r -skipTrash  "${QUERY_TMP_DIR}/*"
 	hadoop fs -mkdir "${QUERY_TMP_DIR}"
+	hadoop fs -chmod uga+rw  "${QUERY_TMP_DIR}"
 	hadoop fs -copyFromLocal "${MR_JAR}" "${QUERY_TMP_DIR}/"
 fi
 
@@ -59,11 +60,11 @@ if [ $# -lt 1 ] || [ $1 -eq 3 ] ; then
 	do
 		echo "-------------------------"
 		echo "$QUERY_NUM Step 3: linear regression analysis Matrix ${i}/12"
-		echo "in: ${QUERY_TMP_DIR}/matrix${i}"
+		echo "in: ${QUERY_TMP_DIR}/q18_matrix${i}"
 		echo "out: ${QUERY_TMP_DIR}/output${i}"
-		echo "Exec: hadoop jar ${MR_JARCLASS} ${QUERY_TMP_DIR}/matrix${i} ${QUERY_TMP_DIR}/output${i} "
+		echo "Exec: hadoop jar ${MR_JARCLASS} ${QUERY_TMP_DIR}/q18_matrix${i} ${QUERY_TMP_DIR}/output${i} "
 		echo "-------------------------"
-		hadoop jar "${MR_JAR}" "${MR_CLASS}" "${QUERY_TMP_DIR}/matrix${i}" "${QUERY_TMP_DIR}/output${i}"  
+		hadoop jar "${MR_JAR}" "${MR_CLASS}" "${QUERY_TMP_DIR}/q18_matrix${i}" "${QUERY_TMP_DIR}/output${i}"  
 	done
 	
 fi

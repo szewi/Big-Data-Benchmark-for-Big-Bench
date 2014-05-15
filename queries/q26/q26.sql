@@ -1,13 +1,37 @@
-DROP TABLE IF EXISTS ctable2;
+-- Global hive options (see: Big-Bench/setEnvVars)
+set hive.exec.parallel=${env:BIG_BENCH_hive_exec_parallel};
+set hive.exec.parallel.thread.number=${env:BIG_BENCH_hive_exec_parallel_thread_number};
+set hive.exec.compress.intermediate=${env:BIG_BENCH_hive_exec_compress_intermediate};
+set mapred.map.output.compression.codec=${env:BIG_BENCH_mapred_map_output_compression_codec};
+set hive.exec.compress.output=${env:BIG_BENCH_hive_exec_compress_output};
+set mapred.output.compression.codec=${env:BIG_BENCH_mapred_output_compression_codec};
 
-CREATE EXTERNAL TABLE ctable2 (cid INT, id1 INT, id3 INT, id5 INT, id7 INT, id9 INT, id11 INT, id13 INT, id15 INT, id2 INT, id4 INT, id6 INT, id8 INT, id10 INT, id14 INT, id16 INT) 
+--display settings
+set hive.exec.parallel;
+set hive.exec.parallel.thread.number;
+set hive.exec.compress.intermediate;
+set mapred.map.output.compression.codec;
+set hive.exec.compress.output;
+set mapred.output.compression.codec;
+
+-- Database
+use ${env:BIG_BENCH_HIVE_DATABASE};
+
+-- Resources
+DROP TABLE IF EXISTS q26_ctable2;
+
+--Result  --------------------------------------------------------------------		
+--kepp result human readable
+set hive.exec.compress.output=false;
+set hive.exec.compress.output;
+CREATE EXTERNAL TABLE q26_ctable2 (cid INT, id1 INT, id3 INT, id5 INT, id7 INT, id9 INT, id11 INT, id13 INT, id15 INT, id2 INT, id4 INT, id6 INT, id8 INT, id10 INT, id14 INT, id16 INT) 
        ROW FORMAT DELIMITED
        FIELDS TERMINATED BY ' '
        LINES TERMINATED BY '\n'
        STORED AS TEXTFILE
        LOCATION '${hiveconf:MH_DIR}';
 
-INSERT OVERWRITE TABLE ctable2
+INSERT OVERWRITE TABLE q26_ctable2
  SELECT ss.ss_customer_sk AS cid,
         count(CASE WHEN i.i_class_id=1  THEN 1 ELSE NULL END) AS id1,
         count(CASE WHEN i.i_class_id=3  THEN 1 ELSE NULL END) AS id3,

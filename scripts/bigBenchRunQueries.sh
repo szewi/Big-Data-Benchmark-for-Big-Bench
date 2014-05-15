@@ -37,13 +37,15 @@ else
 fi
 fi
 
-
-
+echo "==============================================="
+echo "cleanup tmp files from previous query runs"
+echo "==============================================="
+"$BIG_BENCH_BASH_SCRIPT_DIR"/cleanBigBenchQueries.sh
 
 
 echo "==============================================="
 echo "Running queries $FIRST_QUERY-$LAST_QUERY"
-echo "logging run to: $BIG_BENCH_HOME/logs/allQueries.log"
+echo "logging run to: $BIG_BENCH_LOGS_DIR/allQueries.log"
 echo "==============================================="
 
 
@@ -51,14 +53,14 @@ echo "==============================================="
 for (( i=$FIRST_QUERY; i <=$LAST_QUERY; i++ ))
 do
 
-	$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchRunQuery.sh ${i}
+	"$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchRunQuery.sh" ${i}
 
 done
 
 echo "==============================================="
 echo "All queries finished"
-echo "A log of this run is in: $BIG_BENCH_HOME/logs/allQueries.log"
+echo "A log of this run is in: $BIG_BENCH_LOGS_DIR/allQueries.log"
 echo "==============================================="
-$BIG_BENCH_BASH_SCRIPT_DIR/showQueryErrors.sh 
+"$BIG_BENCH_BASH_SCRIPT_DIR/showQueryErrors.sh" 
 
 
