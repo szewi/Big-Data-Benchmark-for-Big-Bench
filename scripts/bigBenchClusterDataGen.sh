@@ -4,6 +4,9 @@
 CLUSTER_CONF=" -Dcore-site.xml=${BIG_BENCH_DATAGEN_CORE_SITE} -Dhdfs-site.xml=${BIG_BENCH_DATAGEN_HDFS_SITE} -Djava.library.path=${BIG_BENCH_HADOOP_LIBS_NATIVE} -DFileChannelProvider=pdgf.util.caching.fileWriter.HDFSChannelProvider -Ddfs.replication.override=${BIG_BENCH_DATAGEN_DFS_REPLICATION} "
 echo $CLUSTER_CONF
 
+
+
+
 if [ ! -f "${BIG_BENCH_NODES}" ]
 then
 	echo "Node file not found in ${BIG_BENCH_NODES}"
@@ -26,15 +29,20 @@ echo "==============================================="
 for (( i=0; i<${NODE_COUNT}; i++ ));
 do
   echo ssh ${BIG_BENCH_SSH_OPTIONS} ${IPs[$i]} java ${BIG_BENCH_DATAGEN_JVM_ENV} ${CLUSTER_CONF} pdgf.Controller  -nc ${NODE_COUNT} -nn $((i+1)) -ns -c -o "${BIG_BENCH_DATAGEN_PDGF_OUT}" -s ${BIGBENCH_TABLES} $@
+
        ssh ${BIG_BENCH_SSH_OPTIONS} ${IPs[$i]} java ${BIG_BENCH_DATAGEN_JVM_ENV} ${CLUSTER_CONF} pdgf.Controller  -nc ${NODE_COUNT} -nn $((i+1)) -ns -c -o "${BIG_BENCH_DATAGEN_PDGF_OUT}" -s ${BIGBENCH_TABLES} $@ &
+
 done
 wait
 echo "==============================================="
 echo "Data generation job finished."
 echo "Adding/Updating generated files to HIVE. (drops old tables)"
 echo "==============================================="
+LOG_FILE_NAME="$BIG_BENCH_LOGS_DIR/hiveLoading.log"
+time ("${BIG_BENCH_HIVE_SCRIPT_DIR}/run.sh" ; echo  "======= Load data into hive time =========") > >(tee -a "$LOG_FILE_NAME") 2>&1 
+echo "==========================="
 
-${BIG_BENCH_HIVE_SCRIPT_DIR}/run.sh
+
 
 echo "==============================================="
 echo "Cluster job finished. Data is located in hdfs: ${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
