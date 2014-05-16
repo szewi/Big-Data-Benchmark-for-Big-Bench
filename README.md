@@ -1,11 +1,7 @@
-Big-Bench
-=========
+##### Table of Contents
+[Cluster Environment](#cluster-environment)
 
-
-##### Table of Contents  
-[Cluster Environment](#cluster-environment)  
-
-[Installation](#installation)  
+[Installation](#installation)
 
 [Data Generation](#data-generation)
 
@@ -96,10 +92,10 @@ Add the nodes on which PDGF should generate data into the nodes.txt file:
 In this file, list all hosts, one per line:
 
 ```
-node1
-node2
-node3
-node4
+bb-aws1
+bb-aws2
+bb-aws3
+bb-aws4
 ```
 
 **Important:** As a temporary measure (until PDGF can be run as a hadoop job), the directory structure must be replicated onto all nodes. So either repeat the "git clone" on every node (make sure that the directory structure is the same) or export the ~/nfs folder as a nfs share and mount it on all nodes in the ec2-user's ~/nfs directory (this is what we did on the AWS nodes). As a shared medium eases the following steps significantly, that approach is strongly recommended.
@@ -127,15 +123,13 @@ PDGF:> q
 To generate data on the cluster nodes, run this command:
 
 `$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchClusterDataGen.sh`
-or relative to your cwd:
-`./scripts/bigBenchClusterDataGen.sh`
 
 **Important:** default settings assume 2 cores per compute node! (small amazon ec2 instance). If you start the bigBenchClusterDataGen on bigger machiens you will run into a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error. To Avoid this, please adapt setEnvVars -> BIG_BENCH_DATAGEN_JVM_ENV if you have compute nodes with more CPU cores. In this case remove the argument: `-Xmx750m` 
 
 The data are being generated directly into HDFS (into the benchmarks/bigbench/data/ directory, absolute HDFS path is /user/ec2-user/benchmarks/bigbench/data/).
 
-Default HDFS replication count is 1 (data is onyl stored on the generating node). You can change this in
-`setEnvVars BIG_BENCH_DATAGEN_DFS_REPLICATION=<Replication count>' as described in: [Configuration](#Configuration)
+Default HDFS replication count is 1 (data is onyl stored on the generating node). You can change this in the $BIG_BENCH_HOME/setEnvVars file by changing the variable
+`BIG_BENCH_DATAGEN_DFS_REPLICATION=<Replication count>' as described in: [Configuration](#Configuration)
 
 Hive population is automatically done after the data generation is finished.
 
@@ -144,26 +138,20 @@ Hive must create its own metadata to be able to access the generated data.
 Hive population is automatically done after the data generation with `bigBenchClusterDataGen.sh`.
 In case you want/must renew the hive tables: the following command drops old tables and recreates them with the output data from PDGF:
 
-`hive -f $BIG_BENCH_HIVE_SCRIPT_DIR/hiveCreateLoad.hql   <--automatically run after ./scripts/bigBenchClusterDataGen.sh`
+`hive -f $BIG_BENCH_HIVE_SCRIPT_DIR/hiveCreateLoad.hql   # automatically run after bigBenchClusterDataGen.sh`
 
 ## Run Queries
 Run all queries sequentially:
 
-`/$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchRunQueries.sh`
-
+`$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchRunQueries.sh`
 
 Run one specific query with this command:
 
-`/$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchRunQuery.sh <querNum>`
+`$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchRunQuery.sh <querNum>`
 
 e.g:
 
-`/$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchRunQuery.sh 1`
-
-or relative to your working directory:
-
-`.Big-Bench/scripts/bigBenchRunQuery.sh <querNum>`
-
+`$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchRunQuery.sh 1`
 
 ## Some Helpers
 **during setup of setEnvVars**
@@ -198,24 +186,18 @@ How to mount hdfs? execute or take a look at:
 
 `$BIG_BENCH_BASH_SCRIPT_DIR/mounthdfs.sh`
 
-
-
 **during query execution**
 
-suspect something went wrong? the bigBenchRunQuery.sh and bigBenchRunQueries.sh scripts write logs to: $BIG_BENCH_HOME/logs
+suspect something went wrong? the bigBenchRunQuery.sh and bigBenchRunQueries.sh scripts write logs to:
 
-`/$BIG_BENCH_BASH_SCRIPT_DIR/showQueryErrors.sh`
+`$BIG_BENCH_LOGS_DIR`
+
+`$BIG_BENCH_BASH_SCRIPT_DIR/showQueryErrors.sh`
 (searches in all logs/q??.log files for error strings)
 
-`/$BIG_BENCH_BASH_SCRIPT_DIR/showQueryErrors.sh <query num>` 
+`$BIG_BENCH_BASH_SCRIPT_DIR/showQueryErrors.sh <query num>` 
 (searches only in query specific log file for error strings)
-
 
 something went terrible wrong? want to abort all jobs?
 
-`/$BIG_BENCH_BASH_SCRIPT_DIR/killAllHadoopJobs.sh`
-
-
-
-
-
+`$BIG_BENCH_BASH_SCRIPT_DIR/killAllHadoopJobs.sh`
