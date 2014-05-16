@@ -61,6 +61,8 @@ echo "==============================================="
 echo "All queries finished"
 echo "A log of this run is in: $BIG_BENCH_LOGS_DIR/allQueries.log"
 echo "==============================================="
-"$BIG_BENCH_BASH_SCRIPT_DIR/showQueryErrors.sh" 
+"$BIG_BENCH_BASH_SCRIPT_DIR/showErrors.sh" 
+
+"$BIG_BENCH_BASH_SCRIPT_DIR/showTimes.sh" 
 
 

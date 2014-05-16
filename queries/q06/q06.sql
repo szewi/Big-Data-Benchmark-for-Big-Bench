@@ -29,23 +29,26 @@ set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:result
 -- Part 1 helper table(s) --------------------------------------------------------------
 
 -- Uninon customer store_sales  and customer web_sales
+!echo Drop  q06_year_total_8;
 DROP TABLE IF EXISTS q06_year_total_8;
+
+!echo create q06_year_total_8;
 CREATE TABLE q06_year_total_8
---	(customer_id               STRING,
---	customer_first_name       STRING,
---	customer_last_name        STRING,
---	c_preferred_cust_flag     STRING,
---	c_birth_country           STRING,
---	c_login                   STRING,
---	c_email_address           STRING,
---	dyear                     INT,
---	year_total                DOUBLE,
---	sale_type                 STRING
---	)
-AS
-Select *   
-FROM 
-(
+	(customer_id              STRING,
+	customer_first_name       STRING,
+	customer_last_name        STRING,
+	c_preferred_cust_flag     STRING,
+	c_birth_country           STRING,
+	c_login                   STRING,
+	c_email_address           STRING,
+	dyear                     INT,
+	year_total                DOUBLE,
+	sale_type                 STRING
+	)
+;
+
+!echo INSERT INTO TABLE  q06_year_total_8 ->  customer store_sales;
+INSERT INTO TABLE  q06_year_total_8 
 	-- customer store_sales
 	SELECT 	c_customer_id AS customer_id,
 		c_first_name  AS customer_first_name,
@@ -68,8 +71,11 @@ FROM
 	)sv
 	INNER JOIN customer c  ON c.c_customer_sk = sv.customer_sk
 
-	UNION ALL
+;
 
+
+!echo INSERT INTO TABLE  q06_year_total_8 -> customer web_sales;
+INSERT INTO TABLE  q06_year_total_8 
 	-- customer web_sales
 	SELECT 	c_customer_id AS customer_id,
 		c_first_name  AS customer_first_name,
@@ -91,7 +97,8 @@ FROM
 		GROUP BY ws.ws_bill_customer_sk, dt.d_year
 	) sv2
 	INNER JOIN customer c ON c.c_customer_sk = sv2.customer_sk
-)q06_tmp
+
+
 ;
 
 

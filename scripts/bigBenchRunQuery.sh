@@ -51,12 +51,12 @@ hadoop fs -mkdir "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
 hadoop fs -chmod uga+rw "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
 
 
-
-
+# start timed execution of query. Stderr is appended to stdout and both are written into logs/q??.log and to console
 
 time ("$BIG_BENCH_QUERIES_DIR/$QUERY_NAME/run.sh" ; echo  "======= $QUERY_NAME  time =========") > >(tee -a "$LOG_FILE_NAME") 2>&1 
 echo "==========================="
 
+## append query specifc log to allInOne logfile
 cat "$LOG_FILE_NAME" >> "$BIG_BENCH_LOGS_DIR/allQueries.log"
 
 
