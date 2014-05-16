@@ -39,7 +39,7 @@ echo "Data generation job finished."
 echo "Adding/Updating generated files to HIVE. (drops old tables)"
 echo "==============================================="
 LOG_FILE_NAME="$BIG_BENCH_LOGS_DIR/hiveLoading.log"
-time ("${BIG_BENCH_HIVE_SCRIPT_DIR}/run.sh" ; echo  "======= Load data into hive time =========") > >(tee -a "$LOG_FILE_NAME") 2>&1 
+time ("${BIG_BENCH_HIVE_SCRIPT_DIR}/hiveCreateLoadORC.sh" ; echo  "======= Load data into hive time =========") > >(tee -a "$LOG_FILE_NAME") 2>&1 
 echo "==========================="
 
 
