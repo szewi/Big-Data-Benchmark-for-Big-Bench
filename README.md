@@ -1,3 +1,8 @@
+UNDER DEVELOPMENT
+======
+
+This document is a development version and describes the BigBench installation and execution on our AWS machines.
+
 ##### Table of Contents
 [Cluster Environment](#cluster-environment)
 
