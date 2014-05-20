@@ -5,6 +5,15 @@ set hive.exec.compress.intermediate=${env:BIG_BENCH_hive_exec_compress_intermedi
 set mapred.map.output.compression.codec=${env:BIG_BENCH_mapred_map_output_compression_codec};
 set hive.exec.compress.output=${env:BIG_BENCH_hive_exec_compress_output};
 set mapred.output.compression.codec=${env:BIG_BENCH_mapred_output_compression_codec};
+set hive.default.fileformat=${env:BIG_BENCH_hive_default_fileformat};
+set hive.optimize.mapjoin.mapreduce=${env:BIG_BENCH_hive_optimize_mapjoin_mapreduce};
+set hive.optimize.bucketmapjoin=${env:BIG_BENCH_hive_optimize_bucketmapjoin};
+set hive.optimize.bucketmapjoin.sortedmerge=${env:BIG_BENCH_hive_optimize_bucketmapjoin_sortedmerge};
+set hive.auto.convert.join=${env:BIG_BENCH_hive_auto_convert_join};
+set hive.auto.convert.sortmerge.join=${env:BIG_BENCH_hive_auto_convert_sortmerge_join};
+set hive.auto.convert.sortmerge.join.noconditionaltask=${env:BIG_BENCH_hive_auto_convert_sortmerge_join_noconditionaltask};
+set hive.optimize.ppd=${env:BIG_BENCH_hive_optimize_ppd};
+set hive.optimize.index.filter=${env:BIG_BENCH_hive_optimize_index_filter};
 
 --display settings
 set hive.exec.parallel;
@@ -13,6 +22,13 @@ set hive.exec.compress.intermediate;
 set mapred.map.output.compression.codec;
 set hive.exec.compress.output;
 set mapred.output.compression.codec;
+set hive.default.fileformat;
+set hive.optimize.mapjoin.mapreduce;
+set hive.optimize.bucketmapjoin;
+set hive.optimize.bucketmapjoin.sortedmerge;
+set hive.auto.convert.join;
+set hive.auto.convert.sortmerge.join;
+set hive.auto.convert.sortmerge.join.noconditionaltask;
 
 -- Database
 use ${env:BIG_BENCH_HIVE_DATABASE};
@@ -21,7 +37,7 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 --ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q28/mapper_q28.py;
 
 --Result  --------------------------------------------------------------------		
---kepp result human readable
+--keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
 DROP TABLE IF EXISTS q28t_raining;
@@ -46,10 +62,13 @@ SELECT pr_review_sk,
     from product_reviews
     where pmod(pr_review_sk, 5) in (1,2,3);
 
-DROP TABLE IF EXISTS q28_testing;
+
+--Result  --------------------------------------------------------------------		
+--keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
-CREATE EXTERNAL TABLE q28_testing (pr_review_sk INT, pr_rating INT, pr_item_sk INT, pr_review_content STRING) 
+DROP TABLE IF EXISTS q28_testing;
+CREATE TABLE q28_testing (pr_review_sk INT, pr_rating INT, pr_item_sk INT, pr_review_content STRING) 
        ROW FORMAT DELIMITED
        FIELDS TERMINATED BY '\t'
        LINES TERMINATED BY '\n'

@@ -5,6 +5,15 @@ set hive.exec.compress.intermediate=${env:BIG_BENCH_hive_exec_compress_intermedi
 set mapred.map.output.compression.codec=${env:BIG_BENCH_mapred_map_output_compression_codec};
 set hive.exec.compress.output=${env:BIG_BENCH_hive_exec_compress_output};
 set mapred.output.compression.codec=${env:BIG_BENCH_mapred_output_compression_codec};
+set hive.default.fileformat=${env:BIG_BENCH_hive_default_fileformat};
+set hive.optimize.mapjoin.mapreduce=${env:BIG_BENCH_hive_optimize_mapjoin_mapreduce};
+set hive.optimize.bucketmapjoin=${env:BIG_BENCH_hive_optimize_bucketmapjoin};
+set hive.optimize.bucketmapjoin.sortedmerge=${env:BIG_BENCH_hive_optimize_bucketmapjoin_sortedmerge};
+set hive.auto.convert.join=${env:BIG_BENCH_hive_auto_convert_join};
+set hive.auto.convert.sortmerge.join=${env:BIG_BENCH_hive_auto_convert_sortmerge_join};
+set hive.auto.convert.sortmerge.join.noconditionaltask=${env:BIG_BENCH_hive_auto_convert_sortmerge_join_noconditionaltask};
+set hive.optimize.ppd=${env:BIG_BENCH_hive_optimize_ppd};
+set hive.optimize.index.filter=${env:BIG_BENCH_hive_optimize_index_filter};
 
 --display settings
 set hive.exec.parallel;
@@ -13,7 +22,13 @@ set hive.exec.compress.intermediate;
 set mapred.map.output.compression.codec;
 set hive.exec.compress.output;
 set mapred.output.compression.codec;
-
+set hive.default.fileformat;
+set hive.optimize.mapjoin.mapreduce;
+set hive.optimize.bucketmapjoin;
+set hive.optimize.bucketmapjoin.sortedmerge;
+set hive.auto.convert.join;
+set hive.auto.convert.sortmerge.join;
+set hive.auto.convert.sortmerge.join.noconditionaltask;
 -- Database
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
@@ -26,56 +41,53 @@ set QUERY_NUM=q18;
 set resultTableName=${hiveconf:QUERY_NUM}result;
 set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
 
-DROP TABLE IF EXISTS q18_storeSentiments;
-CREATE TABLE q18_storeSentiments
-AS
-SELECT 	extract_sentiment(s_store_sk, pr_item_sk, pr_review_date, pr_review_content) 
-	AS (store_sk, item_sk, review_date, review_sentence, sentiment, sentiment_word )	
 
-FROM 
-(
-	SELECT 	 
-		s_store_sk
-		,pr_item_sk
-		,pr_review_date
-		,pr_review_content
-		
-	FROM 
-	(
-		  SELECT s_store_sk, s_store_name
-		  FROM 	store s
-		  JOIN q18_store_coefficient c on  s.s_store_sk = c.cat
-		  WHERE  c.slope < 0 
-	) tmp
-	JOIN   product_reviews pr ON (true)
-	where instr(pr.pr_review_content,  tmp.s_store_name) >0
-
-) foo;
  	
 
 --Result  --------------------------------------------------------------------		
---kepp result human readable
+--keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;	
 --Prepare result storage
 DROP TABLE IF EXISTS ${hiveconf:resultTableName};
 CREATE TABLE ${hiveconf:resultTableName}
 	ROW FORMAT DELIMITED FIELDS TERMINATED BY ','	LINES TERMINATED BY '\n'
-	STORED AS TEXTFILE LOCATION '${hiveconf:resultFile}' 
+	STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:resultFile}' 
 AS
 -- the real query
-SELECT 	 st.s_store_name 
+SELECT 	 s_store_name 
 	,review_date 
 	,review_sentence
 	, sentiment
 	, sentiment_word 
-FROM q18_storeSentiments ss
-JOIN store st on ss.store_sk  = st.s_store_sk 
-AND   ss.sentiment = 'NEG'
+FROM (
+	SELECT 	extract_sentiment( s_store_name, pr_review_date, pr_review_content) 
+		AS ( s_store_name, review_date, review_sentence, sentiment, sentiment_word )	
+
+	FROM 
+	(
+		SELECT 	 
+			 s_store_name
+			,pr_review_date
+			,pr_review_content
+		
+		FROM 
+		(
+			  SELECT s_store_name
+			  FROM 	store s
+			  JOIN q18_store_coefficient c on  s.s_store_sk = c.cat
+			  WHERE  c.slope < 0 
+		) tmp
+		JOIN   product_reviews pr ON (true)
+		where instr(pr.pr_review_content,  tmp.s_store_name) >0
+
+	) foo
+)ss
+WHERE   ss.sentiment = 'NEG'
 ;
 
 
-DROP TABLE IF EXISTS q18_storeSentiments;
+
 
 
 

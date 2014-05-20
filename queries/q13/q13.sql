@@ -5,6 +5,15 @@ set hive.exec.compress.intermediate=${env:BIG_BENCH_hive_exec_compress_intermedi
 set mapred.map.output.compression.codec=${env:BIG_BENCH_mapred_map_output_compression_codec};
 set hive.exec.compress.output=${env:BIG_BENCH_hive_exec_compress_output};
 set mapred.output.compression.codec=${env:BIG_BENCH_mapred_output_compression_codec};
+set hive.default.fileformat=${env:BIG_BENCH_hive_default_fileformat};
+set hive.optimize.mapjoin.mapreduce=${env:BIG_BENCH_hive_optimize_mapjoin_mapreduce};
+set hive.optimize.bucketmapjoin=${env:BIG_BENCH_hive_optimize_bucketmapjoin};
+set hive.optimize.bucketmapjoin.sortedmerge=${env:BIG_BENCH_hive_optimize_bucketmapjoin_sortedmerge};
+set hive.auto.convert.join=${env:BIG_BENCH_hive_auto_convert_join};
+set hive.auto.convert.sortmerge.join=${env:BIG_BENCH_hive_auto_convert_sortmerge_join};
+set hive.auto.convert.sortmerge.join.noconditionaltask=${env:BIG_BENCH_hive_auto_convert_sortmerge_join_noconditionaltask};
+set hive.optimize.ppd=${env:BIG_BENCH_hive_optimize_ppd};
+set hive.optimize.index.filter=${env:BIG_BENCH_hive_optimize_index_filter};
 
 --display settings
 set hive.exec.parallel;
@@ -13,6 +22,13 @@ set hive.exec.compress.intermediate;
 set mapred.map.output.compression.codec;
 set hive.exec.compress.output;
 set mapred.output.compression.codec;
+set hive.default.fileformat;
+set hive.optimize.mapjoin.mapreduce;
+set hive.optimize.bucketmapjoin;
+set hive.optimize.bucketmapjoin.sortedmerge;
+set hive.auto.convert.join;
+set hive.auto.convert.sortmerge.join;
+set hive.auto.convert.sortmerge.join.noconditionaltask;
 
 -- Database
 use ${env:BIG_BENCH_HIVE_DATABASE};
@@ -26,27 +42,42 @@ set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:result
 
 
 
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.enforce.bucketing=true;
+set hive.enforce.sorting=true;
+set mapreduce.reduce.input.limit=-1;
+
 DROP TABLE IF EXISTS q13_customer_year_total;
 CREATE TABLE q13_customer_year_total
 (
-customer_id            STRING,
-customer_first_name    STRING,
-customer_last_name     STRING,
-year                   INT,
-year_total             DOUBLE,
-sale_type              STRING
-);
+ customer_id            STRING
+,customer_first_name    STRING
+,customer_last_name     STRING
+,year_total             DOUBLE
+,year                 INT
+,sale_type            STRING
+)
+--PARTITIONED BY  ( year 	INT, sale_type 	STRING)
+--CLUSTERED BY (customer_id )
+--SORTED BY  (customer_id )	
+--INTO 16 BUCKETS 
+--STORED AS ORC
+;
+
+
 
 
 
 --table contains the values of the intersection of customer table and store_sales tables values 
 --that meet the necessary requirements and whose year value is either 1999 or 2000
-INSERT INTO TABLE q13_customer_year_total
+INSERT INTO TABLE q13_customer_year_total 
+--PARTITION (year ,sale_type)
 	SELECT	c_customer_id	AS  customer_id,
 		c_first_name	AS  customer_first_name,
 		c_last_name	AS  customer_last_name,
-		d_year		AS  year,
 		sum(ss_net_paid)  AS  year_total,
+		d_year		AS  year,
 		's'  		AS sale_type
 	FROM customer c
 	INNER JOIN (
@@ -65,13 +96,14 @@ INSERT INTO TABLE q13_customer_year_total
 
 --table contains the values of the intersection of customer table and web_sales tables values that 
 --meet the necessary requirements and whose year value is either 1999 or 2000
-INSERT INTO TABLE q13_customer_year_total
+INSERT INTO TABLE q13_customer_year_total 
+--PARTITION (year ,sale_type)
 	SELECT 	c_customer_id  AS  customer_id,
 		c_first_name   AS  customer_first_name,
 		c_last_name    AS  customer_last_name,
-		d_year         AS  year,
 		sum(ws_net_paid)  AS  year_total,
-		'w'  AS sale_type
+		d_year         AS  year,
+		'w'  	       AS sale_type
 	FROM customer c
 	INNER JOIN (
 			SELECT ws_bill_customer_sk, ws_net_paid, dd.d_year 
@@ -88,32 +120,32 @@ INSERT INTO TABLE q13_customer_year_total
 
 
 ---Set up views required for self joins ----------------------------------------------------------------------
-DROP VIEW IF EXISTS q13_t_s_firstyear;
-DROP VIEW IF EXISTS q13_t_s_secyear;
-DROP VIEW IF EXISTS q13_t_w_firstyear;
-DROP VIEW IF EXISTS q13_t_w_secyear;
+--DROP VIEW IF EXISTS q13_t_s_firstyear;
+--DROP VIEW IF EXISTS q13_t_s_secyear;
+--DROP VIEW IF EXISTS q13_t_w_firstyear;
+--DROP VIEW IF EXISTS q13_t_w_secyear;
 
-CREATE VIEW IF NOT EXISTS q13_t_s_firstyear AS
-SELECT * FROM q13_customer_year_total;
+--CREATE VIEW IF NOT EXISTS q13_t_s_firstyear AS
+--SELECT * FROM q13_customer_year_total;
 
-CREATE VIEW IF NOT EXISTS q13_t_s_secyear AS
-SELECT * FROM q13_customer_year_total;
+--CREATE VIEW IF NOT EXISTS q13_t_s_secyear AS
+--SELECT * FROM q13_customer_year_total;
 
-CREATE VIEW IF NOT EXISTS q13_t_w_firstyear AS
-SELECT * FROM q13_customer_year_total;
+--CREATE VIEW IF NOT EXISTS q13_t_w_firstyear AS
+--SELECT * FROM q13_customer_year_total;
 
-CREATE VIEW IF NOT EXISTS q13_t_w_secyear AS
-SELECT * FROM q13_customer_year_total;
+--CREATE VIEW IF NOT EXISTS q13_t_w_secyear AS
+--SELECT * FROM q13_customer_year_total;
 
 --Result  --------------------------------------------------------------------		
---kepp result human readable
+--keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;	
---CREATE RESULT TABLE. Store query result externaly in output_dir/qXXresult/
+--CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:resultTableName};
 CREATE TABLE ${hiveconf:resultTableName}
 	ROW FORMAT DELIMITED FIELDS TERMINATED BY ','	LINES TERMINATED BY '\n'
-	STORED AS TEXTFILE LOCATION '${hiveconf:resultFile}' 
+	STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:resultFile}' 
 AS
 -- the real query part
 SELECT
@@ -127,19 +159,16 @@ SELECT
     THEN ts_s.year_total / ts_f.year_total
   ELSE null END
 
-FROM
---  TODO if self joins finally work in hive, use this:
---  q13_customer_year_total  ts_f,
---  q13_customer_year_total ts_s ,
---  q13_customer_year_total tw_f ,
---  q13_customer_year_total q13_t_w_secyear
+FROM  		q13_customer_year_total ts_f
+  INNER JOIN 	q13_customer_year_total ts_s ON ts_f.customer_id = ts_s.customer_id
+  INNER JOIN 	q13_customer_year_total tw_f ON ts_f.customer_id = tw_f.customer_id
+  INNER JOIN 	q13_customer_year_total tw_s ON ts_f.customer_id = tw_s.customer_id 	
+--  q13_t_s_firstyear ts_f
+--  INNER JOIN q13_t_s_secyear   ts_s ON ts_f.customer_id = ts_s.customer_id
+--  INNER JOIN q13_t_w_firstyear tw_f ON ts_f.customer_id = tw_f.customer_id
+--  INNER JOIN q13_t_w_secyear   tw_s ON ts_f.customer_id = tw_s.customer_id 	
 
-  q13_t_s_firstyear ts_f
-  INNER JOIN q13_t_s_secyear   ts_s ON ts_f.customer_id = ts_s.customer_id
-  INNER JOIN q13_t_w_firstyear tw_f ON ts_f.customer_id = tw_f.customer_id
-  INNER JOIN q13_t_w_secyear   tw_s ON ts_f.customer_id = tw_s.customer_id 	
-
-WHERE ts_s.customer_id =  ts_f.customer_id
+WHERE ts_s.customer_id = ts_f.customer_id
   AND ts_f.customer_id = tw_s.customer_id
   AND ts_f.customer_id = tw_f.customer_id
   AND ts_f.sale_type   = 's'
@@ -161,7 +190,7 @@ LIMIT 100;
 
 --cleanup -----------------------------------------------------------
 DROP TABLE IF EXISTS q13_customer_year_total;
-DROP VIEW IF EXISTS q13_t_s_firstyear;
-DROP VIEW IF EXISTS q13_t_s_secyear;
-DROP VIEW IF EXISTS q13_t_w_firstyear;
-DROP VIEW IF EXISTS q13_t_w_secyear;
+--DROP VIEW IF EXISTS q13_t_s_firstyear;
+--DROP VIEW IF EXISTS q13_t_s_secyear;
+--DROP VIEW IF EXISTS q13_t_w_firstyear;
+--DROP VIEW IF EXISTS q13_t_w_secyear;

@@ -5,6 +5,15 @@ set hive.exec.compress.intermediate=${env:BIG_BENCH_hive_exec_compress_intermedi
 set mapred.map.output.compression.codec=${env:BIG_BENCH_mapred_map_output_compression_codec};
 set hive.exec.compress.output=${env:BIG_BENCH_hive_exec_compress_output};
 set mapred.output.compression.codec=${env:BIG_BENCH_mapred_output_compression_codec};
+set hive.default.fileformat=${env:BIG_BENCH_hive_default_fileformat};
+set hive.optimize.mapjoin.mapreduce=${env:BIG_BENCH_hive_optimize_mapjoin_mapreduce};
+set hive.optimize.bucketmapjoin=${env:BIG_BENCH_hive_optimize_bucketmapjoin};
+set hive.optimize.bucketmapjoin.sortedmerge=${env:BIG_BENCH_hive_optimize_bucketmapjoin_sortedmerge};
+set hive.auto.convert.join=${env:BIG_BENCH_hive_auto_convert_join};
+set hive.auto.convert.sortmerge.join=${env:BIG_BENCH_hive_auto_convert_sortmerge_join};
+set hive.auto.convert.sortmerge.join.noconditionaltask=${env:BIG_BENCH_hive_auto_convert_sortmerge_join_noconditionaltask};
+set hive.optimize.ppd=${env:BIG_BENCH_hive_optimize_ppd};
+set hive.optimize.index.filter=${env:BIG_BENCH_hive_optimize_index_filter};
 
 --display settings
 set hive.exec.parallel;
@@ -13,6 +22,13 @@ set hive.exec.compress.intermediate;
 set mapred.map.output.compression.codec;
 set hive.exec.compress.output;
 set mapred.output.compression.codec;
+set hive.default.fileformat;
+set hive.optimize.mapjoin.mapreduce;
+set hive.optimize.bucketmapjoin;
+set hive.optimize.bucketmapjoin.sortedmerge;
+set hive.auto.convert.join;
+set hive.auto.convert.sortmerge.join;
+set hive.auto.convert.sortmerge.join.noconditionaltask;
 
 -- Database
 use ${env:BIG_BENCH_HIVE_DATABASE};
@@ -28,15 +44,15 @@ set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:result
 
 
 
---CREATE RESULT TABLE. Store query result externaly in output_dir/qXXresult/
+--CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 --Result  --------------------------------------------------------------------		
---kepp result human readable
+--keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;	
 DROP TABLE IF EXISTS ${hiveconf:resultTableName};
 CREATE TABLE ${hiveconf:resultTableName}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
-STORED AS TEXTFILE LOCATION '${hiveconf:resultFile}' 
+STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:resultFile}' 
 AS
 -- the real query part
 SELECT w_state, i_item_id,
@@ -50,9 +66,9 @@ SELECT w_state, i_item_id,
            ELSE 0.0 END) as sales_after
   FROM (
 	SELECT * 
-	FROM web_sales ws LEFT OUTER JOIN web_returns wr ON
-			(ws.ws_order_number = wr.wr_order_number
-			AND ws.ws_item_sk = wr.wr_item_sk)
+	FROM web_sales ws 
+	LEFT OUTER JOIN web_returns wr 	ON (ws.ws_order_number = wr.wr_order_number
+		  			AND ws.ws_item_sk = wr.wr_item_sk)
   ) a1
   JOIN item i ON a1.ws_item_sk = i.i_item_sk
   JOIN warehouse w ON a1.ws_warehouse_sk = w.w_warehouse_sk

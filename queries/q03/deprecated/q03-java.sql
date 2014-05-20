@@ -26,7 +26,7 @@ set QUERY_NUM=q03;
 set resultTableName=${hiveconf:QUERY_NUM}result;
 set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
 
---CREATE RESULT TABLE. Store query result externaly in output_dir/qXXresult/
+--CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:resultTableName};
 CREATE TABLE ${hiveconf:resultTableName}
 ROW FORMAT
@@ -35,7 +35,7 @@ LINES TERMINATED BY '\n'
 STORED AS TEXTFILE
 LOCATION '${hiveconf:resultFile}' 
 AS
--- Beginn: the real query part
+-- Begin: the real query part
 SELECT lastviewed_item, purchased_item, count(*) FROM (
         FROM 
 	(	SELECT 

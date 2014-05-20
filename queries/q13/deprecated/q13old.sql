@@ -159,16 +159,17 @@ CREATE TABLE IF NOT EXISTS t_w_secyear AS
 SELECT * FROM q74_customer_year_total_880;
 -------------------------------------------------------------------------------
 
---CREATE RESULT TABLE. Store query result externaly in output_dir/qXXresult/
+--Result  --------------------------------------------------------------------		
+--keep result human readable
+set hive.exec.compress.output=false;
+set hive.exec.compress.output;	
+
 DROP TABLE IF EXISTS ${hiveconf:resultTableName};
 CREATE TABLE ${hiveconf:resultTableName}
-ROW FORMAT
-DELIMITED FIELDS TERMINATED BY ','
-LINES TERMINATED BY '\n'
-STORED AS TEXTFILE
-LOCATION '${hiveconf:resultFile}' 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
+STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table}  LOCATION '${hiveconf:resultFile}' 
 AS
--- Beginn: the real query part
+-- Begin: the real query part
 SELECT
   ts_s.customer_id,
   ts_s.customer_first_name,
