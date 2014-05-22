@@ -42,23 +42,36 @@ export BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$BIG_BENC
 ## HIVE (recommended version v0.12)
 ## ==========================
 export BIG_BENCH_HIVE_DATABASE="bigbenchORC"
-export BIG_BENCH_hive_exec_parallel="false"	## still considered unstable, may work on your cluster
-export BIG_BENCH_hive_exec_parallel_thread_number="8"
-export BIG_BENCH_hive_exec_compress_intermediate="true"
-export BIG_BENCH_mapred_map_output_compression_codec="org.apache.hadoop.io.compress.SnappyCodec"
-export BIG_BENCH_hive_exec_compress_output="true"
-export BIG_BENCH_mapred_output_compression_codec="org.apache.hadoop.io.compress.SnappyCodec"
 
-export BIG_BENCH_hive_optimize_mapjoin_mapreduce="true";
-export BIG_BENCH_hive_optimize_bucketmapjoin="true";
-export BIG_BENCH_hive_optimize_bucketmapjoin_sortedmerge="true";
-export BIG_BENCH_hive_auto_convert_join="true";
-export BIG_BENCH_hive_auto_convert_sortmerge_join="true";
-export BIG_BENCH_hive_auto_convert_sortmerge_join_noconditionaltask="true";
-export BIG_BENCH_hive_default_fileformat="ORC";
-export BIG_BENCH_hive_default_fileformat_result_table="TEXTFILE";
-export BIG_BENCH_hive_optimize_index_filter="true";
-export BIG_BENCH_hive_optimize_ppd="true";
+## IMPORTANT
+## All following 'BIG_BENCH_hive' options are disabled in the queries because:
+## hive optimizations are still unstable. e.g hive.optimize.ppd failes for COUNT(*) in conjunction with ORC file format in Hive v.0.12.0 for q14 and q21
+## exec.parallel also is still considered unstable by the hive dev team 
+## some of these options MAY work on your cluster. You can turn them on in your hive-site.xml.
+## If you do not want to or cannot changes these settings cluster globally, here is what you can do:
+##   un-comment all '##export BIG_BENCH..' entry in this file. Then find-replace the string '--set' with 'set' in all hive query files with this command:
+##   find "${BIG_BENCH_QUERIES_DIR}"/ -name "*.sql" -print | xargs sed -i 's/--set/set/g'
+
+##export BIG_BENCH_hive_exec_parallel="false"			## still considered unstable, may work on your cluster
+##export BIG_BENCH_hive_exec_parallel_thread_number="8"
+
+## Intermediate and Ouput table options
+##export BIG_BENCH_hive_default_fileformat="ORC"
+##export BIG_BENCH_hive_default_fileformat_result_table="TEXTFILE"
+##export BIG_BENCH_hive_exec_compress_intermediate="true"		## if your cluser has a good network you may set this to false
+##export BIG_BENCH_mapred_map_output_compression_codec="org.apache.hadoop.io.compress.SnappyCodec"
+##export BIG_BENCH_hive_exec_compress_output="true"		## most queries override this to false to keep the result human readable
+##export BIG_BENCH_mapred_output_compression_codec="org.apache.hadoop.io.compress.SnappyCodec"
+
+## Optimizations
+##export BIG_BENCH_hive_optimize_mapjoin_mapreduce="true"
+##export BIG_BENCH_hive_optimize_bucketmapjoin="true"
+##export BIG_BENCH_hive_optimize_bucketmapjoin_sortedmerge="true"
+##export BIG_BENCH_hive_auto_convert_join="true"			##may produces map-joins, which fail if not enough memory is available for the job
+##export BIG_BENCH_hive_auto_convert_sortmerge_join="true"
+##export BIG_BENCH_hive_auto_convert_sortmerge_join_noconditionaltask="true"
+##export BIG_BENCH_hive_optimize_index_filter="true"
+##export BIG_BENCH_hive_optimize_ppd="false"			##predicate push down for ORC tables fails on 0.12.0 
 
 
 ## ================================================================
