@@ -17,8 +17,8 @@ BIG_BENCH_SSH_OPTIONS=""					   ## you want to make sure that you can reach all 
 ## ==========================
 ## HADOOP environment
 ## ==========================
-export BIG_BENCH_HIVE_LIBS="/usr/lib/hive/lib"                      ##especialy location of: hive-contrib.jar;
-export BIG_BENCH_HADOOP_LIBS="/usr/lib/hadoop/client"		        ##especialy location of: hadoop-hdfs.jar;
+export BIG_BENCH_HIVE_LIBS="/usr/lib/hive/lib"                      	##especially location of: hive-contrib.jar;
+export BIG_BENCH_HADOOP_LIBS="/usr/lib/hadoop/client"		        ##especially location of: hadoop-hdfs.jar;
 export BIG_BENCH_HADOOP_LIBS_NATIVE="/usr/lib/hadoop/lib/native"
 export BIG_BENCH_HADOOP_CONF="/etc/hadoop/conf.cloudera.hdfs"       ##folder containing the cluster setup *-site.xml files like core-site.xml 
 
@@ -42,14 +42,15 @@ export BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$BIG_BENC
 ## HIVE (recommended version v0.12)
 ## ==========================
 export BIG_BENCH_HIVE_DATABASE="bigbenchORC"
+export BIG_BENCH_hive_default_fileformat_result_table="TEXTFILE"
 
 ## IMPORTANT
 ## All following 'BIG_BENCH_hive' options are disabled in the queries because:
 ## hive optimizations are still unstable. e.g hive.optimize.ppd failes for COUNT(*) in conjunction with ORC file format in Hive v.0.12.0 for q14 and q21
-## exec.parallel also is still considered unstable by the hive dev team 
-## some of these options MAY work on your cluster. You can turn them on in your hive-site.xml.
+## exec.parallel also is still considered unstable 
+## some of these options MAY work on your cluster and you can turn them on in your hive-site.xml.
 ## If you do not want to or cannot changes these settings cluster globally, here is what you can do:
-##   un-comment all '##export BIG_BENCH..' entry in this file. Then find-replace the string '--set' with 'set' in all hive query files with this command:
+##   un-comment all '##export BIG_BENCH..' entrys in this file. Then find-replace the string '--set' with 'set' in all hive query files with this command:
 ##   find "${BIG_BENCH_QUERIES_DIR}"/ -name "*.sql" -print | xargs sed -i 's/--set/set/g'
 
 ##export BIG_BENCH_hive_exec_parallel="false"			## still considered unstable, may work on your cluster
@@ -57,7 +58,6 @@ export BIG_BENCH_HIVE_DATABASE="bigbenchORC"
 
 ## Intermediate and Ouput table options
 ##export BIG_BENCH_hive_default_fileformat="ORC"
-##export BIG_BENCH_hive_default_fileformat_result_table="TEXTFILE"
 ##export BIG_BENCH_hive_exec_compress_intermediate="true"		## if your cluser has a good network you may set this to false
 ##export BIG_BENCH_mapred_map_output_compression_codec="org.apache.hadoop.io.compress.SnappyCodec"
 ##export BIG_BENCH_hive_exec_compress_output="true"		## most queries override this to false to keep the result human readable
