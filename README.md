@@ -201,10 +201,10 @@ suspect something went wrong? the bigBenchRunQuery.sh and bigBenchRunQueries.sh 
 
 `$BIG_BENCH_LOGS_DIR`
 
-`$BIG_BENCH_BASH_SCRIPT_DIR/showQueryErrors.sh`
+`$BIG_BENCH_BASH_SCRIPT_DIR/showErrors.sh`
 (searches in all logs/q??.log files for error strings)
 
-`$BIG_BENCH_BASH_SCRIPT_DIR/showQueryErrors.sh <query num>` 
+`$BIG_BENCH_BASH_SCRIPT_DIR/showErrors.sh <query num>` 
 (searches only in query specific log file for error strings)
 
 something went terrible wrong? want to abort all jobs?
