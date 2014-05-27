@@ -88,7 +88,7 @@ if [ $# -lt 1 ] || [ $1 -eq 3 ] ; then
 	echo "output: hdfs://"$HDFS_RESULT_FILE
 	echo "-------------------------"
 
-	mahout runlogistic --input "$TMP_LOG_REG_IN_FILE" --model "$TMP_LOG_REG_MODEL_FILE" --auc --confusion --quiet  2>/dev/null | grep -A 3 "AUC =" | hadoop fs -copyFromLocal - "$HDFS_RESULT_FILE"
+	mahout runlogistic --input "$TMP_LOG_REG_IN_FILE" --model "$TMP_LOG_REG_MODEL_FILE" --auc --confusion --quiet  2>/dev/null | grep -A 3 "AUC =" | hadoop fs -copyFromLocal -f - "$HDFS_RESULT_FILE"
 
 
 	echo "-------------------------"

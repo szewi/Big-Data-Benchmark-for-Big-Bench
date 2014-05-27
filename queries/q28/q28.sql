@@ -53,18 +53,19 @@ CREATE TABLE q28t_training
        LOCATION '${hiveconf:MH_TMP_DIR}'
 
 AS
-SELECT -- pr_review_sk,
-    (case pr_review_rating
-        when 1 then 'NEG' 
-        when 2 then 'NEG'
-        when 3 then 'NEU'
-        when 4 then 'POS'
-        when 5 then 'POS'
-    end) AS pr_rating,
---    pr_item_sk,
+SELECT  pr_review_sk,
+	CASE pr_review_rating
+		when 1 then 'NEG' 
+		when 2 then 'NEG'
+		when 3 then 'NEU'
+		when 4 then 'POS'
+		when 5 then 'POS'
+    	END AS pr_rating,
     pr_review_content
-    from product_reviews
-    where pmod(pr_review_sk, 5) in (1,2,3);
+FROM product_reviews
+WHERE pmod(pr_review_sk, 5) IN (1,2,3)
+--limit 10000
+;
 
 
 --Result 2 Testing table for mahout --------------------------------------------------------------------		
@@ -80,17 +81,18 @@ CREATE TABLE q28_testing
 	--STORED AS SEQUENCEFILE 
        LOCATION '${hiveconf:MH_TMP_DIR}2'
 AS
-SELECT -- pr_review_sk,
-    (case pr_review_rating
-        when 1 then 'NEG' 
-        when 2 then 'NEG'
-        when 3 then 'NEU'
-        when 4 then 'POS'
-        when 5 then 'POS'
-    end) AS pr_rating,
-  --  pr_item_sk,
+SELECT  pr_review_sk,
+	CASE pr_review_rating
+		when 1 then 'NEG' 
+		when 2 then 'NEG'
+		when 3 then 'NEU'
+		when 4 then 'POS'
+		when 5 then 'POS'
+    	END AS pr_rating,
     pr_review_content
-    from product_reviews
-    where pmod(pr_review_sk, 5) in (0,4);
+FROM product_reviews
+WHERE pmod(pr_review_sk, 5) in (0,4)
+--limit 10000
+;
 
 
