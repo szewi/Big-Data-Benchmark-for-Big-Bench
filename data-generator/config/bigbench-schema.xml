@@ -3,6 +3,10 @@
  <seed>12456789</seed>
  <rng name="PdgfDefaultRandom"></rng>
  <property name="${SF}" type="double">1</property>
+ <property name="${SF_log_1.5}" type="double">Math.log(${SF}) / Math.log(1.5d) + 1.0d</property>
+ <property name="${SF_log_5}" type="double">(Math.log(${SF}) / Math.log(5.0d) + 1.0d)</property>
+ <property name="${SF_sqrt}" type="double">Math.sqrt(${SF})</property>
+ <property name="${SF_linear}" type="double">${SF} * (2.0d - (${SF_log_5} * ${SF_sqrt} / ${SF}))</property>
 
  <!-- Table customer               columns: 18 dimension table -->
  <!-- Table customer_address       columns: 13 dimension table -->
@@ -39,7 +43,7 @@
 
  <property name="${anonymous_reviews_per_item}" type="double">5</property>
  <property name="${reviews_per_user}" type="double">0.2</property>
- <property name="${reviews_per_sale}" type="double">0.15</property>
+ <property name="${reviews_per_sale}" type="double">0.01</property>
 
  <property name="${pages_per_item}" type="double">4</property>
  <property name="${pages_to_buy}" type="double">4</property>
@@ -285,6 +289,19 @@
  <property name="${single_likelihood}" type="double">0.2</property>
  <property name="${widowed_likelihood}" type="double">0.2</property>
  
+ <!-- income_band -->
+ <property name="${income_band_stepsize}" type="double">10000</property>
+ 
+ <!-- inventory -->
+ <property name="${inventory_begin_date}" type="datetime">2001-01-01 00:00:00</property>
+ <property name="${inventory_end_date}" type="datetime">2006-01-02 00:00:00</property>
+ <property name="${inventory_weeks}" type="long">(${inventory_end_date} - ${inventory_begin_date}) / ${one_day_in_milliseconds} / 7</property>
+ <property name="${inventory_days_since_date_begin_date}" type="long">(${inventory_begin_date} - ${date_begin_date}) / ${one_day_in_milliseconds}</property>
+ 
+ <!-- item -->
+ <property name="${item_begin_date}" type="datetime">2000-01-03 00:00:00</property>
+ <property name="${item_end_date}" type="datetime">2004-01-05 00:00:00</property>
+ 
  <!-- promotion -->
  <property name="${dmail_likelihood}" type="double">0.5</property>
  <property name="${email_likelihood}" type="double">0.1</property>
@@ -296,6 +313,21 @@
  <property name="${demo_likelihood}" type="double">0.1</property>
  <property name="${discount_active_likelihood}" type="double">0.1</property>
  
+ <!-- store -->
+ <property name="${store_begin_date}" type="datetime">2000-01-03 00:00:00</property>
+ <property name="${store_end_date}" type="datetime">2004-01-05 00:00:00</property>
+ 
+ <!-- store_returns -->
+ <property name="${return_store_sale_likelihood}" type="double">0.1</property>
+ <property name="${SR_SAME_CUSTOMER}" type="double">0.8</property>
+ 
+ <!-- store_sales -->
+ <property name="${store_sales_begin_date}" type="datetime">2001-01-01 00:00:00</property>
+ <property name="${store_sales_end_date}" type="datetime">2006-01-02 00:00:00</property>
+ <property name="${store_sales_days_since_date_begin_date}" type="long">(${store_sales_begin_date} - ${date_begin_date}) / ${one_day_in_milliseconds}</property>
+ <property name="${store_sales_days_within}" type="long">(${store_sales_end_date} - ${store_sales_begin_date}) / ${one_day_in_milliseconds}</property>
+ <property name="${SS_ITEMS_PER_ORDER}" type="double">9</property>
+ 
  <!-- web_clickstreams -->
  <property name="${visitor_likelihood}" type="double">0.8</property>
  <property name="${visitor_known_likelihood}" type="double">0.5</property>
@@ -303,43 +335,43 @@
  <property name="${mean_clicks_per_buyer}" type="double">4</property>
  <property name="${clickstreams_chunksize}" type="double">5</property>
  
- <!-- income_band -->
- <property name="${income_band_stepsize}" type="double">10000</property>
- 
- <!-- store_sales -->
- <property name="${SS_ITEMS_PER_ORDER}" type="double">9</property>
+ <!-- web_page -->
+ <property name="${web_page_begin_date}" type="datetime">2000-01-03 00:00:00</property>
+ <property name="${web_page_end_date}" type="datetime">2004-01-05 00:00:00</property>
  
  <!-- web_returns -->
  <property name="${return_web_sale_likelihood}" type="double">0.1</property>
  
- <!-- store_returns -->
- <property name="${return_store_sale_likelihood}" type="double">0.1</property>
- <property name="${SR_SAME_CUSTOMER}" type="double">0.8</property>
+ <!-- web_sales -->
+ <property name="${web_sales_begin_date}" type="datetime">2001-01-01 00:00:00</property>
+ <property name="${web_sales_end_date}" type="datetime">2006-01-02 00:00:00</property>
+ <property name="${web_sales_days_since_date_begin_date}" type="long">(${web_sales_begin_date} - ${date_begin_date}) / ${one_day_in_milliseconds}</property>
+ <property name="${web_sales_days_within}" type="long">(${web_sales_end_date} - ${web_sales_begin_date}) / ${one_day_in_milliseconds}</property>
  
  <!-- table sizes formulas -->
- <property name="${customer_size}" type="long">100000 * ${SF}</property>
- <property name="${customer_address_size}" type="long">50000 * ${SF}</property>
- <property name="${customer_demographics_size}" type="long">1920800 * ${SF}</property>
+ <property name="${customer_size}" type="long">100000.0d * ${SF_sqrt}</property>
+ <property name="${customer_address_size}" type="long">${customer_size} / 2</property>
+ <property name="${customer_demographics_size}" type="long">1920800</property>
  <property name="${date_dim_size}" type="long">(${date_end_date} - ${date_begin_date}) / ${one_day_in_milliseconds}</property>
- <property name="${dbgen_version_size}" type="long">1 * ${SF}</property>
- <property name="${household_demographics_size}" type="long">7200 * ${SF}</property>
+ <property name="${household_demographics_size}" type="long">7200</property>
  <property name="${income_band_size}" type="long">20</property>
- <property name="${inventory_size}" type="long">11745000 * ${SF}</property>
- <property name="${item_size}" type="long">18000 * ${SF}</property>
- <property name="${item_marketprices_size}" type="long">${item_size} * ${avg_competitors_per_item} * ${SF}</property>
- <property name="${promotion_size}" type="long">300 * ${SF}</property>
- <property name="${reason_size}" type="long">35 * ${SF}</property>
- <property name="${ship_mode_size}" type="long">20 * ${SF}</property>
- <property name="${store_size}" type="long">12 * ${SF}</property>
- <property name="${store_sales_size}" type="long">2880404 * ${SF}</property>
+ <property name="${item_size}" type="long">18000.0d * ${SF_sqrt}</property>
+ <property name="${item_marketprices_size}" type="long">${item_size} * ${avg_competitors_per_item}</property>
+ <property name="${promotion_size}" type="long">300 * ${SF_log_1.5}</property>
+ <property name="${reason_size}" type="long">35 * ${SF_log_1.5}</property>
+ <property name="${ship_mode_size}" type="long">20</property>
+ <property name="${store_size}" type="long">12 * ${SF_sqrt}</property>
+ <property name="${store_sales_size}" type="long">90000.0d * ${SF_linear}</property>
  <property name="${store_returns_size}" type="long">${return_store_sale_likelihood} * ${store_sales_size}</property>
- <property name="${time_dim_size}" type="long">${one_day_in_milliseconds} / 1000.0</property>
- <property name="${warehouse_size}" type="long">5 * ${SF}</property>
- <property name="${web_page_size}" type="long">60 * ${SF}</property>
- <property name="${web_sales_size}" type="long">719384 * ${SF}</property>
+ <property name="${time_dim_size}" type="long">${one_day_in_milliseconds} / 1000</property>
+ <property name="${warehouse_size}" type="long">5.0d * ${SF_log_5}</property>
+ <property name="${inventory_size}" type="long">${inventory_weeks} * ${item_size} * ${warehouse_size}</property>
+ <property name="${web_page_size}" type="long">60 * ${SF_log_1.5}</property>
+ <property name="${web_sales_size}" type="long">90000.0d * ${SF_linear}</property>
  <property name="${web_returns_size}" type="long">${return_web_sale_likelihood} * ${web_sales_size}</property>
- <property name="${web_site_size}" type="long">30 * ${SF}</property>
- <property name="${product_reviews_size}" type="long">(${item_size} * ${anonymous_reviews_per_item}) + (${customer_size} * ${reviews_per_user}) + (${web_sales_size} * ${reviews_per_sale}) * ${SF}</property>
+ <property name="${web_site_size}" type="long">30</property>
+ <!--<property name="${product_reviews_size}" type="long">(${item_size} * ${anonymous_reviews_per_item}) + (${customer_size} * ${reviews_per_user}) + (${web_sales_size} * ${reviews_per_sale}) * ${SF}</property>-->
+ <property name="${product_reviews_size}" type="long">(${item_size} * ${anonymous_reviews_per_item}) + (${web_sales_size} * ${reviews_per_sale})</property>
  <!--<property name="${web_clickstreams_size}" type="double">(${web_sales_size} * (${pages_per_item} + (${pages_to_buy} / ${items_per_cart}))) + (${web_sales_size} * ${buy_ratio} * ${pages_per_item}) * ${SF}</property>-->
  <property name="${web_clickstreams_size}" type="long">${clickstreams_chunksize} * ${web_sales_size}</property>
 
@@ -947,55 +979,6 @@
  </table>
  
  
- <!-- currently not touched by queries -->
- <table name="dbgen_version">
-  <size>${dbgen_version_size}</size>
-  
-  <field name="dv_version" size="16" type="VARCHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>16.0</max>
-    </gen_RandomAString>    
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="dv_create_date" size="13" type="DATE" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_DateTimeGenerator>
-     <useFixedStepSize>true</useFixedStepSize>
-     <inputFormat>yyyy-MM-dd</inputFormat>
-     <startDate>2014-01-09</startDate>
-     <endDate>2014-01-10</endDate>
-     <outputFormat>yyyy-MM-dd</outputFormat>
-    </gen_DateTimeGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- decimalSize="15,6"-->
-  <field name="dv_create_time" size="15" type="TIME" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_DateTimeGenerator>
-     <useFixedStepSize>true</useFixedStepSize>
-     <inputFormat>HH:mm:ss</inputFormat>
-     <startDate>18:32:50</startDate>
-     <endDate>18:32:51</endDate>
-     <outputFormat>HH:mm:ss</outputFormat>
-    </gen_DateTimeGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="dv_cmdline_args" size="200" type="VARCHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>200.0</max>
-    </gen_RandomAString>
-   </gen_NullGenerator>
-  </field>
- </table>
- 
- 
  <!-- Each row of this table defines a household demographic profile -->
  <table name="household_demographics">
   <size>${household_demographics_size}</size>
@@ -1075,25 +1058,43 @@
   <!-- used by Q22, Q23 -->
   <!-- FK d_date_sk -->
   <field name="inv_date_sk" size="19" type="BIGINT" primary="true">
+   <gen_FormulaGenerator>
+    <formula>((long) gc.getID() / (long) ${item_size} / (long) ${warehouse_size}) * 7 + (long) ${inventory_days_since_date_begin_date}</formula>
+    <decimalPlaces>0</decimalPlaces>
+   </gen_FormulaGenerator>
+   <!--
    <gen_ReferenceGenerator choose="random" from="historical">
     <reference table="date_dim" field="d_date_sk" />
    </gen_ReferenceGenerator>
+   -->
   </field>
   
   <!-- used by Q22, Q23 -->
   <!-- FK i_item_sk -->
   <field name="inv_item_sk" size="19" type="BIGINT" primary="true">
+   <gen_FormulaGenerator>
+    <formula>(long) gc.getID() % (long) ${item_size}</formula>
+    <decimalPlaces>0</decimalPlaces>
+   </gen_FormulaGenerator>
+   <!--
    <gen_ReferenceGenerator choose="random" from="historical">
     <reference table="item" field="i_item_sk" />
    </gen_ReferenceGenerator>
+   -->
   </field>
   
   <!-- used by Q22, Q23 -->
   <!-- FK w_warehouse_sk -->
   <field name="inv_warehouse_sk" size="19" type="BIGINT" primary="true">
+   <gen_FormulaGenerator>
+    <formula>((long) gc.getID() / (long) ${item_size}) % (long) ${warehouse_size}</formula>
+    <decimalPlaces>0</decimalPlaces>
+   </gen_FormulaGenerator>
+   <!--
    <gen_ReferenceGenerator choose="random" from="historical">
     <reference table="warehouse" field="w_warehouse_sk" />
    </gen_ReferenceGenerator>
+   -->
   </field>
   
   <!-- used by Q22, Q23 -->
@@ -1127,18 +1128,22 @@
   </field>
   
   <field name="i_rec_start_date" size="13" type="DATE" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
+   <!--<gen_NullGenerator probability="${NULL_CHANCE}">-->
     <gen_DateTimeGenerator>
      <useFixedStepSize>true</useFixedStepSize>
-     <inputFormat>yyyy-MM-dd</inputFormat>
-     <startDate>1997-10-27</startDate>
-     <endDate>2001-10-27</endDate>
+     <startDate>${item_begin_date}</startDate>
+     <endDate>${inventory_begin_date}</endDate>
      <outputFormat>yyyy-MM-dd</outputFormat>
     </gen_DateTimeGenerator>
-   </gen_NullGenerator>
+   <!--</gen_NullGenerator>-->
   </field>
   
   <field name="i_rec_end_date" size="13" type="DATE" primary="false">
+   <!-- all pages are active for the moment => NULL -->
+   <gen_StaticValueGenerator>
+    <value></value>
+   </gen_StaticValueGenerator>
+   <!--
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_IFGenerator>
      <if>generator[0] == null</if>
@@ -1164,6 +1169,7 @@
      </else>
     </gen_IFGenerator>
    </gen_NullGenerator>
+   -->
   </field>
   
   <!-- used by Q21 -->
@@ -1796,18 +1802,22 @@
   </field>
   
   <field name="s_rec_start_date" size="13" type="DATE" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
+   <!--<gen_NullGenerator probability="${NULL_CHANCE}">-->
     <gen_DateTimeGenerator>
      <useFixedStepSize>true</useFixedStepSize>
-     <inputFormat>yyyy-MM-dd</inputFormat>
-     <startDate>1997-03-13</startDate>
-     <endDate>2001-03-13</endDate>
+     <startDate>${store_begin_date}</startDate>
+     <endDate>${store_sales_begin_date}</endDate>
      <outputFormat>yyyy-MM-dd</outputFormat>
     </gen_DateTimeGenerator>
-   </gen_NullGenerator>
+   <!--</gen_NullGenerator>-->
   </field>
   
   <field name="s_rec_end_date" size="13" type="DATE" primary="false">
+   <!-- all pages are active for the moment => NULL -->
+   <gen_StaticValueGenerator>
+    <value></value>
+   </gen_StaticValueGenerator>
+   <!--
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_IFGenerator>
      <if>generator[0] == null</if>
@@ -1833,6 +1843,7 @@
      </else>
     </gen_IFGenerator>
    </gen_NullGenerator>
+   -->
   </field>
   
   <!-- FK d_date_sk -->
@@ -2399,9 +2410,10 @@
   <!-- used by Q6, Q7, Q9, Q12, Q13, Q15, Q17, Q18, Q20, Q21, Q24, Q25 -->
   <!-- FK d_date_sk -->
   <field name="ss_sold_date_sk" size="19" type="BIGINT" primary="false">
-   <gen_RelativeGenerator sourceSize="${store_sales_size}" targetSize="${date_dim_size}">
-    <gen_IdGenerator />
-   </gen_RelativeGenerator>
+   <gen_FormulaGenerator>
+    <formula>${store_sales_days_since_date_begin_date} + Math.floor(gc.getID() * ((${store_sales_days_within} - 1) / ${store_sales_size}))</formula>
+    <decimalPlaces>0</decimalPlaces>
+   </gen_FormulaGenerator>
   </field>
   <!--
   <field name="ss_sold_date_sk" size="19" type="BIGINT" primary="false">
@@ -3003,9 +3015,10 @@
       </i>
       <do>
        <gen_NullGenerator probability="${NULL_CHANCE}">
-        <gen_RelativeGenerator sourceSize="${web_clickstreams_size}" targetSize="${date_dim_size}">
-         <gen_IdGenerator />
-        </gen_RelativeGenerator>
+        <gen_FormulaGenerator>
+         <formula>${web_sales_days_since_date_begin_date} + Math.floor(gc.getID() * ((${web_sales_days_within} - 1) / ${web_clickstreams_size}))</formula>
+         <decimalPlaces>0</decimalPlaces>
+        </gen_FormulaGenerator>
        </gen_NullGenerator>
       </do>
      </gen_ForGenerator>
@@ -3193,15 +3206,19 @@
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_DateTimeGenerator>
      <useFixedStepSize>true</useFixedStepSize>
-     <inputFormat>yyyy-MM-dd</inputFormat>
-     <startDate>1997-09-03</startDate>
-     <endDate>2001-09-03</endDate>
+     <startDate>${web_page_begin_date}</startDate>
+     <endDate>${web_sales_begin_date}</endDate>
      <outputFormat>yyyy-MM-dd</outputFormat>
     </gen_DateTimeGenerator>
    </gen_NullGenerator>
   </field>
   
   <field name="wp_rec_end_date" size="13" type="DATE" primary="false">
+   <!-- all pages are active for the moment => NULL -->
+   <gen_StaticValueGenerator>
+    <value></value>
+   </gen_StaticValueGenerator>
+   <!--
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_IFGenerator>
      <if>generator[0] == null</if>
@@ -3227,6 +3244,7 @@
      </else>
     </gen_IFGenerator>
    </gen_NullGenerator>
+   -->
   </field>
   
   <!-- FK d_date_sk -->
@@ -3719,9 +3737,10 @@
   <!-- used by Q6, Q8, Q11, Q13, Q16, Q21, Q24, Q25 -->
   <!-- FK d_date_sk -->
   <field name="ws_sold_date_sk" size="19" type="BIGINT" primary="false">
-    <gen_RelativeGenerator sourceSize="${web_sales_size}" targetSize="${date_dim_size}">
-     <gen_IdGenerator />
-    </gen_RelativeGenerator>
+    <gen_FormulaGenerator>
+    <formula>${web_sales_days_since_date_begin_date} + Math.floor(gc.getID() * ((${web_sales_days_within} - 1) / ${web_sales_size}))</formula>
+    <decimalPlaces>0</decimalPlaces>
+   </gen_FormulaGenerator>
   </field>
   <!--
   <field name="ws_sold_date_sk" size="19" type="BIGINT" primary="false">

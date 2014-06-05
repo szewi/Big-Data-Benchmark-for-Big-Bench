@@ -33,22 +33,17 @@ set hive.auto.convert.sortmerge.join.noconditionaltask;
 set hive.optimize.ppd;
 set hive.optimize.index.filter;
 
-
 -- Database
 CREATE DATABASE IF NOT EXISTS  ${env:BIG_BENCH_HIVE_DATABASE};
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
-
-
 set hdfsDataPath=${env:BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR};
 set fieldDelimiter=|;
-
 
 set customerTableName=customer;
 set customerAddressTableName=customer_address;
 set customerDemographicsTableName=customer_demographics;
 set dateTableName=date_dim;
-set dbgenTableName=dbgen_version;
 set householdDemographicsTableName=household_demographics;
 set incomeTableName=income_band;
 set itemTableName=item;
@@ -70,13 +65,11 @@ set marketPricesTableName=item_marketprices;
 set clickstreamsTableName=web_clickstreams;
 set reviewsTableName=product_reviews;
 
-
 !echo drop temp tables;
 DROP TABLE IF EXISTS ${hiveconf:customerTableName}_textFormat;
 DROP TABLE IF EXISTS ${hiveconf:customerAddressTableName}_textFormat;
 DROP TABLE IF EXISTS ${hiveconf:customerDemographicsTableName}_textFormat;
 DROP TABLE IF EXISTS ${hiveconf:dateTableName}_textFormat;
-DROP TABLE IF EXISTS ${hiveconf:dbgenTableName}_textFormat;
 DROP TABLE IF EXISTS ${hiveconf:householdDemographicsTableName}_textFormat;
 DROP TABLE IF EXISTS ${hiveconf:incomeTableName}_textFormat;
 DROP TABLE IF EXISTS ${hiveconf:itemTableName}_textFormat;
@@ -96,19 +89,6 @@ DROP TABLE IF EXISTS ${hiveconf:webReturnsTableName}_textFormat;
 DROP TABLE IF EXISTS ${hiveconf:marketPricesTableName}_textFormat;
 DROP TABLE IF EXISTS ${hiveconf:clickstreamsTableName}_textFormat;
 DROP TABLE IF EXISTS ${hiveconf:reviewsTableName}_textFormat;
-
-
-
-!echo Create table: ${hiveconf:dbgenTableName}_textFormat;
-CREATE EXTERNAL TABLE ${hiveconf:dbgenTableName}_textFormat
-  ( dv_version                string
-  , dv_create_date            string
-  , dv_create_time            string
-  , dv_cmdline_args           string
-  )
-  ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
-  STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:dbgenTableName}'
-;
 
 
 !echo Create table: ${hiveconf:customerDemographicsTableName}_textFormat;
@@ -640,24 +620,6 @@ CREATE EXTERNAL TABLE ${hiveconf:reviewsTableName}_textFormat
   ;
 
 
-
-
-
-
-
-
-
-
-
-
-!echo Load text data into ORC table: ${hiveconf:dbgenTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:dbgenTableName}
-STORED AS ORC
-AS
-SELECT * FROM ${hiveconf:dbgenTableName}_textFormat
-;
-
-
 !echo Load text data into ORC table: ${hiveconf:customerDemographicsTableName};
 CREATE TABLE IF NOT EXISTS ${hiveconf:customerDemographicsTableName}
 STORED AS ORC
@@ -842,8 +804,6 @@ SELECT * FROM ${hiveconf:reviewsTableName}_textFormat
 ;
 
 
-
-
 --- Cleanup 
 !echo Dropping all temporary *_textFormat tables;
 
@@ -851,7 +811,6 @@ DROP TABLE IF EXISTS ${hiveconf:customerTableName}_textFormat;
 DROP TABLE IF EXISTS ${hiveconf:customerAddressTableName}_textFormat;
 DROP TABLE IF EXISTS ${hiveconf:customerDemographicsTableName}_textFormat;
 DROP TABLE IF EXISTS ${hiveconf:dateTableName}_textFormat;
-DROP TABLE IF EXISTS ${hiveconf:dbgenTableName}_textFormat;
 DROP TABLE IF EXISTS ${hiveconf:householdDemographicsTableName}_textFormat;
 DROP TABLE IF EXISTS ${hiveconf:incomeTableName}_textFormat;
 DROP TABLE IF EXISTS ${hiveconf:itemTableName}_textFormat;

@@ -41,7 +41,6 @@ set customerTableName=customer;
 set customerAddressTableName=customer_address;
 set customerDemographicsTableName=customer_demographics;
 set dateTableName=date_dim;
-set dbgenTableName=dbgen_version;
 set householdDemographicsTableName=household_demographics;
 set incomeTableName=income_band;
 set itemTableName=item;
@@ -62,12 +61,10 @@ set marketPricesTableName=item_marketprices;
 set clickstreamsTableName=web_clickstreams;
 set reviewsTableName=product_reviews;
 
-
 DROP TABLE IF EXISTS ${hiveconf:customerTableName};
 DROP TABLE IF EXISTS ${hiveconf:customerAddressTableName};
 DROP TABLE IF EXISTS ${hiveconf:customerDemographicsTableName};
 DROP TABLE IF EXISTS ${hiveconf:dateTableName};
-DROP TABLE IF EXISTS ${hiveconf:dbgenTableName};
 DROP TABLE IF EXISTS ${hiveconf:householdDemographicsTableName};
 DROP TABLE IF EXISTS ${hiveconf:incomeTableName};
 DROP TABLE IF EXISTS ${hiveconf:itemTableName};

@@ -20721,6 +20721,7 @@ add ("ad": 1);
 add ("feedback": 1);
 add ("protected": 1);
 add ("dynamic": 1);
+add ("review": 1);
 
 ------
 -- web_page_type

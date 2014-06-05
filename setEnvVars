@@ -108,7 +108,7 @@ export BIG_BENCH_NODES="$BIG_BENCH_BASH_SCRIPT_DIR/nodes.txt"			#file containing
 
 ## Data generator options 
 export BIG_BENCH_DATAGEN_DFS_REPLICATION="1" 							#(recommended:1) replication count for files written by the datagenerator 
-export BIG_BENCH_DATAGEN_TABLES=""										# if empty-> generate all tables. Else: specify tables to generate. e.g. BIGBENCH_TABLES="item customer store". Tables to choose from: customer customer_address customer_demographics date_dim dbgen_version household_demographics income_band inventory item item_marketprices product_reviews promotion reason ship_mode store store_returns store_sales time_dim warehouse web_clickstreams web_page  web_returns web_sales web_site
+export BIG_BENCH_DATAGEN_TABLES=""										# if empty-> generate all tables. Else: specify tables to generate. e.g. BIGBENCH_TABLES="item customer store". Tables to choose from: customer customer_address customer_demographics date_dim household_demographics income_band inventory item item_marketprices product_reviews promotion reason ship_mode store store_returns store_sales time_dim warehouse web_clickstreams web_page  web_returns web_sales web_site
 
 
 ## ===================================================

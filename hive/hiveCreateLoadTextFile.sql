@@ -39,8 +39,6 @@ set hive.optimize.index.filter;
 CREATE DATABASE IF NOT EXISTS  ${env:BIG_BENCH_HIVE_DATABASE};
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
-
-
 set hdfsDataPath=${env:BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR};
 set fieldDelimiter=|;
 
@@ -48,7 +46,6 @@ set customerTableName=customer;
 set customerAddressTableName=customer_address;
 set customerDemographicsTableName=customer_demographics;
 set dateTableName=date_dim;
-set dbgenTableName=dbgen_version;
 set householdDemographicsTableName=household_demographics;
 set incomeTableName=income_band;
 set itemTableName=item;
@@ -69,19 +66,6 @@ set webReturnsTableName=web_returns;
 set marketPricesTableName=item_marketprices;
 set clickstreamsTableName=web_clickstreams;
 set reviewsTableName=product_reviews;
-
-
-
- CREATE EXTERNAL TABLE ${hiveconf:dbgenTableName}
-  ( dv_version                string
-  , dv_create_date            string
-  , dv_create_time            string
-  , dv_cmdline_args           string
-  )
-  ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
-  STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:dbgenTableName}'
- --distribute by replication;
-;
 
  CREATE EXTERNAL TABLE ${hiveconf:customerDemographicsTableName}
   ( cd_demo_sk                bigint                ----not null
