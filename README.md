@@ -97,7 +97,6 @@ Add the nodes on which PDGF should generate data into the nodes.txt file:
 In this file, list all hosts, one per line:
 
 ```
-bb-aws1
 bb-aws2
 bb-aws3
 bb-aws4
@@ -131,23 +130,18 @@ To generate data on the cluster nodes, run this command:
 
 **Important:** default settings assume 2 cores per compute node! (small amazon ec2 instance). If you start the bigBenchClusterDataGen on bigger machiens you will run into a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error. To Avoid this, please adapt setEnvVars -> BIG_BENCH_DATAGEN_JVM_ENV if you have compute nodes with more CPU cores. In this case remove the argument: `-Xmx750m` 
 
-**Important** Provide appropriate scale factor to generate the volume of data. With no scale factor defined the system will generate ~6.5GB of data, this size is sufficient to test the benchmark on your laptop, you need to create a minimum of 50-100GB/node. We suggest using scale factor 5 or 10 to start with 2 nodes, 20 for a 4 node cluster. 
-
-E.g. $BIG_BENCH_BASH_SCRIPT_DIR/bigBenchClusterDataGen.sh -sf 10
-
 The data are being generated directly into HDFS (into the benchmarks/bigbench/data/ directory, absolute HDFS path is /user/ec2-user/benchmarks/bigbench/data/).
 
 Default HDFS replication count is 1 (data is onyl stored on the generating node). You can change this in the $BIG_BENCH_HOME/setEnvVars file by changing the variable
 `BIG_BENCH_DATAGEN_DFS_REPLICATION=<Replication count>' as described in: [Configuration](#Configuration)
 
-Hive population is automatically done after the data generation is finished.
-
 ### Hive Population 
 Hive must create its own metadata to be able to access the generated data. 
-Hive population is automatically done after the data generation with `bigBenchClusterDataGen.sh`.
-In case you want/must renew the hive tables: the following command drops old tables and recreates them with the output data from PDGF:
+Hive population is done after the data generation with `bigBenchPopulateHive.sh`:
 
-`hive -f $BIG_BENCH_HIVE_SCRIPT_DIR/hiveCreateLoad.hql   # automatically run after bigBenchClusterDataGen.sh`
+`$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchPopulateHive.sh`
+
+In case you want/must renew the hive tables, simply run the command again.
 
 ## Run Queries
 Run all queries sequentially:
@@ -201,10 +195,10 @@ suspect something went wrong? the bigBenchRunQuery.sh and bigBenchRunQueries.sh 
 
 `$BIG_BENCH_LOGS_DIR`
 
-`$BIG_BENCH_BASH_SCRIPT_DIR/showErrors.sh`
+`$BIG_BENCH_BASH_SCRIPT_DIR/showQueryErrors.sh`
 (searches in all logs/q??.log files for error strings)
 
-`$BIG_BENCH_BASH_SCRIPT_DIR/showErrors.sh <query num>` 
+`$BIG_BENCH_BASH_SCRIPT_DIR/showQueryErrors.sh <query num>` 
 (searches only in query specific log file for error strings)
 
 something went terrible wrong? want to abort all jobs?
