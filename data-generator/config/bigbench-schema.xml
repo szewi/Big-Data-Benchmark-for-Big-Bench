@@ -452,14 +452,14 @@
   <!-- used by Q6, Q13 -->
   <field name="c_first_name" size="20" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="first_names" valueColumn="name" weightColumn="unified" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="first_names" valueColumn="name" weightColumn="unified" />
    </gen_NullGenerator>
   </field>
   
   <!-- used by Q6, Q13 -->
   <field name="c_last_name" size="30" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="last_names" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="last_names" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
@@ -511,7 +511,7 @@
   <!-- used by Q6 -->
   <field name="c_birth_country" size="20" type="VARCHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="countries" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="countries" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
@@ -575,13 +575,13 @@
   
   <field name="ca_street_name" size="60" type="VARCHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="street_names" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="street_names" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
   <field name="ca_street_type" size="15" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="street_type" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="street_type" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
@@ -596,21 +596,21 @@
   
   <field name="ca_city" size="60" type="VARCHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="cities" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="cities" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
   <!-- used by Q9 -->
   <field name="ca_county" size="30" type="VARCHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator id="countyChooser" filename="dicts/bigdata/ds-genProbabilities.txt" list="fips_county" valueColumn="county" weightColumn="uniform" />
+    <gen_WeightedListGenerator id="countyChooser" filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="county" weightColumn="uniform" />
    </gen_NullGenerator>
   </field>
   
   <!-- used by Q7, Q9 -->
   <field name="ca_state" size="2" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="fips_county" valueColumn="st" weightColumn="uniform">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="st" weightColumn="uniform">
      <sameChoiceAs field="ca_county" generatorByID="countyChooser"/>
     </gen_WeightedListGenerator>
    </gen_NullGenerator>
@@ -637,7 +637,7 @@
   <!-- decimalSize="5,2"-->
   <field name="ca_gmt_offset" size="5" type="NUMERIC" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="fips_county" valueColumn="gmt" weightColumn="uniform">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="gmt" weightColumn="uniform">
      <sameChoiceAs field="ca_county" generatorByID="countyChooser"/>
     </gen_WeightedListGenerator>
    </gen_NullGenerator>
@@ -645,7 +645,7 @@
   
   <field name="ca_location_type" size="20" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="location_type" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="location_type" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
  </table>
@@ -663,51 +663,51 @@
   <!-- used by Q5 -->
   <field name="cd_gender" size="1" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="gender" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="gender" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
   <!-- used by Q9 -->
   <field name="cd_marital_status" size="1" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="marital_status" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="marital_status" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
   <!-- used by Q5, Q9 -->
   <field name="cd_education_status" size="20" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="education" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="education" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
   <field name="cd_purchase_estimate" size="10" type="INTEGER" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="purchase_band" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="purchase_band" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
   <field name="cd_credit_rating" size="10" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="credit_rating" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="credit_rating" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
   <field name="cd_dep_count" size="10" type="INTEGER" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="dependent_count" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="dependent_count" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
   <field name="cd_dep_employed_count" size="10" type="INTEGER" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-   <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="dependent_count" valueColumn="0" weightColumn="0" />
+   <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="dependent_count" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
   <field name="cd_dep_college_count" size="10" type="INTEGER" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-   <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="dependent_count" valueColumn="0" weightColumn="0" />
+   <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="dependent_count" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
  </table>
@@ -999,7 +999,7 @@
   
   <field name="hd_buy_potential" size="15" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="buy_potential" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="buy_potential" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
@@ -1225,25 +1225,25 @@
   
   <!-- used by Q26 -->
   <field name="i_class_id" size="10" type="INTEGER" primary="false">
-   <gen_WeightedListGenerator filename="dicts/bigdata/categoriesWeightedList.txt" list="subcategories" valueColumn="1" weightColumn="1" id="categoryChooser" >
+   <gen_WeightedListGenerator filename="dicts/bigbench/categoriesWeightedList.txt" list="subcategories" valueColumn="1" weightColumn="1" id="categoryChooser" >
     <sameChoiceAs field="i_class" generatorByID="classChooser"/>
    </gen_WeightedListGenerator>
   </field>
   
   <field name="i_class" size="50" type="CHAR" primary="false">
-   <gen_WeightedListGenerator filename="dicts/bigdata/categoriesWeightedList.txt"   list="subcategories" valueColumn="0" weightColumn="1" id="classChooser" />
+   <gen_WeightedListGenerator filename="dicts/bigbench/categoriesWeightedList.txt"   list="subcategories" valueColumn="0" weightColumn="1" id="classChooser" />
   </field>
   
   <!-- used by Q1, Q15, Q29, Q30 -->
   <field name="i_category_id" size="10" type="INTEGER" primary="false">
-   <gen_WeightedListGenerator filename="dicts/bigdata/categoriesWeightedList.txt" list="subcategories" valueColumn="3" weightColumn="1" id="categoryChooser" >
+   <gen_WeightedListGenerator filename="dicts/bigbench/categoriesWeightedList.txt" list="subcategories" valueColumn="3" weightColumn="1" id="categoryChooser" >
     <sameChoiceAs field="i_class" generatorByID="classChooser"/>
    </gen_WeightedListGenerator>
   </field>
   
   <!-- used by Q5, Q7, Q12, Q17, Q26 -->
   <field name="i_category" size="50" type="CHAR" primary="false">
-   <gen_WeightedListGenerator filename="dicts/bigdata/categoriesWeightedList.txt" list="subcategories" valueColumn="2" weightColumn="1" id="categoryChooser" >
+   <gen_WeightedListGenerator filename="dicts/bigbench/categoriesWeightedList.txt" list="subcategories" valueColumn="2" weightColumn="1" id="categoryChooser" >
     <sameChoiceAs field="i_class" generatorByID="classChooser"/>
    </gen_WeightedListGenerator>
   </field>
@@ -1264,7 +1264,7 @@
   
   <field name="i_size" size="20" type="CHAR" primary="false">
   <!-- "NULL" are generated in sizes list -->
-   <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="sizes" valueColumn="0" weightColumn="0" />
+   <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="sizes" valueColumn="0" weightColumn="0" />
   </field>
   
   <field name="i_formulation" size="20" type="CHAR" primary="false">
@@ -1275,15 +1275,15 @@
   </field>
   
   <field name="i_color" size="20" type="CHAR" primary="false">
-   <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="colors" valueColumn="0" weightColumn="0" />
+   <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="colors" valueColumn="0" weightColumn="0" />
   </field>
   
   <field name="i_units" size="10" type="CHAR" primary="false">
-   <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="units" valueColumn="0" weightColumn="0" />
+   <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="units" valueColumn="0" weightColumn="0" />
   </field>
   
   <field name="i_container" size="10" type="CHAR" primary="false">
-   <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="container" valueColumn="0" weightColumn="0" />
+   <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="container" valueColumn="0" weightColumn="0" />
   </field>
   
   <field name="i_manager_id" size="10" type="INTEGER" primary="false">
@@ -1396,7 +1396,7 @@
   <!-- used by Q11, Q28 -->
   <field name="pr_review_rating" size="10" type="INTEGER" primary="false">
   <!-- value cols (int, varchar) weightcols: (uniform, weighted) -->
-   <gen_WeightedListGenerator filename="dicts/bigdata/categoriesWeightedList.txt" list="ratingWeights" valueColumn="1" weightColumn="1" />
+   <gen_WeightedListGenerator filename="dicts/bigbench/categoriesWeightedList.txt" list="ratingWeights" valueColumn="1" weightColumn="1" />
    <!-- 
    <gen_LongGenerator>
     <min>1.0</min>
@@ -1433,7 +1433,7 @@
   <!-- used by Q10, Q18, Q19, Q27, Q28 -->
   <field name="pr_review_content" size="0" type="LONGVARCHAR" primary="false">
    <gen_BigBenchReviewGenerator>
-  	 <markovChainsPath>dicts/bigdata/reviews-markovchains</markovChainsPath>	
+  	 <markovChainsPath>dicts/bigbench/reviews-markovchains</markovChainsPath>	
   	 
 	<gen_OtherFieldValueGenerator>
 		<reference field="pr_review_rating" />
@@ -1524,7 +1524,7 @@
   
   <field name="p_promo_name" size="50" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="syllables" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="syllables" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
@@ -1858,7 +1858,7 @@
   <!-- used by Q18, Q21 -->
   <field name="s_store_name" size="50" type="VARCHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="syllables" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="syllables" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
@@ -1882,7 +1882,7 @@
   
   <field name="s_hours" size="20" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="call_center_hours" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="call_center_hours" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
@@ -1890,8 +1890,8 @@
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_TemplateGenerator>
      <getValue>fvdto.setBothValues(generator[0] + " " + generator[1]);</getValue>
-     <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="first_names" valueColumn="0" weightColumn="0" />
-     <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="last_names" valueColumn="0" weightColumn="0" />
+     <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="first_names" valueColumn="0" weightColumn="0" />
+     <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="last_names" valueColumn="0" weightColumn="0" />
     </gen_TemplateGenerator>
    </gen_NullGenerator>
   </field>
@@ -1926,8 +1926,8 @@
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_TemplateGenerator>
      <getValue>fvdto.setBothValues(generator[0] + " " + generator[1]);</getValue>
-     <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="first_names" valueColumn="0" weightColumn="0" />
-     <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="last_names" valueColumn="0" weightColumn="0" />
+     <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="first_names" valueColumn="0" weightColumn="0" />
+     <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="last_names" valueColumn="0" weightColumn="0" />
     </gen_TemplateGenerator>
    </gen_NullGenerator>
   </field>
@@ -1977,13 +1977,13 @@
   
   <field name="s_street_name" size="60" type="VARCHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="street_names" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="street_names" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
   <field name="s_street_type" size="15" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="street_type" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="street_type" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
@@ -1998,19 +1998,19 @@
   
   <field name="s_city" size="60" type="VARCHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="cities" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="cities" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
   <field name="s_county" size="30" type="VARCHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator id="countyChooser" filename="dicts/bigdata/ds-genProbabilities.txt" list="fips_county" valueColumn="county" weightColumn="uniform" />
+    <gen_WeightedListGenerator id="countyChooser" filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="county" weightColumn="uniform" />
    </gen_NullGenerator>
   </field>
   
   <field name="s_state" size="2" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="fips_county" valueColumn="st" weightColumn="uniform">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="st" weightColumn="uniform">
      <sameChoiceAs field="s_county" generatorByID="countyChooser"/>
     </gen_WeightedListGenerator>
    </gen_NullGenerator>
@@ -2037,7 +2037,7 @@
   <!-- decimalSize="5,2"-->
   <field name="s_gmt_offset" size="5" type="NUMERIC" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="fips_county" valueColumn="gmt" weightColumn="uniform">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="gmt" weightColumn="uniform">
      <sameChoiceAs field="s_county" generatorByID="countyChooser"/>
     </gen_WeightedListGenerator>
    </gen_NullGenerator>
@@ -2922,13 +2922,13 @@
   
   <field name="w_street_name" size="60" type="VARCHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="street_names" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="street_names" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
   <field name="w_street_type" size="15" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="street_type" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="street_type" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
@@ -2943,20 +2943,20 @@
   
   <field name="w_city" size="60" type="VARCHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="cities" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="cities" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   
   <field name="w_county" size="30" type="VARCHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator id="countyChooser" filename="dicts/bigdata/ds-genProbabilities.txt" list="fips_county" valueColumn="county" weightColumn="uniform" />
+    <gen_WeightedListGenerator id="countyChooser" filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="county" weightColumn="uniform" />
    </gen_NullGenerator>
   </field>
   
   <!-- used by Q16 -->
   <field name="w_state" size="2" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="fips_county" valueColumn="st" weightColumn="uniform">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="st" weightColumn="uniform">
      <sameChoiceAs field="w_county" generatorByID="countyChooser"/>
     </gen_WeightedListGenerator>
    </gen_NullGenerator>
@@ -2982,7 +2982,7 @@
   <!-- decimalSize="5,2"-->
   <field name="w_gmt_offset" size="5" type="NUMERIC" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="fips_county" valueColumn="gmt" weightColumn="uniform">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="gmt" weightColumn="uniform">
      <sameChoiceAs field="w_county" generatorByID="countyChooser"/>
     </gen_WeightedListGenerator>
    </gen_NullGenerator>
@@ -3298,7 +3298,7 @@
   <!-- used by Q4, Q8 -->
   <field name="wp_type" size="50" type="CHAR" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigdata/ds-genProbabilities.txt" list="web_page_use" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="web_page_use" valueColumn="0" weightColumn="0" />
    </gen_NullGenerator>
   </field>
   

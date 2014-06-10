@@ -8,7 +8,6 @@ time ("${BIG_BENCH_HIVE_SCRIPT_DIR}/hiveCreateLoadORC.sh" ; echo  "======= Load 
 echo "==========================="
 
 echo "==============================================="
-echo "Cluster job finished. Data is located in hdfs: ${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
-echo "View files: hadoop fs -ls ${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
-echo "HIVE load finished. You may start executing the queries"
+echo "HIVE load finished. You may start executing the queries by running script:"
+echo " bigBenchRunQueries.sh"
 echo "==============================================="
