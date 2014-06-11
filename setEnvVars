@@ -118,14 +118,14 @@ export BIG_BENCH_DATAGEN_CORE_SITE="$BIG_BENCH_HADOOP_CONF/core-site.xml"
 export BIG_BENCH_DATAGEN_HDFS_SITE="$BIG_BENCH_HADOOP_CONF/hdfs-site.xml"
 
 #every table gets its own folder containing 1-n splits of the generated file. A folder per table, because HIVE works best with this.
-export BIG_BENCH_DATAGEN_JVM_ENV=" " 					# specify JVM arguments like: -Xmx2000m
-export BIGBENCH_DATAGEN_HADOOP_OPTIONS=" -workers 1 -ap "	# -workers:=limit hadoop based data generator to use 1 CPU core per mapper; -ap:=automatic progress
+export BIG_BENCH_DATAGEN_JVM_ENV=" -Xmx300m " 				# specify JVM arguments like: -Xmx2000m
+export BIGBENCH_DATAGEN_HADOOP_OPTIONS=" -workers 1 -ap "	# -workers:=limit hadoop based data generator to use 1 CPU core per mapper, if you increase this also increase the xmx setting in BIG_BENCH_DATAGEN_JVM_ENV; -ap:=automatic progress
 
 ## ===================================================
 ## Set permissions
 ## ===================================================
 find $BIG_BENCH_HOME -name '*.sh' -exec chmod 755 {} +
-
+find $BIG_BENCH_HOME -name '*.jar' -exec chmod 755 {} +
 
 ##===================================================
 ## add bash script dir to path (if not already present)

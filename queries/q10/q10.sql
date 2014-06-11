@@ -32,6 +32,10 @@ set hive.auto.convert.sortmerge.join;
 set hive.auto.convert.sortmerge.join.noconditionaltask;
 set hive.optimize.ppd;
 set hive.optimize.index.filter;
+set hive.input.format; 
+set mapred.map.tasks;
+set mapred.min.split.size;
+set mapred.max.split.size;
 
 -- Database
 use ${env:BIG_BENCH_HIVE_DATABASE};
@@ -45,10 +49,18 @@ set QUERY_NUM=q10;
 set resultTableName=${hiveconf:QUERY_NUM}result;
 set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
 
+--if mapred.min.split.size is less than block size and mapred.max.split.size is greater than block size then 1 block is sent to each map task. 
+--The block data is split into key value pairs based on the Input Format you use 
+--set hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat; 
+--set mapred.map.tasks = 20;
+--set mapred.max.split.size=8388608;
+
+
 --Result  --------------------------------------------------------------------		
 --keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;	
+
 
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:resultTableName};
