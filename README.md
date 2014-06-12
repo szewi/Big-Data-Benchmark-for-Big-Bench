@@ -1,4 +1,5 @@
-UNDER DEVELOPMENT
+UNDER DEVELOPMENT -- contact bhaskar.gowda@intel.com for help in running the workload.
+
 ======
 
 This document is a development version and describes the BigBench installation and execution on our AWS machines.
@@ -228,4 +229,3 @@ something went terrible wrong? want to abort all jobs?
 
 `$BIG_BENCH_BASH_SCRIPT_DIR/killAllHadoopJobs.sh`
 
-contact bhaskar.gowda@intel.com for help in running.
