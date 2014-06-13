@@ -1,4 +1,5 @@
-UNDER DEVELOPMENT
+UNDER DEVELOPMENT -- contact bhaskar.gowda@intel.com for help in running the workload.
+
 ======
 
 This document is a development version and describes the BigBench installation and execution on our AWS machines.
@@ -32,7 +33,8 @@ Java 1.7 is required. 64 bit is recommended
 
 ## Installation
 
-On the AWS installation, the github repository is cloned into a folder "nfs":
+
+On the AWS installation, the github repository is cloned into a folder "nfs": ## This is an example Installation only. 
 
 ```
 cd
@@ -60,7 +62,7 @@ Either logout/login or source the environment script manually to set the require
 
 `source ~/nfs/Big-Bench/setEnvVars`
 
-### Configuration
+### Configuration 
 
 Check, if the hadoop related variables are correctly set in the environment file:
 
@@ -90,7 +92,7 @@ BIG_BENCH_DATAGEN_JVM_ENV          -Xmx750m is sufficient for Nodes with 2 CPU c
 ```
 
 
-Add the nodes on which PDGF should generate data into the nodes.txt file:
+Add the nodes on which PDGF should generate data into the nodes.txt file: ## Not requried for Hadoop Data Generation
 
 `vi $BIG_BENCH_BASH_SCRIPT_DIR/nodes.txt`
 
@@ -102,7 +104,9 @@ bb-aws3
 bb-aws4
 ```
 
-**Important:** As a temporary measure (until PDGF can be run as a hadoop job), the directory structure must be replicated onto all nodes. So either repeat the "git clone" on every node (make sure that the directory structure is the same) or export the ~/nfs folder as a nfs share and mount it on all nodes in the ec2-user's ~/nfs directory (this is what we did on the AWS nodes). As a shared medium eases the following steps significantly, that approach is strongly recommended.
+
+
+
 
 ## Data Generation
 ### First run
@@ -120,6 +124,26 @@ y
 
 PDGF:> q
 ```
+### Hadoop based Data generation is now available, unless you have specific need to use shared folder approach, We prefer you to use Hadoop jobs to generate data. 
+
+$/Big-Bench/scripts/bigBenchHadoopDataGen.sh -mapTasks 500 -sf 500 ## We have considered the number of containers on the cluster to decide how many map tasks. -sf 500=500GB of data, for 1TB provide sf will be 1000
+
+## If you decide to generate data non-hadoop way, follow below instructions.
+
+The directory structure must be replicated onto all nodes. So either repeat the "git clone" on every node (make sure that the directory structure is the same) or export the ~/nfs folder as a nfs share and mount it on all nodes in the ec2-user's ~/nfs directory (this is what we did on the AWS nodes). As a shared medium eases the following steps significantly, that approach is strongly recommended. 
+Before the first PDGF run, the end user license must be accepted once. Therefore, PDGF must be started:
+
+`java -jar $BIG_BENCH_DATA_GENERATOR_DIR/pdgf.jar `
+
+Pressing ENTER shows the license. The license must be accepted by entering 'y'. After that, the PDGF shell can be exited by pressing 'q':
+
+```
+By using this software you must first agree to our terms of use. press [ENTER] to show
+...
+Do you agree to this terms of use [Y/N]?
+y
+
+PDGF:> q
 
 **Important:** The license must be accepted in every PDGF location. So if no shared medium is used, the license must be accepted in every PDGF copy on all nodes, or accepted prior to distribution onto the nodes.
 
@@ -133,7 +157,7 @@ To generate data on the cluster nodes, run this command:
 The data are being generated directly into HDFS (into the benchmarks/bigbench/data/ directory, absolute HDFS path is /user/ec2-user/benchmarks/bigbench/data/).
 
 Default HDFS replication count is 1 (data is onyl stored on the generating node). You can change this in the $BIG_BENCH_HOME/setEnvVars file by changing the variable
-`BIG_BENCH_DATAGEN_DFS_REPLICATION=<Replication count>' as described in: [Configuration](#Configuration)
+`BIG_BENCH_DATAGEN_DFS_REPLICATION=<Replication count>' as described in: [Configuration](#Configuration) 
 
 ### Hive Population 
 Hive must create its own metadata to be able to access the generated data. 
@@ -204,3 +228,4 @@ suspect something went wrong? the bigBenchRunQuery.sh and bigBenchRunQueries.sh 
 something went terrible wrong? want to abort all jobs?
 
 `$BIG_BENCH_BASH_SCRIPT_DIR/killAllHadoopJobs.sh`
+
