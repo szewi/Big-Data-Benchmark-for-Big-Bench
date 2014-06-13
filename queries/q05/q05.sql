@@ -15,6 +15,23 @@
 --set hive.optimize.ppd=${env:BIG_BENCH_hive_optimize_ppd};
 --set hive.optimize.index.filter=${env:BIG_BENCH_hive_optimize_index_filter};
 
+
+
+--10mb is sufficient for all static tables of bigbench
+--set hive.mapjoin.smalltable.filesize;
+--set hive.mapjoin.smalltable.filesize=12144;
+--set hive.mapred.local.mem;
+--set hive.mapred.local.mem=768;
+
+--set hive.mapjoin.localtask.max.memory.usage;
+--set hive.mapjoin.localtask.max.memory.usage=0.99;
+
+--set hive.auto.convert.join.noconditionaltask.size = 10000;
+--Hive 0.12 bug, hive ignores  hive.mapred.local.mem and hive.mapjoin.smalltable.filesize, resulting in out of memory errors
+set hive.auto.convert.join;
+set hive.auto.convert.join=false;
+set hive.auto.convert.join;
+
 --display settings
 set hive.exec.parallel;
 set hive.exec.parallel.thread.number;
@@ -32,7 +49,9 @@ set hive.auto.convert.sortmerge.join;
 set hive.auto.convert.sortmerge.join.noconditionaltask;
 set hive.optimize.ppd;
 set hive.optimize.index.filter;
-
+set hive.mapjoin.smalltable.filesize;
+set hive.mapred.local.mem;
+set hive.mapjoin.localtask.max.memory.usage;
 -- Database
 use ${env:BIG_BENCH_HIVE_DATABASE};
 

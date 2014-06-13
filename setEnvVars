@@ -20,6 +20,7 @@ BIG_BENCH_SSH_OPTIONS=""					   ## you want to make sure that you can reach all 
 export BIG_BENCH_HIVE_LIBS="/usr/lib/hive/lib"                      	##especially location of: hive-contrib.jar;
 export BIG_BENCH_HADOOP_LIBS_NATIVE="/usr/lib/hadoop/lib/native"
 export BIG_BENCH_HADOOP_CONF="/etc/hadoop/conf.cloudera.hdfs"       ##folder containing the cluster setup *-site.xml files like core-site.xml 
+export BIG_BENCH_java_child_process_xmx=" -Xmx1024m "
 
 ## ==========================
 ## HDFS config and paths
@@ -34,7 +35,7 @@ export BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$BIG_BENC
 export BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$BIG_BENCH_HDFS_RELATIVE_QUERY_RESULT_DIR"
 export BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$BIG_BENCH_HDFS_RELATIVE_TEMP_DIR"
 
-#options used by: scripts/mountHdfs.sh
+##NOT USED BY BENCHMARK! options only used by: scripts/mountHdfs.sh
 export BIG_BENCH_HDFS_MOUNT_POINT="/mnt/hdfs"
 export BIG_BENCH_HDFS_NAMENODE="bb-aws1.us-west-2.compute.internal:8022"
 
@@ -45,12 +46,12 @@ export BIG_BENCH_HIVE_DATABASE="bigbenchORC"
 export BIG_BENCH_hive_default_fileformat_result_table="TEXTFILE"
 
 ## IMPORTANT
-## All following 'BIG_BENCH_hive' options are disabled in the queries because:
+## All following 'BIG_BENCH_hive' options are disabled in the queries, because
 ## hive optimizations are still unstable. e.g hive.optimize.ppd failes for COUNT(*) in conjunction with ORC file format in Hive v.0.12.0 for q14 and q21
-## exec.parallel  is also considered unstable 
-## some of these options MAY work on your cluster and you can turn them on in your hive-site.xml.
+## exec.parallel is also considered unstable 
+## some of these options MAY work on your cluster and you can turn them on globally in your hive-site.xml. (us using your distributions configuration tool)
 ## If you do not want to or cannot changes these settings cluster globally, here is what you can do:
-##   un-comment all '##export BIG_BENCH..' entrys in this file. Then find-replace the string '--set' with 'set' in all hive query files with this command:
+##   un-comment all '##export BIG_BENCH..' entry's in this file. Then find-replace the string '--set' with 'set' in all hive query files with this command:
 ##   find "${BIG_BENCH_QUERIES_DIR}"/ -name "*.sql" -print | xargs sed -i 's/--set/set/g'
 
 ##export BIG_BENCH_hive_exec_parallel="false"					## still considered unstable, may work on your cluster
@@ -102,10 +103,10 @@ export BIG_BENCH_DATAGEN_STAGE_LOG=$BIG_BENCH_LOGS_DIR/datagen.log
 ## ===================================================
 ## Data generation options
 ## ===================================================
-## cluster node addresses
+## Option is used by bigBenchClusterDataGen cluster node addresses
 export BIG_BENCH_NODES="$BIG_BENCH_BASH_SCRIPT_DIR/nodes.txt"			#file containing all your computation nodes dns names or ip addresses (one ip per line)
 
-## Data generator options 
+
 export BIG_BENCH_DATAGEN_DFS_REPLICATION="1" 							#(recommended:1) replication count for files written by the datagenerator 
 export BIG_BENCH_DATAGEN_TABLES=""										# if empty-> generate all tables. Else: specify tables to generate. e.g. BIGBENCH_TABLES="item customer store". Tables to choose from: customer customer_address customer_demographics date_dim household_demographics income_band inventory item item_marketprices product_reviews promotion reason ship_mode store store_returns store_sales time_dim warehouse web_clickstreams web_page  web_returns web_sales web_site
 
@@ -117,9 +118,14 @@ export BIG_BENCH_DATAGEN_TABLES=""										# if empty-> generate all tables. El
 export BIG_BENCH_DATAGEN_CORE_SITE="$BIG_BENCH_HADOOP_CONF/core-site.xml"
 export BIG_BENCH_DATAGEN_HDFS_SITE="$BIG_BENCH_HADOOP_CONF/hdfs-site.xml"
 
-#every table gets its own folder containing 1-n splits of the generated file. A folder per table, because HIVE works best with this.
-export BIG_BENCH_DATAGEN_JVM_ENV=" -Xmx300m " 				# specify JVM arguments like: -Xmx2000m
-export BIGBENCH_DATAGEN_HADOOP_OPTIONS=" -workers 1 -ap 3000 "	# -workers:=limit hadoop based data generator to use 1 CPU core per mapper, if you increase this also increase the xmx setting in BIG_BENCH_DATAGEN_JVM_ENV; -ap:=automatic progress
+# specify JVM arguments like: -Xmx2000m; 300m is sufficient if the datagen only uses 1 worker thread per map task (default). 
+# Add +100MB per addition worker.
+export BIG_BENCH_DATAGEN_JVM_ENV=" -Xmx300m " 		
+
+#-ap:=automatic progress; 
+#-workers:=limit hadoop based data generator to use 1 CPU core per map task. 
+# if you increase -workers, you must also increase the -Xmx setting in BIG_BENCH_DATAGEN_JVM_ENV; 		
+export BIGBENCH_DATAGEN_HADOOP_OPTIONS=" -workers 1 -ap 3000 "	
 
 ## ===================================================
 ## Set permissions

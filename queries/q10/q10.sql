@@ -15,6 +15,14 @@
 --set hive.optimize.ppd=${env:BIG_BENCH_hive_optimize_ppd};
 --set hive.optimize.index.filter=${env:BIG_BENCH_hive_optimize_index_filter};
 
+
+--if mapred.min.split.size is less than block size and mapred.max.split.size is greater than block size then 1 block is sent to each map task. 
+--The block data is split into key value pairs based on the Input Format you use 
+--  set hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat; 
+--set mapred.map.tasks=6;
+-- set mapred.max.split.size=100000;
+
+
 --display settings
 set hive.exec.parallel;
 set hive.exec.parallel.thread.number;
@@ -48,12 +56,6 @@ CREATE TEMPORARY FUNCTION extract_sentiment AS 'de.bankmark.bigbench.queries.q10
 set QUERY_NUM=q10;
 set resultTableName=${hiveconf:QUERY_NUM}result;
 set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
-
---if mapred.min.split.size is less than block size and mapred.max.split.size is greater than block size then 1 block is sent to each map task. 
---The block data is split into key value pairs based on the Input Format you use 
---set hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat; 
---set mapred.map.tasks = 20;
---set mapred.max.split.size=8388608;
 
 
 --Result  --------------------------------------------------------------------		
