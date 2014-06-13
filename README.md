@@ -124,7 +124,7 @@ y
 
 PDGF:> q
 ```
-### Hadoop based Datageneration is now available, unless you have specific need to use shared fodler approach, We prefer you to use Hadoop jobs to generate data. 
+### Hadoop based Data generation is now available, unless you have specific need to use shared folder approach, We prefer you to use Hadoop jobs to generate data. 
 
 $/Big-Bench/scripts/bigBenchHadoopDataGen.sh -mapTasks 500 -sf 500 ## We have considered the number of containers on the cluster to decide how many map tasks. -sf 500=500GB of data, for 1TB provide sf will be 1000
 
