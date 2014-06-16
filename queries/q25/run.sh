@@ -29,8 +29,8 @@ if [ $# -lt 1 ] || [ $1 -eq 1 ] ; then
 	hadoop fs -rm -r "$MH_TMP_DIR" &
 	hadoop fs -rm -r "$HDFS_RESULT_DIR" &
 	wait
-	hadoop fs -mkdir "$MH_TMP_DIR" &
-	hadoop fs -mkdir "$HDFS_RESULT_DIR" &
+	hadoop fs -mkdir -p "$MH_TMP_DIR" &
+	hadoop fs -mkdir -p "$HDFS_RESULT_DIR" &
 	wait
 
 fi

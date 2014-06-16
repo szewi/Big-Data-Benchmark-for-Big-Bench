@@ -38,7 +38,7 @@ On the AWS installation, the github repository is cloned into a folder "nfs": ##
 
 ```
 cd
-mkdir nfs
+mkdir -p nfs
 cd nfs
 git clone https://<username>@github.com/intel-hadoop/Big-Bench.git
 ```

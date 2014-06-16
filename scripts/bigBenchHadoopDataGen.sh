@@ -51,7 +51,7 @@ echo "OK"
 echo "==============================================="
 echo "make hdfs benchmark data dir: "${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}
 echo "==============================================="
-hadoop fs -mkdir "${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
+hadoop fs -mkdir -p "${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
 rc=$?
 if [[ $rc != 0 ]] ; then
     echo "Error creating hdfs dir: ${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
@@ -95,7 +95,7 @@ PDGF_CLUSTER_CONF="-Dpdgf.log.folder=/tmp/pdgfLog/HadoopClusterExec.taskNumber -
 echo "PDGF_CLUSTER_CONF: $PDGF_CLUSTER_CONF"
 
 echo "create $BIG_BENCH_LOGS_DIR folder"
-mkdir "$BIG_BENCH_LOGS_DIR"
+mkdir -p "$BIG_BENCH_LOGS_DIR"
 
 
 echo hadoop jar "${BIG_BENCH_BASH_SCRIPT_DIR}/HadoopClusterExec.jar" -archives  "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec java ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks  -nn HadoopClusterExec.taskNumber -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIGBENCH_TABLES} $@ 

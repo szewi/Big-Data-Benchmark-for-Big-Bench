@@ -30,7 +30,7 @@ if [ $# -lt 1 ] || [ $1 -eq 1 ] ; then
 	echo "$QUERY_NUM Step 1/6: Prepare required resources"
 	echo "========================="
 	hadoop fs -rm -r -skipTrash  "${QUERY_TMP_DIR}/*"
-	hadoop fs -mkdir "${QUERY_TMP_DIR}"
+	hadoop fs -mkdir -p "${QUERY_TMP_DIR}"
 	hadoop fs -chmod uga+rw  "${QUERY_TMP_DIR}"
 	hadoop fs -copyFromLocal "${MR_JAR}" "${QUERY_TMP_DIR}/"
 fi

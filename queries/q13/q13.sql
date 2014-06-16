@@ -122,7 +122,7 @@ INSERT INTO TABLE q13_customer_year_total
 	d_year;
 
 
----Set up views required for self joins ----------------------------------------------------------------------
+--- Set up views required for self joins ----------------------------------------------------------------------
 --DROP VIEW IF EXISTS q13_t_s_firstyear;
 --DROP VIEW IF EXISTS q13_t_s_secyear;
 --DROP VIEW IF EXISTS q13_t_w_firstyear;

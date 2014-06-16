@@ -164,7 +164,7 @@ DROP TABLE IF EXISTS t_s_firstyear;
 DROP TABLE IF EXISTS t_s_secyear;
 DROP TABLE IF EXISTS t_w_firstyear;
 DROP TABLE IF EXISTS t_w_secyear;
---set-up
+---- set-up
 CREATE TABLE IF NOT EXISTS t_s_firstyear AS
 SELECT * FROM q74_customer_year_total_880;
 

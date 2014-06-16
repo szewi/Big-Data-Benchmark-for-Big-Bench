@@ -15,7 +15,7 @@ if [ $# -lt 1 ] || [ $1 -eq 1 ] ; then
 	echo "$QUERY_NUM step 1/8: prepare/initialize"
 	echo "========================="
 	hadoop fs -rm -r "$MH_TMP_DIR"
-	hadoop fs -mkdir "$MH_TMP_DIR"
+	hadoop fs -mkdir -p "$MH_TMP_DIR"
 fi
 
 

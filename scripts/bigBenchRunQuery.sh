@@ -43,11 +43,11 @@ fi
 
 
 echo "checking existance of: ${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR} "
-hadoop fs -mkdir "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
+hadoop fs -mkdir -p "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
 hadoop fs -chmod uga+rw "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
 
 echo "checking existance of: ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR} "
-hadoop fs -mkdir "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
+hadoop fs -mkdir -p "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
 hadoop fs -chmod uga+rw "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
 
 
