@@ -47,20 +47,7 @@ set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:result
 
 			  
 -------------------------------------------------------------------------------
---make q19_tmp_date1
-DROP TABLE IF EXISTS q19_tmp_date1;
-CREATE TABLE q19_tmp_date1 AS
-SELECT d1.d_date_sk FROM date_dim d1 
-LEFT SEMI JOIN date_dim d2 ON (d1.d_week_seq = d2.d_week_seq AND d2.d_date IN ('1998-01-02','1998-10-15','1998-11-10')) 
-;
--------------------------------------------------------------------------------
 
---make date2
-DROP TABLE IF EXISTS q19_tmp_date2;
-CREATE TABLE q19_tmp_date2 AS
-SELECT d1.d_date_sk FROM date_dim d1 
-LEFT SEMI JOIN date_dim d2 ON (d1.d_week_seq = d2.d_week_seq AND d2.d_date IN ('2001-03-10' ,'2001-08-04' ,'2001-11-14')) 
-;
 
 -----Store returns in date range q19_tmp_date1-------------------------------------------------
 DROP VIEW IF EXISTS q19_tmp_sr_items;
@@ -72,7 +59,10 @@ FROM
     store_returns sr
     INNER JOIN item i ON sr.sr_item_sk = i.i_item_sk
     INNER JOIN date_dim d ON sr.sr_returned_date_sk = d.d_date_sk
-    INNER JOIN q19_tmp_date1 d1 ON sr.sr_returned_date_sk = d1.d_date_sk
+    INNER JOIN (	
+					SELECT d1.d_date_sk FROM date_dim d1 
+					LEFT SEMI JOIN date_dim d2 ON (d1.d_week_seq = d2.d_week_seq AND d2.d_date IN ('1998-01-02','1998-10-15','1998-11-10')) 
+				) d1 ON sr.sr_returned_date_sk = d1.d_date_sk
 GROUP BY i_item_sk
 HAVING sum(sr_return_quantity) > 0;
 
@@ -88,7 +78,10 @@ FROM
     web_returns wr
     INNER JOIN item i ON wr.wr_item_sk = i.i_item_sk
     INNER JOIN date_dim d ON wr.wr_returned_date_sk = d.d_date_sk
-    INNER JOIN q19_tmp_date2 d2 ON wr.wr_returned_date_sk = d2.d_date_sk
+    INNER JOIN (
+					SELECT d1.d_date_sk FROM date_dim d1 
+					LEFT SEMI JOIN date_dim d2 ON (d1.d_week_seq = d2.d_week_seq AND d2.d_date IN ('2001-03-10' ,'2001-08-04' ,'2001-11-14')) 	
+				) d2 ON wr.wr_returned_date_sk = d2.d_date_sk
 GROUP BY i_item_sk
 HAVING sum(wr_return_quantity) > 0;
 
@@ -142,9 +135,7 @@ WHERE q19_tmp_sentiment.sentiment = 'NEG ';
 
 	
 --- cleanup---------------------------------------------------------------------------
-DROP TABLE IF EXISTS q19_tmp_date1;
-DROP TABLE IF EXISTS q19_tmp_date2;
-DROP TABLE IF EXISTS q19_tmp_sentiment;
+
 
 DROP VIEW IF EXISTS q19_tmp_sr_items;
 DROP VIEW IF EXISTS q19_tmp_wr_items;

@@ -18,7 +18,7 @@ BIG_BENCH_SSH_OPTIONS=""					   ## you want to make sure that you can reach all 
 export BIG_BENCH_HIVE_LIBS="/usr/lib/hive/lib"                      	##especially location of: hive-contrib.jar;
 export BIG_BENCH_HADOOP_LIBS_NATIVE="/usr/lib/hadoop/lib/native"
 export BIG_BENCH_HADOOP_CONF="/etc/hadoop/conf.cloudera.hdfs"       ##folder containing the cluster setup *-site.xml files like core-site.xml 
-export BIG_BENCH_java_child_process_xmx=" -Xmx1024m "
+export BIG_BENCH_java_child_process_xmx=" -Xmx1024m "				## memory used by sub-processes spawned by Hive queries (like streaming M/R jobs etc.)  Suggestion for value: (YarnConatiner_MB - hive_MB)*0.7 e.g. (2000Mb-500Mb)*0.7=1050
 
 ## ==========================
 ## HDFS config and paths
@@ -91,7 +91,7 @@ export BIG_BENCH_HIVE_SCRIPT_DIR="$BIG_BENCH_HOME/hive"
 export BIG_BENCH_QUERIES_DIR="$BIG_BENCH_HOME/queries"
 export BIG_BENCH_LOGS_DIR="$BIG_BENCH_HOME/logs"
 export BIG_BENCH_LOADING_STAGE_LOG="$BIG_BENCH_LOGS_DIR/hiveLoading.log"
-export BIG_BENCH_DATAGEN_STAGE_LOG="$BIG_BENCH_LOGS_dIR/datagen.log"
+export BIG_BENCH_DATAGEN_STAGE_LOG="$BIG_BENCH_LOGS_DIR/dataGeneration.log"
 
 ## ===================================================
 ## Data generation options
