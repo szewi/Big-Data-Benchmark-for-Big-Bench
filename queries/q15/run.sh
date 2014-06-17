@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+ENV_SETTINGS="`dirname $0`/../../setEnvVars"
+if [ ! -f "$ENV_SETTINGS" ]
+then
+        echo "Environment setup file $ENV_SETTINGS not found"
+        exit 1
+else
+        source "$ENV_SETTINGS"
+fi
+
 #To debug start with: 
 #> run.sh <step> 
 #to execute only specified step
@@ -25,8 +34,6 @@ echo "========================="
 echo "QUERY_DIR     $QUERY_DIR"
 echo "QUERY_TMP_DIR $QUERY_TMP_DIR"
 echo "MR_JARCLASS   $MR_JARCLASS"
-
-
 
 #Step 1. Haddop Part 0-----------------------------------------------------------------------
 # Copying jar to hdfs
@@ -70,7 +77,6 @@ if [ $# -lt 1 ] || [ $1 -eq 3 ] ; then
 		hadoop jar "${MR_JAR}" "${MR_CLASS}" "${QUERY_TMP_DIR}/q15_matrix${i}" "${QUERY_TMP_DIR}/output${i}" 
 	done
 	wait 
-	
 fi
 
 #Step 4. Hive 2-----------------------------------------------------------------------
@@ -89,9 +95,7 @@ if [ $# -lt 1 ] || [ $1 -eq 5 ] ; then
 	echo "========================="
 	
 	hadoop fs -rm -r -skipTrash  ${QUERY_TMP_DIR}/*
-	
 fi
-
 
 echo "======= $QUERY_NUM  result ======="
 echo "results in: ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${QUERY_NUM}result"

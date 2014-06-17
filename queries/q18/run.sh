@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+ENV_SETTINGS="`dirname $0`/../../setEnvVars"
+if [ ! -f "$ENV_SETTINGS" ]
+then
+        echo "Environment setup file $ENV_SETTINGS not found"
+        exit 1
+else
+        source "$ENV_SETTINGS"
+fi
+
 #To debug start with: 
 #> run.sh <step> 
 #to execute only specified step
@@ -20,8 +29,6 @@ QUERY_TMP_DIR=${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}/${QUERY_NUM}tmp
 MR_JAR="${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar"
 MR_CLASS="de.bankmark.bigbench.queries.${QUERY_NUM}.MRlinearRegression"
 MR_JARCLASS="${MR_JAR} ${MR_CLASS}"
-
-
 
 #Step 1. Haddop Part 0-----------------------------------------------------------------------
 # Copying jar to hdfs
@@ -51,8 +58,6 @@ if [ $# -lt 1 ] || [ $1 -eq 3 ] ; then
 
 	hadoop fs -rm -r -skipTrash  "${QUERY_TMP_DIR}/output*"
 
-
-
 	echo "========================="
 	echo "$QUERY_NUM Step 3/6: exec M/R job linear regression analysis"
 	echo "========================="
@@ -66,10 +71,7 @@ if [ $# -lt 1 ] || [ $1 -eq 3 ] ; then
 		echo "-------------------------"
 		hadoop jar "${MR_JAR}" "${MR_CLASS}" "${QUERY_TMP_DIR}/q18_matrix${i}" "${QUERY_TMP_DIR}/output${i}"  
 	done
-	
 fi
-
-
 
 #Step 4. Hive 2-----------------------------------------------------------------------
 if [ $# -lt 1 ] || [ $1 -eq 4 ] ; then
@@ -89,7 +91,6 @@ if [ $# -lt 1 ] || [ $1 -eq 5 ] ; then
 
 fi
 
-
 #Step 6. Hadoop  3-----------------------------------------------------------------------
 # Cleaning up
 if [ $# -lt 1 ] || [ $1 -eq 6 ] ; then
@@ -98,9 +99,7 @@ if [ $# -lt 1 ] || [ $1 -eq 6 ] ; then
 	echo "========================="
 	hive  -f "${QUERY_DIR}/cleanup.sql"
 	hadoop fs -rm -r -skipTrash  "${QUERY_TMP_DIR}/*"
-
 fi
-
 
 echo "======= $QUERY_NUM  result ======="
 echo "results in: ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${QUERY_NUM}result"

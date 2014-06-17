@@ -1,3 +1,0 @@
-bb-aws2
-bb-aws3
-bb-aws4

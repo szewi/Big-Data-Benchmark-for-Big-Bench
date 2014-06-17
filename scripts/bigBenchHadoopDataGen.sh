@@ -1,4 +1,14 @@
 #!/usr/bin/env bash
+
+ENV_SETTINGS="`dirname $0`/../setEnvVars"
+if [ ! -f "$ENV_SETTINGS" ]
+then
+        echo "Environment setup file $ENV_SETTINGS not found"
+        exit 1
+else
+        source "$ENV_SETTINGS"
+fi
+
 # extract options and their arguments into variables.
 echo "USAGE: -mapTasks <number> -sf <number>  (SF: scalingFactor 1==1GB, 10==10GB, .. , 1000=1TB, etc. Location of generated data can be set in /setEnvVars configuration file  with the BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR property)"
     case "$1" in
@@ -15,15 +25,9 @@ echo "USAGE: -mapTasks <number> -sf <number>  (SF: scalingFactor 1==1GB, 10==10G
 echo "PDGFOptions: $@"
 echo "HadoopClusterExecOptions: $HadoopClusterExecOptions"
 
-
-
 PDGF_ARCHIVE_NAME=pdgfEnvironment.tar
 PDGF_DISTRIBUTED_NODE_DIR=$PDGF_ARCHIVE_NAME/data-generator/
 PDGF_ARCHIVE_PATH=$BIG_BENCH_HOME/$PDGF_ARCHIVE_NAME
-
-
-
-
 
 if grep -q "IS_EULA_ACCEPTED=true" "$BIG_BENCH_DATA_GENERATOR_DIR/Constants.properties"; then
   echo "EULA is accepted"
@@ -40,7 +44,6 @@ else
 		exit -1 
 	fi
 fi
-
 
 # delete any previously generated data
 echo "==============================================="
@@ -68,7 +71,6 @@ fi
 hadoop fs -ls "${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
 echo "OK"
 
-
 echo "==============================================="
 echo "Creating data generator archive to upload to DistCache"
 echo "==============================================="
@@ -80,8 +82,6 @@ if [[ $rc != 0 ]] ; then
     exit $rc
 fi
 echo "OK"
-
-
 
 echo "==============================================="
 echo "Starting distributed hadoop data generation job with: $HadoopClusterExecOptions"
@@ -96,7 +96,6 @@ echo "PDGF_CLUSTER_CONF: $PDGF_CLUSTER_CONF"
 
 echo "create $BIG_BENCH_LOGS_DIR folder"
 mkdir -p "$BIG_BENCH_LOGS_DIR"
-
 
 echo hadoop jar "${BIG_BENCH_BASH_SCRIPT_DIR}/HadoopClusterExec.jar" -archives  "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec java ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks  -nn HadoopClusterExec.taskNumber -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIGBENCH_TABLES} $@ 
 

@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+ENV_SETTINGS="`dirname $0`/../../setEnvVars"
+if [ ! -f "$ENV_SETTINGS" ]
+then
+        echo "Environment setup file $ENV_SETTINGS not found"
+        exit 1
+else
+        source "$ENV_SETTINGS"
+fi
 
 #To debug start with: 
 #> run.sh <step> 
@@ -12,7 +20,6 @@
 #step 4.  mahout kmeans		:	Calculating k-means"
 #step 5.  mahout dump > hdfs/res:	Converting result and copy result do hdfs query result folder
 #step 6.  hive && hdfs 		:	cleanup.sql && hadoop fs rm MH
-
 
 QUERY_NUM="q20"
 QUERY_DIR="${BIG_BENCH_QUERIES_DIR}/${QUERY_NUM}"
@@ -32,9 +39,7 @@ if [ $# -lt 1 ] || [ $1 -eq 1 ] ; then
 	hadoop fs -mkdir -p "$MH_TMP_DIR" &
 	hadoop fs -mkdir -p "$HDFS_RESULT_DIR" &
 	wait
-
 fi
-
 
 if [ $# -lt 1 ] || [ $1 -eq 2 ] ; then
 	echo "========================="
@@ -44,7 +49,6 @@ if [ $# -lt 1 ] || [ $1 -eq 2 ] ; then
 	# Write input for k-means into ctable
 	hive -hiveconf "MH_TMP_DIR=${HIVE_TABLE_NAME}" -f "${QUERY_DIR}"/${QUERY_NUM}.sql
 fi
-
 
 if [ $# -lt 1 ] || [ $1 -eq 3 ] ; then
 	echo "========================="
@@ -56,8 +60,6 @@ if [ $# -lt 1 ] || [ $1 -eq 3 ] ; then
 	mahout org.apache.mahout.clustering.conversion.InputDriver -i "${HIVE_TABLE_NAME}" -o "${MH_TMP_DIR}"/Vec -v org.apache.mahout.math.RandomAccessSparseVector #-c UTF-8 
 fi
 
-
-
 if [ $# -lt 1 ] || [ $1 -eq 4 ] ; then
 	echo "========================="
 	echo "$QUERY_NUM Step 4/6: Calculating k-means"
@@ -67,7 +69,6 @@ if [ $# -lt 1 ] || [ $1 -eq 4 ] ; then
 
 	mahout kmeans -i "$MH_TMP_DIR"/Vec -c "$MH_TMP_DIR"/init-clusters -o "$MH_TMP_DIR"/kmeans-clusters -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl
 fi
-
 
 if [ $# -lt 1 ] || [ $1 -eq 5 ] ; then
 	echo "========================="
@@ -79,7 +80,6 @@ if [ $# -lt 1 ] || [ $1 -eq 5 ] ; then
 	#mahout seqdump -i $MH_TMP_DIR/Vec/ -c $MH_TMP_DIR/kmeans-clusters -o $MH_TMP_DIR/results -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl
 fi
 
-
 if [ $# -lt 1 ] || [ $1 -eq 6 ] ; then
 	echo "========================="
 	echo "$QUERY_NUM Step 6/6: Clean up"
@@ -88,11 +88,7 @@ if [ $# -lt 1 ] || [ $1 -eq 6 ] ; then
 	hadoop fs -rm -r "$MH_TMP_DIR"
 fi
 
-
 echo "======= $QUERY_NUM  result ======="
 echo "results in: ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${QUERY_NUM}result"
 echo "to display : hadoop fs -cat ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${QUERY_NUM}result/*"
 echo "========================="
-
-
-

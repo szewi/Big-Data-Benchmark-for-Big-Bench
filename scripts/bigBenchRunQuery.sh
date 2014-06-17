@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+ENV_SETTINGS="`dirname $0`/../setEnvVars"
+if [ ! -f "$ENV_SETTINGS" ]
+then
+        echo "Environment setup file $ENV_SETTINGS not found"
+        exit 1
+else
+        source "$ENV_SETTINGS"
+fi
+
 if [ $# -lt 1 ]
 then
 	echo "parameter missing"
@@ -7,11 +16,8 @@ then
 	exit 1
 fi
 
-
-
 if [ $1 -lt 10 ]
 then
-	
 	QUERY_NAME=q0$1	
 else
 	QUERY_NAME=q$1	
@@ -23,7 +29,6 @@ echo "==============================================="
 echo "Running query: $QUERY_NAME"
 echo "log: $LOG_FILE_NAME"
 echo "==============================================="	
-
 
 ### Checking required folder: logs/; tmp/; result/ if they exist, create them and set permissions 
 
@@ -41,15 +46,13 @@ if [ ! -w "$LOG_FILE_NAME" ] ; then
     exit 1
 fi
 
-
-echo "checking existance of: ${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR} "
+echo "checking existence of: ${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR} "
 hadoop fs -mkdir -p "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
 hadoop fs -chmod uga+rw "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
 
 echo "checking existance of: ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR} "
 hadoop fs -mkdir -p "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
 hadoop fs -chmod uga+rw "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
-
 
 # start timed execution of query. Stderr is appended to stdout and both are written into logs/q??.log and to console
 
@@ -58,8 +61,3 @@ echo "==========================="
 
 ## append query specifc log to allInOne logfile
 cat "$LOG_FILE_NAME" >> "$BIG_BENCH_LOGS_DIR/allQueries.log"
-
-
-
-
-

@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+ENV_SETTINGS="`dirname $0`/../setEnvVars"
+if [ ! -f "$ENV_SETTINGS" ]
+then
+        echo "Environment setup file $ENV_SETTINGS not found"
+        exit 1
+else
+        source "$ENV_SETTINGS"
+fi
 
 FIRST_QUERY=1
 if [ $# -gt 0 ]; then
@@ -37,16 +45,10 @@ if [ $# -gt 1 ]; then
 	fi
 fi
 
-
-
-
-
 echo "==============================================="
 echo "cleanup tmp files from previous query runs"
 echo "==============================================="
 "$BIG_BENCH_BASH_SCRIPT_DIR"/cleanBigBenchQueries.sh
-
-
 
 echo "checking existance of: $BIG_BENCH_LOGS_DIR "
 if [ ! -d "$BIG_BENCH_LOGS_DIR" ]; then
@@ -54,24 +56,16 @@ if [ ! -d "$BIG_BENCH_LOGS_DIR" ]; then
 		echo "ERROR: cannot write to: $BIG_BENCH_LOGS_DIR, no permission"
 		exit 1
 	fi
-	
 fi
-
-
-
 
 echo "==============================================="
 echo "Running queries $FIRST_QUERY-$LAST_QUERY"
 echo "logging run to: $BIG_BENCH_LOGS_DIR/allQueries.log"
 echo "==============================================="
 
-
-
 for (( i=$FIRST_QUERY; i <=$LAST_QUERY; i++ ))
 do
-
 	"$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchRunQuery.sh" ${i}
-
 done
 
 echo "==============================================="
@@ -81,5 +75,3 @@ echo "==============================================="
 "$BIG_BENCH_BASH_SCRIPT_DIR/showErrors.sh" 
 
 "$BIG_BENCH_BASH_SCRIPT_DIR/showTimes.sh" 
-
-

@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 
+ENV_SETTINGS="`dirname $0`/../setEnvVars"
+if [ ! -f "$ENV_SETTINGS" ]
+then
+        echo "Environment setup file $ENV_SETTINGS not found"
+        exit 1
+else
+	source "$ENV_SETTINGS"
+fi
 
 if grep -q "IS_EULA_ACCEPTED=true" "$BIG_BENCH_DATA_GENERATOR_DIR/Constants.properties"; then
-  echo "EULA is accepted"
+	echo "EULA is accepted"
 else
 	echo "==============================================="
 	echo "data generator EULA"
@@ -13,22 +21,14 @@ else
 		echo "OK"
 	else
 		echo "ERROR! data generation tool EULA is not accepted. Cannot procced"
-		exit -1 
+		exit 1 
 	fi
 fi
-
-
 
 CLUSTER_CONF=" -Dcore-site.xml=${BIG_BENCH_DATAGEN_CORE_SITE} -Dhdfs-site.xml=${BIG_BENCH_DATAGEN_HDFS_SITE} -Djava.library.path=${BIG_BENCH_HADOOP_LIBS_NATIVE} -DFileChannelProvider=pdgf.util.caching.fileWriter.HDFSChannelProvider -Ddfs.replication.override=${BIG_BENCH_DATAGEN_DFS_REPLICATION} "
 #echo $CLUSTER_CONF
 
-if [ ! -f "${BIG_BENCH_NODES}" ]
-then
-	echo "Node file not found in ${BIG_BENCH_NODES}"
-	exit 1
-fi
-
-IFS=$'\n' IPs=($(cat "${BIG_BENCH_NODES}"))
+IPs=(${BIG_BENCH_NODES})
 NODE_COUNT=${#IPs[@]}
 
 # delete any previously generated data
@@ -36,7 +36,6 @@ echo "==============================================="
 echo "Deleting any previously generated data, results and logs."
 echo "==============================================="
 ${BIG_BENCH_BASH_SCRIPT_DIR}/cleanBigBenchData.sh
-
 
 echo "==============================================="
 echo "Starting data generation job."
