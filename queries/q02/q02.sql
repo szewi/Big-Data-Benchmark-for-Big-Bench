@@ -37,7 +37,6 @@ set hive.optimize.index.filter;
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Resources
-add file ${env:BIG_BENCH_HIVE_LIBS}/hive-contrib.jar;
 add file ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
 
 -- Result file configuration
@@ -68,7 +67,7 @@ FROM (
 
 	) q02_map_output
 	REDUCE q02_map_output.cid, q02_map_output.pid
-	USING 'java ${env:BIG_BENCH_java_child_process_xmx} -cp bigbenchqueriesmr.jar:hive-contrib.jar de.bankmark.bigbench.queries.q02.Red -ITEM_SET_MAX 500 '
+	USING 'java ${env:BIG_BENCH_java_child_process_xmx} -cp bigbenchqueriesmr.jar de.bankmark.bigbench.queries.q02.Red -ITEM_SET_MAX 500 '
 	AS (pid1 BIGINT, pid2 BIGINT)
 ) q02_temp_basket
 WHERE pid1 = 1416

@@ -37,7 +37,6 @@ set hive.optimize.index.filter;
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Resources
-add file ${env:BIG_BENCH_HIVE_LIBS}/hive-contrib.jar;
 add file ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
 
 
@@ -72,7 +71,7 @@ SELECT lastviewed_item, purchased_item, count(*) FROM (
 	    map_output.lastviewed_time,
             map_output.lastviewed_item,
             map_output.lastviewed_sale
-	USING 'java -cp bigbenchqueriesmr.jar:hive-contrib.jar de.bankmark.bigbench.queries.q03.Red'
+	USING 'java  ${env:BIG_BENCH_java_child_process_xmx} -cp bigbenchqueriesmr.jar de.bankmark.bigbench.queries.q03.Red'
      
         AS (lastviewed_item BIGINT, purchased_item BIGINT)
 ) nPath

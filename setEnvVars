@@ -15,10 +15,17 @@ BIG_BENCH_SSH_OPTIONS=""					   ## you want to make sure that you can reach all 
 ## ==========================
 ## HADOOP environment
 ## ==========================
-export BIG_BENCH_HIVE_LIBS="/usr/lib/hive/lib"                      	##especially location of: hive-contrib.jar;
+##especially location of: hive-contrib.jar;
+export BIG_BENCH_HIVE_LIBS="/usr/lib/hive/lib"                      	
+
 export BIG_BENCH_HADOOP_LIBS_NATIVE="/usr/lib/hadoop/lib/native"
-export BIG_BENCH_HADOOP_CONF="/etc/hadoop/conf.cloudera.hdfs"       ##folder containing the cluster setup *-site.xml files like core-site.xml 
-export BIG_BENCH_java_child_process_xmx=" -Xmx1024m "				## memory used by sub-processes spawned by Hive queries (like streaming M/R jobs etc.)  Suggestion for value: (YarnConatiner_MB - hive_MB)*0.7 e.g. (2000Mb-500Mb)*0.7=1050
+
+##folder containing the cluster setup *-site.xml files like core-site.xml 
+export BIG_BENCH_HADOOP_CONF="/etc/hadoop/conf.cloudera.hdfs"      
+
+## memory used by sub-processes spawned by Hive queries (like streaming M/R jobs etc.)  
+## Suggestion for value: (YarnConatiner_MB - hive_MB)*0.7 e.g. (2000Mb-500Mb)*0.7=1050
+export BIG_BENCH_java_child_process_xmx=" -Xmx1024m "				
 
 ## ==========================
 ## HDFS config and paths
@@ -96,7 +103,7 @@ export BIG_BENCH_DATAGEN_STAGE_LOG="$BIG_BENCH_LOGS_DIR/dataGeneration.log"
 ## ===================================================
 ## Data generation options
 ## ===================================================
-## Option is used by bigBenchClusterDataGen cluster node addresses
+## Option is used by scripts/bigBenchClusterDataGen.sh ; cluster node addresses
 export BIG_BENCH_NODES="bb-aws2 bb-aws3 bb-aws4"			#list of all nodes participating in the generation process
 
 export BIG_BENCH_DATAGEN_DFS_REPLICATION="1" 							#(recommended:1) replication count for files written by the datagenerator 
