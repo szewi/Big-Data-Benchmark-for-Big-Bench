@@ -97,9 +97,9 @@ echo "PDGF_CLUSTER_CONF: $PDGF_CLUSTER_CONF"
 echo "create $BIG_BENCH_LOGS_DIR folder"
 mkdir -p "$BIG_BENCH_LOGS_DIR"
 
-echo hadoop jar "${BIG_BENCH_BASH_SCRIPT_DIR}/HadoopClusterExec.jar" -archives  "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec java ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks  -nn HadoopClusterExec.taskNumber -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIGBENCH_TABLES} $@ 
+echo hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" -archives  "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec java ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks  -nn HadoopClusterExec.taskNumber -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIGBENCH_TABLES} $@ 
 
-time (hadoop jar "${BIG_BENCH_BASH_SCRIPT_DIR}/HadoopClusterExec.jar" -archives  "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec java ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks  -nn HadoopClusterExec.taskNumber -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIGBENCH_TABLES} $@  ; echo  "======= Generating data time =========") > >(tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG") 2>&1 
+time (hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" -archives  "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec java ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks  -nn HadoopClusterExec.taskNumber -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIGBENCH_TABLES} $@  ; echo  "======= Generating data time =========") > >(tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG") 2>&1 
 rc=$?
 if [[ $rc != 0 ]] ; then
     echo "Error executing data generation job"
