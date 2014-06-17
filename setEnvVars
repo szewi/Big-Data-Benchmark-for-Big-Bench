@@ -15,13 +15,11 @@ BIG_BENCH_SSH_OPTIONS=""					   ## you want to make sure that you can reach all 
 ## ==========================
 ## HADOOP environment
 ## ==========================
-##especially location of: hive-contrib.jar;
-export BIG_BENCH_HIVE_LIBS="/usr/lib/hive/lib"                      	
-
-export BIG_BENCH_HADOOP_LIBS_NATIVE="/usr/lib/hadoop/lib/native"
-
+                  
 ##folder containing the cluster setup *-site.xml files like core-site.xml 
 export BIG_BENCH_HADOOP_CONF="/etc/hadoop/conf.cloudera.hdfs"      
+
+export BIG_BENCH_HADOOP_LIBS_NATIVE="/usr/lib/hadoop/lib/native"
 
 ## memory used by sub-processes spawned by Hive queries (like streaming M/R jobs etc.)  
 ## Suggestion for value: (YarnConatiner_MB - hive_MB)*0.7 e.g. (2000Mb-500Mb)*0.7=1050
@@ -106,8 +104,12 @@ export BIG_BENCH_DATAGEN_STAGE_LOG="$BIG_BENCH_LOGS_DIR/dataGeneration.log"
 ## Option is used by scripts/bigBenchClusterDataGen.sh ; cluster node addresses
 export BIG_BENCH_NODES="bb-aws2 bb-aws3 bb-aws4"			#list of all nodes participating in the generation process
 
-export BIG_BENCH_DATAGEN_DFS_REPLICATION="1" 							#(recommended:1) replication count for files written by the datagenerator 
-export BIG_BENCH_DATAGEN_TABLES=""										# if empty-> generate all tables. Else: specify tables to generate. e.g. BIGBENCH_TABLES="item customer store". Tables to choose from: customer customer_address customer_demographics date_dim household_demographics income_band inventory item item_marketprices product_reviews promotion reason ship_mode store store_returns store_sales time_dim warehouse web_clickstreams web_page  web_returns web_sales web_site
+export BIG_BENCH_DATAGEN_DFS_REPLICATION="1" 			#(recommended:1) replication count for files written by the datagenerator 
+
+# if empty-> generate all tables. Else: specify tables to generate.
+# e.g. BIGBENCH_TABLES="item customer store". 
+# Tables to choose from: customer customer_address customer_demographics date_dim household_demographics income_band inventory item item_marketprices product_reviews promotion reason ship_mode store store_returns store_sales time_dim warehouse web_clickstreams web_page  web_returns web_sales web_site
+export BIG_BENCH_DATAGEN_TABLES=""										
 
 ## ===================================================
 ## Data generation environment
