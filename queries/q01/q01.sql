@@ -38,8 +38,9 @@ set hive.optimize.index.filter;
 -- Database
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
+
 -- Resources
-add file ${env:BIG_BENCH_HIVE_LIBS}/hive-contrib.jar;
+--add file ${env:BIG_BENCH_HIVE_LIBS}/hive-contrib.jar;
 add file ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
 
 
@@ -74,7 +75,7 @@ FROM (
 
 	) q01_map_output
 	REDUCE q01_map_output.oid, q01_map_output.pid
-	USING 'java ${env:BIG_BENCH_java_child_process_xmx} -cp bigbenchqueriesmr.jar:hive-contrib.jar de.bankmark.bigbench.queries.q01.Red -ITEM_SET_MAX 500 '
+	USING 'java ${env:BIG_BENCH_java_child_process_xmx} -cp bigbenchqueriesmr.jar de.bankmark.bigbench.queries.q01.Red'
 	AS (pid1 BIGINT, pid2 BIGINT)
 ) q01_temp_basket
 GROUP BY pid1, pid2

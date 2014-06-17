@@ -31,11 +31,30 @@ CLUSTER_CONF=" -Dcore-site.xml=${BIG_BENCH_DATAGEN_CORE_SITE} -Dhdfs-site.xml=${
 IPs=(${BIG_BENCH_NODES})
 NODE_COUNT=${#IPs[@]}
 
-# delete any previously generated data
 echo "==============================================="
 echo "Deleting any previously generated data, results and logs."
 echo "==============================================="
 ${BIG_BENCH_BASH_SCRIPT_DIR}/cleanBigBenchData.sh
+echo "OK"
+echo "==============================================="
+echo "make hdfs benchmark data dir: "${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}
+echo "==============================================="
+hadoop fs -mkdir -p "${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
+rc=$?
+if [[ $rc != 0 ]] ; then
+    echo "Error creating hdfs dir: ${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
+    exit $rc
+fi
+
+hadoop fs -chmod -R 777 "${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
+rc=$?
+if [[ $rc != 0 ]] ; then
+    echo "Error setting permission for hdfs dir: ${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
+    exit $rc
+fi
+
+hadoop fs -ls "${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
+echo "OK"
 
 echo "==============================================="
 echo "Starting data generation job."
@@ -45,8 +64,8 @@ echo "HADOOP CLASSPATH: "$HADOOP_CP
 
 for (( i=0; i<${NODE_COUNT}; i++ ));
 do
-  echo ssh ${BIG_BENCH_SSH_OPTIONS} ${IPs[$i]} java -cp "${HADOOP_CP}:${BIG_BENCH_DATA_GENERATOR_DIR}/pdgf.jar" ${CLUSTER_CONF} pdgf.Controller  -nc ${NODE_COUNT} -nn $((i+1)) -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" -s ${BIGBENCH_TABLES} $@
- ssh ${BIG_BENCH_SSH_OPTIONS} ${IPs[$i]} java -cp "${HADOOP_CP}:${BIG_BENCH_DATA_GENERATOR_DIR}/pdgf.jar" ${CLUSTER_CONF} pdgf.Controller  -nc ${NODE_COUNT} -nn $((i+1)) -ns -c -o "\'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/\'+table.getName\(\)+\'/\'" -s ${BIGBENCH_TABLES} $@ &
+  echo ssh ${BIG_BENCH_SSH_OPTIONS} ${IPs[$i]} java ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:${BIG_BENCH_DATA_GENERATOR_DIR}/pdgf.jar" ${CLUSTER_CONF} pdgf.Controller  -nc ${NODE_COUNT} -nn $((i+1)) -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" -s ${BIGBENCH_TABLES} $@
+       ssh ${BIG_BENCH_SSH_OPTIONS} ${IPs[$i]} java ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:${BIG_BENCH_DATA_GENERATOR_DIR}/pdgf.jar" ${CLUSTER_CONF} pdgf.Controller  -nc ${NODE_COUNT} -nn $((i+1)) -ns -c -o "\'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/\'+table.getName\(\)+\'/\'" -s ${BIGBENCH_TABLES} $@ &
 
 done
 wait

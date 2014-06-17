@@ -47,10 +47,10 @@ set hive.exec.compress.output;
 
 DROP TABLE IF EXISTS q20_twenty;
 CREATE TABLE q20_twenty (
-				cid 		INT, 
+				cid 			INT, 
 				r_order_ratio 	DOUBLE, 
 				r_item_ratio 	DOUBLE, 
-				r_amount_ratio 	DOUBLE, 
+				r_amount_ratio DOUBLE, 
 				r_freq 		INT
 				)
        ROW FORMAT DELIMITED 
@@ -69,23 +69,21 @@ SELECT cid,
 FROM (
 
 
-	SELECT s.ss_sold_date_sk 	AS s_date,
+	SELECT --s.ss_sold_date_sk 	AS s_date, --
 	       r.sr_returned_date_sk 	AS r_date,
 	       s.ss_item_sk 		AS item,
 	       s.ss_ticket_number 	AS oid,
 	       s.ss_net_paid 		AS s_amount,
 	       r.sr_return_amt 		AS r_amount,
-	       (CASE WHEN s.ss_customer_sk IS NULL 
-		  THEN r.sr_customer_sk 
-		ELSE s.ss_customer_sk END) AS cid,
-	       s.ss_customer_sk 	AS s_cid,
-	       sr_customer_sk 		AS r_cid
+	       (CASE WHEN s.ss_customer_sk IS NULL  	THEN r.sr_customer_sk 	ELSE s.ss_customer_sk END) AS cid
+	       --s.ss_customer_sk 	AS s_cid,
+	       --sr_customer_sk 		AS r_cid
 	FROM store_sales s
 	--LEFT JOIN = LEFT OUTER JOIN
-	LEFT OUTER JOIN store_returns r 	ON s.ss_item_sk = r.sr_item_sk
-		                          	AND s.ss_ticket_number = r.sr_ticket_number
-	WHERE s.ss_sold_date_sk IS NOT NULL
-
+	LEFT OUTER JOIN store_returns r 	ON (	r.sr_item_sk = s.ss_item_sk 
+			                     	AND r.sr_ticket_number = s.ss_ticket_number 
+								AND s.ss_sold_date_sk IS NOT NULL
+								)
 
 )q20_sales_returns
 

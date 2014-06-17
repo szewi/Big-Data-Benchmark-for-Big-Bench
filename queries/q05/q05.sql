@@ -17,17 +17,19 @@
 
 
 
---10mb is sufficient for all static tables of bigbench
---set hive.mapjoin.smalltable.filesize;
---set hive.mapjoin.smalltable.filesize=12144;
---set hive.mapred.local.mem;
---set hive.mapred.local.mem=768;
+--  10mb smalltable.filesize should be sufficient for all static tables of bigbench
+--- set hive.mapjoin.smalltable.filesize;
+--- set hive.mapjoin.smalltable.filesize=12144;
+--- set hive.mapred.local.mem;
+--- set hive.mapred.local.mem=768;
 
---set hive.mapjoin.localtask.max.memory.usage;
---set hive.mapjoin.localtask.max.memory.usage=0.99;
+--- set hive.mapjoin.localtask.max.memory.usage;
+--- set hive.mapjoin.localtask.max.memory.usage=0.99;
 
---set hive.auto.convert.join.noconditionaltask.size = 10000;
---Hive 0.12 bug, hive ignores  hive.mapred.local.mem and hive.mapjoin.smalltable.filesize, resulting in out of memory errors
+--- set hive.auto.convert.join.noconditionaltask.size = 10000;
+-- Hive 0.12 bug, hive ignores  hive.mapred.local.mem and hive.mapjoin.smalltable.filesize, resulting in out of memory errors
+-- q5 fails on hash table join. Somehow, the local task used for hash join only allocates 256Mb of memory. Neither hive.mapred.local.mem nor mapreduce.map.java.opts can change this behaviour. 
+-- The only two workarounds are: reduce the "hive.smalltable.filesize" or turn of "hive.auto.convert.join" to prevent hive from converting the join to a mapjoin.
 set hive.auto.convert.join;
 set hive.auto.convert.join=false;
 set hive.auto.convert.join;
@@ -52,6 +54,10 @@ set hive.optimize.index.filter;
 set hive.mapjoin.smalltable.filesize;
 set hive.mapred.local.mem;
 set hive.mapjoin.localtask.max.memory.usage;
+
+
+
+
 -- Database
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
