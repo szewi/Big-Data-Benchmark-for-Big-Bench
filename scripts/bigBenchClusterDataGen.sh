@@ -9,6 +9,8 @@ else
 	source "$ENV_SETTINGS"
 fi
 
+logEnvInformation
+
 if grep -q "IS_EULA_ACCEPTED=true" "$BIG_BENCH_DATA_GENERATOR_DIR/Constants.properties"; then
 	echo "EULA is accepted"
 else

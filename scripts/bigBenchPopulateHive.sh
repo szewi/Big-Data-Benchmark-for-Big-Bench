@@ -9,6 +9,8 @@ else
         source "$ENV_SETTINGS"
 fi
 
+logEnvInformation
+
 echo "==============================================="
 echo "Adding/Updating generated files to HIVE. (drops old tables)"
 echo "==============================================="

@@ -9,6 +9,8 @@ else
         source "$ENV_SETTINGS"
 fi
 
+logEnvInformation
+
 FIRST_QUERY=1
 if [ $# -gt 0 ]; then
 	if [ $1 -gt 0 ]; then

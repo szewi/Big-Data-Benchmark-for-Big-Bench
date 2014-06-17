@@ -9,6 +9,8 @@ else
         source "$ENV_SETTINGS"
 fi
 
+logEnvInformation
+
 QUERY_NUM="q23"
 QUERY_DIR="${BIG_BENCH_QUERIES_DIR}/${QUERY_NUM}"
 

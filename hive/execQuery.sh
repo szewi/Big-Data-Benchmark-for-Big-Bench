@@ -9,6 +9,8 @@ else
         source "$ENV_SETTINGS"
 fi
 
+logEnvInformation
+
 if [ $# -lt 1 ]
 then
 	echo "parameter missing"

@@ -9,6 +9,8 @@ else
         source "$ENV_SETTINGS"
 fi
 
+logEnvInformation
+
 QUERY_NUM="q08"
 FILENAME="${BIG_BENCH_QUERIES_DIR}/${QUERY_NUM}/${QUERY_NUM}.sql"
 hive -f "$FILENAME"

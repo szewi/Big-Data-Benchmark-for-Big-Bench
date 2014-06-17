@@ -142,3 +142,10 @@ if ! echo $PATH | grep "$BIG_BENCH_BASH_SCRIPT_DIR" > /dev/null 2>&1
 then
   export PATH="$BIG_BENCH_BASH_SCRIPT_DIR:$PATH"
 fi
+
+logEnvInformation ()
+{
+	local ENV_INFO_FILE="$BIG_BENCH_LOGS_DIR/envInfo.log"
+	[ ! -d "$BIG_BENCH_LOGS_DIR" ] && mkdir -p "$BIG_BENCH_LOGS_DIR"
+	[ ! -f "$ENV_INFO_FILE" ] && ( hadoop version; hadoop classpath; java -version; ) > "$ENV_INFO_FILE" 2>&1
+}

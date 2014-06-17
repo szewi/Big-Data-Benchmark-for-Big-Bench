@@ -9,6 +9,8 @@ else
         source "$ENV_SETTINGS"
 fi
 
+logEnvInformation
+
 IPs=(${BIG_BENCH_NODES})
 NODE_COUNT=${#IPs[@]}
 SELF=`hostname -s`

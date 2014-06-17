@@ -9,6 +9,8 @@ else
         source "$ENV_SETTINGS"
 fi
 
+logEnvInformation
+
 echo "drop old result tabls in ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
 hive -f $BIG_BENCH_QUERIES_DIR/dropAllResults.sql
 

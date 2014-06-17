@@ -9,6 +9,8 @@ else
         source "$ENV_SETTINGS"
 fi
 
+logEnvInformation
+
 # extract options and their arguments into variables.
 echo "USAGE: -mapTasks <number> -sf <number>  (SF: scalingFactor 1==1GB, 10==10GB, .. , 1000=1TB, etc. Location of generated data can be set in /setEnvVars configuration file  with the BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR property)"
     case "$1" in

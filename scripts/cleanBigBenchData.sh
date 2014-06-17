@@ -9,6 +9,8 @@ else
         source "$ENV_SETTINGS"
 fi
 
+logEnvInformation
+
 "$BIG_BENCH_BASH_SCRIPT_DIR"/cleanBigBenchQueries.sh
 
 echo "cleaning DROP TABLES"

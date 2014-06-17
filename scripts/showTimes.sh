@@ -9,6 +9,8 @@ else
         source "$ENV_SETTINGS"
 fi
 
+logEnvInformation
+
 if [ $# -lt 1 ]
 then
 	grep -A 10 "time ====" "$BIG_BENCH_LOADING_STAGE_LOG"

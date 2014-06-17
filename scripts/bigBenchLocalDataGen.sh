@@ -9,4 +9,6 @@ else
         source "$ENV_SETTINGS"
 fi
 
+logEnvInformation
+
 java -jar ${BIG_BENCH_DATA_GENERATOR_DIR}/pdgf.jar -c -s "$@"

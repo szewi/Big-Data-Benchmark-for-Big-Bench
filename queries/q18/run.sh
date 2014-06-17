@@ -9,6 +9,8 @@ else
         source "$ENV_SETTINGS"
 fi
 
+logEnvInformation
+
 #To debug start with: 
 #> run.sh <step> 
 #to execute only specified step

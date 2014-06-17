@@ -9,6 +9,8 @@ else
         source "$ENV_SETTINGS"
 fi
 
+logEnvInformation
+
 if [ $# -lt 1 ]
 then
 	ERRLOG_FILE_NAME="$BIG_BENCH_LOGS_DIR/queryErrors.log"

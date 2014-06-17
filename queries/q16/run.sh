@@ -9,4 +9,6 @@ else
         source "$ENV_SETTINGS"
 fi
 
+logEnvInformation
+
 ${BIG_BENCH_HIVE_SCRIPT_DIR}/execQuery.sh q16

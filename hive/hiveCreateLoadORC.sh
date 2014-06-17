@@ -9,6 +9,8 @@ else
         source "$ENV_SETTINGS"
 fi
 
+logEnvInformation
+
 hive -f ${BIG_BENCH_HIVE_SCRIPT_DIR}/dropTables.sql
 hive -f ${BIG_BENCH_HIVE_SCRIPT_DIR}/hiveCreateLoadORC.sql
 
