@@ -3,7 +3,6 @@ cd "$(dirname ${BASH_SOURCE[0]})"
 export BIG_BENCH_HOME="$PWD"
 cd "$OLDPWD"
 
-
 ## ================================================================
 ##  ADAPT BELOW VARIABLES TO YOUR CLUSTER
 ## ================================================================
@@ -11,8 +10,7 @@ cd "$OLDPWD"
 ## ==========================
 ## SSH options
 ## ==========================
-BIG_BENCH_SSH_OPTIONS=""					   ## you want to make sure that you can reach all nodes in BIG_BENCH_NODES file via ssh. use this variable to specify the key file to ssh (e.g.: SSH_OPTIONS="-i <keyfile>")
-
+BIG_BENCH_SSH_OPTIONS=""					   ## you want to make sure that you can reach all nodes in BIG_BENCH_NODES Via ssh. use this variable to specify the key file to ssh (e.g.: SSH_OPTIONS="-i <keyfile>")
 
 ## ==========================
 ## HADOOP environment
@@ -74,14 +72,9 @@ export BIG_BENCH_hive_default_fileformat_result_table="TEXTFILE"
 ##export BIG_BENCH_hive_optimize_index_filter="true"
 ##export BIG_BENCH_hive_optimize_ppd="false"					##predicate push down for ORC tables fails on Hive v.0.12.0 
 
-
 ## ================================================================
 ##  /END/  ADAPT BELOW VARIABLES TO YOUR CLUSTER
 ## ================================================================
-
-
-
-
 
 
 ## ===================================================
@@ -98,18 +91,16 @@ export BIG_BENCH_HIVE_SCRIPT_DIR="$BIG_BENCH_HOME/hive"
 export BIG_BENCH_QUERIES_DIR="$BIG_BENCH_HOME/queries"
 export BIG_BENCH_LOGS_DIR="$BIG_BENCH_HOME/logs"
 export BIG_BENCH_LOADING_STAGE_LOG="$BIG_BENCH_LOGS_DIR/hiveLoading.log"
-export BIG_BENCH_DATAGEN_STAGE_LOG=$BIG_BENCH_LOGS_DIR/datagen.log
+export BIG_BENCH_DATAGEN_STAGE_LOG="$BIG_BENCH_LOGS_dIR/datagen.log"
 
 ## ===================================================
 ## Data generation options
 ## ===================================================
 ## Option is used by bigBenchClusterDataGen cluster node addresses
-export BIG_BENCH_NODES="$BIG_BENCH_BASH_SCRIPT_DIR/nodes.txt"			#file containing all your computation nodes dns names or ip addresses (one ip per line)
-
+export BIG_BENCH_NODES="bb-aws2 bb-aws3 bb-aws4"			#list of all nodes participating in the generation process
 
 export BIG_BENCH_DATAGEN_DFS_REPLICATION="1" 							#(recommended:1) replication count for files written by the datagenerator 
 export BIG_BENCH_DATAGEN_TABLES=""										# if empty-> generate all tables. Else: specify tables to generate. e.g. BIGBENCH_TABLES="item customer store". Tables to choose from: customer customer_address customer_demographics date_dim household_demographics income_band inventory item item_marketprices product_reviews promotion reason ship_mode store store_returns store_sales time_dim warehouse web_clickstreams web_page  web_returns web_sales web_site
-
 
 ## ===================================================
 ## Data generation environment
