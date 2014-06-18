@@ -4,6 +4,92 @@ UNDER DEVELOPMENT -- contact bhaskar.gowda@intel.com for help in running the wor
 
 This document is a development version and describes the BigBench installation and execution on our AWS machines.
 
+# Using the BigBench driver
+
+## Cluster Environment
+
+**Java**
+
+Java 1.7 is required. 64 bit is recommended
+
+**Hadoop**
+
+* Hive
+* Mahout
+
+## Installation
+
+On the AWS installation, clone the github repository into a folder stored in $INSTALL_DIR:
+
+```
+export INSTALL_DIR="$HOME" # adapt this to your location
+cd $INSTALL_DIR
+git clone https://<username>@github.com/intel-hadoop/Big-Bench.git
+```
+
+
+### Configuration
+
+Check, if the hadoop related variables are correctly set in the environment file:
+
+`vi "$INSTALL_DIR/Big-Bench/setEnvVars"`
+
+Major settings, Specify your cluster environment:
+
+```
+BIG_BENCH_HADOOP_LIBS_NATIVE  (optional but speeds up hdfs access)
+BIG_BENCH_HADOOP_CONF         most important: core-site.xml and hdfs-site.xml
+```
+Minor settings:
+```
+BIG_BENCH_USER
+BIG_BENCH_DATAGEN_DFS_REPLICATION  replication count used during generation of the big bench table
+BIG_BENCH_DATAGEN_JVM_ENV          -Xmx750m is sufficient for Nodes with 2 CPU cores, remove or increase if your Nodes have more cores
+```
+
+## BigBench run
+
+The BigBench driver is started with a script. To show all available options, you can call the help first:
+```
+"$INSTALL_DIR/scripts/bigBenchRunBenchmark.sh -h
+```
+
+The driver needs some additional arguments, depending on which tasks should be done:
+
+* if the data generation is not skipped (with the -sd option), you have to specify the number of map tasks PDGF should use when running as yarn job (with -mt) as well as the scale factor for the dataset (with -sf)
+* if the throughput test is not skipped (with -st), you have to specify the number of streams (with -s)
+
+So a complete benchmark run with all stages can be done by running (e.g., 4 map tasks, scale factor 100, 2 streams):
+```
+"$INSTALL_DIR/scripts/bigBenchRunBenchmark.sh -mt 4 -sf 100 -s 2
+```
+
+The driver can skip certain stages of the benchmark (see -h help option for details), but if any part of the benchmarked tests (load, power, throughtput) is skipped, no result can be computed.
+
+After the benchmark finished, two log files are written: BigBenchResult.txt (which contains the benchmark's sysout messages) as well as BigBenchTimes.csv (which contains all measured timestamps/durations). The log directory can be specified with the -l option, it defaults to the user's home ($HOME).
+
+### Accept license
+
+When running the data generator for the first time, the user must accept its license:
+
+```
+By using this software you must first agree to our terms of use. Press [ENTER] to show them
+... # license is displayed
+If you have read and agree to these terms of use, please type (uppercase!): YES and press [ENTER]
+YES
+```
+
+### Other
+
+#### PDGF
+The data are being generated directly into HDFS (into the benchmarks/bigbench/data/ directory, absolute HDFS path is /user/ec2-user/benchmarks/bigbench/data/).
+
+Default HDFS replication count is 1 (data is onyl stored on the generating node). You can change this in the $BIG_BENCH_HOME/setEnvVars file by changing the variable
+`BIG_BENCH_DATAGEN_DFS_REPLICATION=<Replication count>' as described in: [Configuration](#Configuration)
+
+
+# Old instructions (DEPRECATED)
+
 ##### Table of Contents
 [Cluster Environment](#cluster-environment)
 
