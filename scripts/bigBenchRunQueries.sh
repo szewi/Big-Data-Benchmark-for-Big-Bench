@@ -77,3 +77,4 @@ echo "==============================================="
 "$BIG_BENCH_BASH_SCRIPT_DIR/showErrors.sh" 
 
 "$BIG_BENCH_BASH_SCRIPT_DIR/showTimes.sh" 
+"$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchZipQueryLogs.sh" 
