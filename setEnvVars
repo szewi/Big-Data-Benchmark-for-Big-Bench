@@ -25,6 +25,10 @@ export BIG_BENCH_HADOOP_LIBS_NATIVE="/usr/lib/hadoop/lib/native"
 ## Suggestion for value: (YarnConatiner_MB - hive_MB)*0.7 e.g. (2000Mb-500Mb)*0.7=1050
 export BIG_BENCH_java_child_process_xmx=" -Xmx1024m "				
 
+##NOT USED BY BENCHMARK! options only used by: scripts/mountHdfs.sh
+export BIG_BENCH_HDFS_MOUNT_POINT="/mnt/hdfs"
+export BIG_BENCH_HDFS_NAMENODE="bb-aws1.us-west-2.compute.internal:8022"
+
 ## ==========================
 ## HDFS config and paths
 ## ==========================
@@ -37,10 +41,6 @@ export BIG_BENCH_HDFS_RELATIVE_TEMP_DIR="benchmarks/bigbench/temp"
 export BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$BIG_BENCH_HDFS_RELATIVE_DATA_DIR"
 export BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$BIG_BENCH_HDFS_RELATIVE_QUERY_RESULT_DIR"
 export BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$BIG_BENCH_HDFS_RELATIVE_TEMP_DIR"
-
-##NOT USED BY BENCHMARK! options only used by: scripts/mountHdfs.sh
-export BIG_BENCH_HDFS_MOUNT_POINT="/mnt/hdfs"
-export BIG_BENCH_HDFS_NAMENODE="bb-aws1.us-west-2.compute.internal:8022"
 
 ## ==========================
 ## HIVE (recommended version v0.12)
