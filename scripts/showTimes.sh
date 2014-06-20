@@ -14,7 +14,7 @@ logEnvInformation
 if [ $# -lt 1 ]
 then
 	grep -A 10 "time ====" "$BIG_BENCH_LOADING_STAGE_LOG"
-	grep -A 10 "time ====" "$BIG_BENCH_LOGS_DIR"/q??.log
+	grep -A 10 "time ====" "$BIG_BENCH_LOGS_DIR"/q[0-9][0-9]*.log
 else
 	if [ $1 -lt 10 ]
 	then
@@ -23,5 +23,5 @@ else
 		QUERY_NAME=q$1	
 	fi
 
-	grep -A 10 "time ====" "$BIG_BENCH_LOGS_DIR/${QUERY_NAME}.log"
+	grep -A 10 "time ====" "$BIG_BENCH_LOGS_DIR"/${QUERY_NAME}*.log
 fi

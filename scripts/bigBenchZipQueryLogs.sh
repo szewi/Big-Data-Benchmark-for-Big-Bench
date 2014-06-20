@@ -14,5 +14,5 @@ logEnvInformation
 if [ -d "$BIG_BENCH_LOGS_DIR" ]
 then
 	cd "$BIG_BENCH_LOGS_DIR"
-	zip -r logs-`date +%Y%m%d-%H%M%S`.zip *.log
+	zip -r logs-`date +%Y%m%d-%H%M%S`.zip *.log *.csv
 fi

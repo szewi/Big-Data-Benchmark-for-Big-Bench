@@ -25,7 +25,8 @@ else
 	QUERY_NAME=q$1	
 fi	
 
-LOG_FILE_NAME="$BIG_BENCH_LOGS_DIR/$QUERY_NAME.log"
+# $2 is an optional string postfix for concurrent execution of queries
+LOG_FILE_NAME="$BIG_BENCH_LOGS_DIR/$QUERY_NAME$2.log"
 
 echo "==============================================="
 echo "Running query: $QUERY_NAME"
@@ -34,7 +35,7 @@ echo "==============================================="
 
 ### Checking required folder: logs/; tmp/; result/ if they exist, create them and set permissions 
 
-echo "checking existance of: $BIG_BENCH_LOGS_DIR "
+echo "checking existence of: $BIG_BENCH_LOGS_DIR"
 if [ ! -d "$BIG_BENCH_LOGS_DIR" ]; then
 	mkdir -p "$BIG_BENCH_LOGS_DIR"
 fi
@@ -48,11 +49,11 @@ if [ ! -w "$LOG_FILE_NAME" ] ; then
     exit 1
 fi
 
-echo "checking existence of: ${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR} "
+echo "checking existence of: ${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
 hadoop fs -mkdir -p "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
 hadoop fs -chmod uga+rw "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
 
-echo "checking existance of: ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR} "
+echo "checking existence of: ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
 hadoop fs -mkdir -p "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
 hadoop fs -chmod uga+rw "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
 
@@ -62,4 +63,4 @@ time ("$BIG_BENCH_QUERIES_DIR/$QUERY_NAME/run.sh" ; echo  "======= $QUERY_NAME  
 echo "==========================="
 
 ## append query specifc log to allInOne logfile
-cat "$LOG_FILE_NAME" >> "$BIG_BENCH_LOGS_DIR/allQueries.log"
+#cat "$LOG_FILE_NAME" >> "$BIG_BENCH_LOGS_DIR/allQueries.log"
