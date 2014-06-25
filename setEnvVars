@@ -121,12 +121,13 @@ export BIG_BENCH_DATAGEN_HDFS_SITE="$BIG_BENCH_HADOOP_CONF/hdfs-site.xml"
 
 # specify JVM arguments like: -Xmx2000m; 300m is sufficient if the datagen only uses 1 worker thread per map task (default). 
 # Add +100MB per addition worker.
-export BIG_BENCH_DATAGEN_JVM_ENV=" -Xmx300m " 		
+export BIG_BENCH_HADOOP_DATAGEN_JVM_ENV=" -Xmx300m " 		
+export BIG_BENCH_DATAGEN_JVM_ENV="  " 	  #unrestricted
 
 #-ap:=automatic progress; 
 #-workers:=limit hadoop based data generator to use 1 CPU core per map task. 
 # if you increase -workers, you must also increase the -Xmx setting in BIG_BENCH_DATAGEN_JVM_ENV; 		
-export BIGBENCH_DATAGEN_HADOOP_OPTIONS=" -workers 1 -ap 3000 "	
+export BIGBENCH_DATAGEN_HADOOP_OPTIONS=" -workers 1 -ap 3000 "	#-ap==automatic progress 3000ms intervall; prevents hadoop from killing long running jobs
 
 ## ===================================================
 ## Set permissions
