@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 
-ENV_SETTINGS="`dirname $0`/../../setEnvVars"
-if [ ! -f "$ENV_SETTINGS" ]
-then
-        echo "Environment setup file $ENV_SETTINGS not found"
-        exit 1
-else
-        source "$ENV_SETTINGS"
-fi
+query_run_main_method () {
+	HIVE_SCRIPT="$QUERY_DIR/$QUERY_NAME.sql"
+	if [ ! -r "$HIVE_SCRIPT" ]
+	then
+		echo "SQL file $HIVE_SCRIPT can not be read."
+		exit 1
+	fi
 
-logEnvInformation
-
-${BIG_BENCH_HIVE_SCRIPT_DIR}/execQuery.sh q09
+        hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE_SCRIPT"
+}

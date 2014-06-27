@@ -37,9 +37,9 @@ set hive.optimize.index.filter;
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Resources
--------------------------------------------------------------------------------    
+-------------------------------------------------------------------------------
 --Part 3
--------------------------------------------------------------------------------    
+-------------------------------------------------------------------------------
 
 DROP TABLE IF EXISTS q30_c_affinity_out;
 
@@ -50,4 +50,3 @@ CREATE TABLE q30_c_affinity_out (
 
 
 LOAD DATA INPATH '/mahout_result/thirty/part-r-00000' OVERWRITE INTO TABLE q30_c_affinity_out;
-

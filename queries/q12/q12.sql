@@ -39,11 +39,6 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 -- Resources
 
 -- Result file configuration
-set QUERY_NUM=q12;
-set resultTableName=${hiveconf:QUERY_NUM}result;
-set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
-
-
 
 --Find all customers who viewed items of a given category on the web
 --in a given month and year that was followed by an in-store purchase in the three
@@ -82,10 +77,10 @@ CREATE VIEW IF NOT EXISTS q12_sale AS
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;	
 
-DROP TABLE IF EXISTS ${hiveconf:resultTableName};
-CREATE TABLE ${hiveconf:resultTableName}
+DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
+CREATE TABLE ${hiveconf:RESULT_TABLE}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
-STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table}  LOCATION '${hiveconf:resultFile}' 
+STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table}  LOCATION '${hiveconf:RESULT_DIR}' 
 AS
 -- the real query part	
 SELECT c_date, s_date, s.uid
@@ -102,4 +97,3 @@ SELECT c_date, s_date, s.uid
 -- cleanup -------------------------------------------------------------
 DROP VIEW IF EXISTS q12_click;
 DROP VIEW IF EXISTS q12_sale;
-

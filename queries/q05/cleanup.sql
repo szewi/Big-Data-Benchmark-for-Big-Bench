@@ -38,4 +38,4 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Resources
 
-DROP TABLE IF EXISTS q05_ctable;
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};

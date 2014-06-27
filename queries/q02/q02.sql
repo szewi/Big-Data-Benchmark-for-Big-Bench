@@ -40,19 +40,16 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 add file ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
 
 -- Result file configuration
-set QUERY_NUM=q02;
-set resultTableName=${hiveconf:QUERY_NUM}result;
-set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
 
 --Result -------------------------------------------------------------------------
 --keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
-DROP TABLE IF EXISTS ${hiveconf:resultTableName};
-CREATE TABLE ${hiveconf:resultTableName}
+DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
+CREATE TABLE ${hiveconf:RESULT_TABLE}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
-STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:resultFile}' 
+STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}' 
 AS
 -- the real query part
 SELECT  pid1, pid2, COUNT (*) AS cnt

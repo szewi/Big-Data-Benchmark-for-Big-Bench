@@ -43,10 +43,6 @@ ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q04/q4_reducer1.py;
 ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q04/q4_reducer2.py;
 
 -- Result file configuration
-set QUERY_NUM=q04;
-set resultTableName=${hiveconf:QUERY_NUM}result;
-set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
-
 
 -- Part 1: join webclickstreams with user, webpage and date -----------			  
 DROP VIEW IF EXISTS q04_tmp_sessions;
@@ -107,7 +103,7 @@ FROM (
 		q04_tmp_map_output.wptype, 
 		q04_tmp_map_output.tstamp, 
 		q04_tmp_map_output.sessionid
- 	USING 'python q4_reducer2.py'   AS (sid STRING, start_s BIGINT, end_s BIGINT)
+ 	USING 'python q4_reducer2.py' AS (sid STRING, start_s BIGINT, end_s BIGINT)
 ) q04_tmp_npath
 CLUSTER BY sid
 ;
@@ -117,10 +113,10 @@ CLUSTER BY sid
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;	
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
-DROP TABLE IF EXISTS ${hiveconf:resultTableName};
-CREATE TABLE ${hiveconf:resultTableName}
+DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
+CREATE TABLE ${hiveconf:RESULT_TABLE}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
-STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:resultFile}' 
+STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}' 
 AS
 -- the real query part
 SELECT c.sid, COUNT (*) AS s_pages
@@ -132,4 +128,3 @@ GROUP BY c.sid
 --cleanup --------------------------------------------
 DROP VIEW IF EXISTS q04_tmp_sessions;
 DROP VIEW IF EXISTS q04_tmp_cart_abandon;
-

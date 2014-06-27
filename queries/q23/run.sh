@@ -1,46 +1,54 @@
 #!/usr/bin/env bash
 
-ENV_SETTINGS="`dirname $0`/../../setEnvVars"
-if [ ! -f "$ENV_SETTINGS" ]
-then
-        echo "Environment setup file $ENV_SETTINGS not found"
-        exit 1
-else
-        source "$ENV_SETTINGS"
-fi
+query_run_main_method () {
 
-logEnvInformation
+	HIVE1_SCRIPT="$QUERY_DIR/q23_1.sql"
+	if [ ! -r "$HIVE1_SCRIPT" ]
+	then
+		echo "SQL file $HIVE1_SCRIPT can not be read."
+		exit 1
+	fi
 
-QUERY_NUM="q23"
-QUERY_DIR="${BIG_BENCH_QUERIES_DIR}/${QUERY_NUM}"
+	HIVE2_SCRIPT="$QUERY_DIR/q23_2.sql"
+	if [ ! -r "$HIVE2_SCRIPT" ]
+	then
+		echo "SQL file $HIVE2_SCRIPT can not be read."
+		exit 1
+	fi
 
-echo "========================="
-echo "$QUERY_NUM Step 1/4: make view"
-echo "========================="
-hive   -f "${QUERY_DIR}/q23_1.sql"
+	HIVE3_SCRIPT="$QUERY_DIR/q23_3.sql"
+	if [ ! -r "$HIVE3_SCRIPT" ]
+	then
+		echo "SQL file $HIVE3_SCRIPT can not be read."
+		exit 1
+	fi
 
-echo "========================="
-echo "$QUERY_NUM Step 2/4: make result 1"
-echo "========================="
-hive   -f "${QUERY_DIR}/q23_2.sql"
+	RESULT_TABLE1="result1"
+	RESULT_DIR1="$RESULT_DIR/$RESULT_TABLE1"
+	RESULT_TABLE2="result2"
+	RESULT_DIR2="$RESULT_DIR/$RESULT_TABLE2"
 
-echo "========================="
-echo "$QUERY_NUM Step 3/4: make result 2"
-echo "========================="
-hive   -f "${QUERY_DIR}/q23_3.sql"
+	hadoop fs -rm -r -skipTrash "${RESULT_DIR}"/*
+	hadoop fs -mkdir -p "${RESULT_DIR}"
+	hadoop fs -chmod uga+rw "${RESULT_DIR}"
 
+	echo "========================="
+	echo "$QUERY_NAME Step 1/4: make view"
+	echo "========================="
+	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE1_SCRIPT"
 
-echo "========================="
-echo "$QUERY_NUM Step 4/4: cleanup"
-echo "========================="
-hive   -f "${QUERY_DIR}/cleanup.sql"
+	echo "========================="
+	echo "$QUERY_NAME Step 2/4: make result 1"
+	echo "========================="
+	hive -hiveconf "RESULT_TABLE1=$RESULT_TABLE1" -hiveconf "RESULT_DIR1=$RESULT_DIR1" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE2_SCRIPT"
 
+	echo "========================="
+	echo "$QUERY_NAME Step 3/4: make result 2"
+	echo "========================="
+	hive -hiveconf "RESULT_TABLE2=$RESULT_TABLE2" -hiveconf "RESULT_DIR2=$RESULT_DIR2" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE3_SCRIPT"
 
-echo "======= $QUERY_NUM  result ======="
-echo "result1 in: ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${QUERY_NUM}result1"
-echo "to display : hadoop fs -cat ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${QUERY_NUM}result1/*"
-echo "result2 in: ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${QUERY_NUM}result2"
-echo "to display : hadoop fs -cat ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${QUERY_NUM}result2/*"
-echo "========================="
-
-
+	echo "========================="
+	echo "$QUERY_NAME Step 4/4: cleanup"
+	echo "========================="
+	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "${QUERY_DIR}/cleanup.sql"
+}

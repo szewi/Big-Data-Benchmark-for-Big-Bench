@@ -40,22 +40,17 @@ ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
 CREATE TEMPORARY FUNCTION extract_sentiment AS 'de.bankmark.bigbench.queries.q18.SentimentUDF'
 ;
 -- Result file configuration
-set QUERY_NUM=q18;
-set resultTableName=${hiveconf:QUERY_NUM}result;
-set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
 
-
- 	
 
 --Result  --------------------------------------------------------------------		
 --keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;	
 --Prepare result storage
-DROP TABLE IF EXISTS ${hiveconf:resultTableName};
-CREATE TABLE ${hiveconf:resultTableName}
-	ROW FORMAT DELIMITED FIELDS TERMINATED BY ','	LINES TERMINATED BY '\n'
-	STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:resultFile}' 
+DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
+CREATE TABLE ${hiveconf:RESULT_TABLE}
+	ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
+	STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}'
 AS
 -- the real query
 SELECT 	 s_store_name 
@@ -88,17 +83,3 @@ FROM (
 )ss
 WHERE   ss.sentiment = 'NEG'
 ;
-
-
-
-
-
-
-
-
-
-
-
-
-
-

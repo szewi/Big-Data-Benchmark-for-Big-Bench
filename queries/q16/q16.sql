@@ -39,23 +39,18 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 -- Resources
 
 -- Result file configuration
-set QUERY_NUM=q16;
-set resultTableName=${hiveconf:QUERY_NUM}result;
-set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
 
 --TODO More testing needed
-
-
 
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 --Result  --------------------------------------------------------------------		
 --keep result human readable
 set hive.exec.compress.output=false;
-set hive.exec.compress.output;	
-DROP TABLE IF EXISTS ${hiveconf:resultTableName};
-CREATE TABLE ${hiveconf:resultTableName}
+set hive.exec.compress.output;
+DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
+CREATE TABLE ${hiveconf:RESULT_TABLE}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
-STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:resultFile}' 
+STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}' 
 AS
 -- the real query part
 SELECT w_state, i_item_id,
@@ -82,4 +77,3 @@ SELECT w_state, i_item_id,
  ORDER BY w_state,i_item_id;
 
 -- cleaning up ---------------------------------------------------------------------
-

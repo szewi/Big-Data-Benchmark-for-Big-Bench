@@ -37,7 +37,6 @@ set hive.optimize.index.filter;
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
 
-
 -- ss_sold_date_sk > 2002-01-02
 DROP TABLE IF EXISTS q25_usersegments;
 CREATE TABLE q25_usersegments AS
@@ -51,7 +50,6 @@ WHERE ss_sold_date_sk > 37256
   AND ss_customer_sk IS NOT NULL
 GROUP BY ss_customer_sk, ss_ticket_number, ss_sold_date_sk
 ;
-
 
 
 INSERT INTO TABLE q25_usersegments
@@ -73,18 +71,18 @@ GROUP BY ws_bill_customer_sk, ws_order_number, ws_sold_date_sk;
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;	
 
-DROP TABLE IF EXISTS q25_ctable;
-CREATE TABLE q25_ctable (	  cid INT
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
+CREATE TABLE ${hiveconf:TEMP_TABLE} (	cid INT
 				, recency INT
 				, frequency INT
 				, totalspend INT) 
-       ROW FORMAT DELIMITED
-       FIELDS TERMINATED BY ' '
-       LINES TERMINATED BY '\n'
-       STORED AS TEXTFILE
-       LOCATION '${hiveconf:MH_TMP_DIR}';
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ' '
+LINES TERMINATED BY '\n'
+STORED AS TEXTFILE
+LOCATION '${hiveconf:TEMP_DIR}';
 
-INSERT INTO TABLE q25_ctable
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
 
 SELECT 
     cid 		AS id,
@@ -99,6 +97,3 @@ GROUP BY cid;
 
 --- CLEANUP--------------------------------------------
 DROP TABLE q25_usersegments;
-
-
-

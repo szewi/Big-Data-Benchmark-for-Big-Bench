@@ -64,8 +64,6 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 -- Resources
 
 -- Result file configuration
-set QUERY_NUM=q05;
-
 
 --Result  --------------------------------------------------------------------		
 --keep result human readable
@@ -73,8 +71,8 @@ set hive.exec.compress.output=false;
 set hive.exec.compress.output;	
 
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
-DROP TABLE IF EXISTS q05_ctable;
-CREATE TABLE q05_ctable 
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
+CREATE TABLE ${hiveconf:TEMP_TABLE}
 	--( c_customer_sk 	STRING
 	--, college_education 	STRING
 	--, male 		STRING
@@ -83,10 +81,9 @@ ROW FORMAT DELIMITED
 FIELDS TERMINATED BY ','
 LINES TERMINATED BY '\n'
 STORED AS TEXTFILE
-LOCATION '${hiveconf:MH_TMP_DIR}'
+LOCATION '${hiveconf:TEMP_DIR}'
 AS
 -- the real query part
-
 
 	SELECT 	q05_tmp_Cust.c_customer_sk , 
 		q05_tmp_Cust.college_education , 
@@ -118,5 +115,3 @@ AS
 				q05_tmp_cust_clicks.male
 	) q05_tmp_Cust
 ;
-
-

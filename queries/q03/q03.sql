@@ -41,19 +41,16 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q03/reducer_q3.py;
 
 -- Result file configuration
-set QUERY_NUM=q03;
-set resultTableName=${hiveconf:QUERY_NUM}result;
-set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
 
 --Result -------------------------------------------------------------------------
 --keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
-DROP TABLE IF EXISTS ${hiveconf:resultTableName};
-CREATE TABLE ${hiveconf:resultTableName}
+DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
+CREATE TABLE ${hiveconf:RESULT_TABLE}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
-STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:resultFile}' 
+STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}' 
 AS
 -- the real query part
 SELECT lastviewed_item, purchased_item, count(*) 
@@ -80,6 +77,3 @@ FROM (
 WHERE purchased_item = 16891 
 GROUP BY lastviewed_item, purchased_item
 ;
-
-
-

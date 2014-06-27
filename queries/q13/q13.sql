@@ -39,11 +39,6 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 -- Resources
 
 -- Result file configuration
-set QUERY_NUM=q13;
-set resultTableName=${hiveconf:QUERY_NUM}result;
-set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
-
-
 
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
@@ -67,9 +62,6 @@ CREATE TABLE q13_customer_year_total
 --INTO 16 BUCKETS 
 --STORED AS ORC
 ;
-
-
-
 
 
 --table contains the values of the intersection of customer table and store_sales tables values 
@@ -145,10 +137,10 @@ INSERT INTO TABLE q13_customer_year_total
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;	
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
-DROP TABLE IF EXISTS ${hiveconf:resultTableName};
-CREATE TABLE ${hiveconf:resultTableName}
-	ROW FORMAT DELIMITED FIELDS TERMINATED BY ','	LINES TERMINATED BY '\n'
-	STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:resultFile}' 
+DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
+CREATE TABLE ${hiveconf:RESULT_TABLE}
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
+STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}' 
 AS
 -- the real query part
 SELECT

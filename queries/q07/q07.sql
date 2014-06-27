@@ -39,11 +39,6 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 -- Resources
 
 -- Result file configuration
-set QUERY_NUM=q07;
-set resultTableName=${hiveconf:QUERY_NUM}result;
-set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
-
-
 
 DROP TABLE IF EXISTS q07_specific_month_88;
 DROP TABLE IF EXISTS q07_cat_avg_price_88;
@@ -67,10 +62,10 @@ CREATE TABLE q07_cat_avg_price_88 AS
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;	
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
-DROP TABLE IF EXISTS ${hiveconf:resultTableName};
-CREATE TABLE ${hiveconf:resultTableName}
+DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
+CREATE TABLE ${hiveconf:RESULT_TABLE}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
-STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:resultFile}' 
+STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}' 
 AS
 -- the real query part
 SELECT q07_temp.ca_state AS state, COUNT(*) AS cnt
@@ -96,4 +91,3 @@ LIMIT 100;
 --Cleanup ----------------------------------------------------------------
 DROP TABLE IF EXISTS q07_specific_month_88;
 DROP TABLE IF EXISTS q07_cat_avg_price_88;
-

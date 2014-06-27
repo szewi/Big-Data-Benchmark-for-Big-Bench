@@ -36,8 +36,6 @@ set hive.optimize.index.filter;
 -- Database
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
-
-
 DROP VIEW IF EXISTS q23_tmp_inv;
 CREATE VIEW q23_tmp_inv AS
 SELECT 	w_warehouse_name, 
@@ -66,4 +64,3 @@ FROM (
 WHERE CASE mean WHEN 0.0
            THEN 0.0
            ELSE stdev/mean END > 1.0;
-

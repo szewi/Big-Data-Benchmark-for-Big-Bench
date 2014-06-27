@@ -37,4 +37,5 @@ set hive.optimize.index.filter;
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Resources
-DROP TABLE IF EXISTS q26_ctable2;
+
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};

@@ -40,9 +40,6 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q08/q8_reducer.py;
 
 -- Result file configuration
-set QUERY_NUM=q08;
-set resultTableName=${hiveconf:QUERY_NUM}result;
-set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
 
 --For online sales, compare the total sales in which customers checked
 --online reviews before making the purchase and that of sales in which customers
@@ -52,7 +49,7 @@ set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:result
 --PART 1 - sales that users have viewed the review pages--------------------------------------------------------
 DROP TABLE if EXISTS q08_tmp_sales_review;
 CREATE TABLE if not exists q08_tmp_sales_review AS 
- SELECT DISTINCT q08_nPath.s_sk AS s_sk
+SELECT DISTINCT q08_nPath.s_sk AS s_sk
 	FROM (
 		FROM (	
 			
@@ -88,16 +85,16 @@ FROM web_sales ws
 where ws.ws_sold_date_sk > 36403 and ws.ws_sold_date_sk <36403+365
 ;
 
---PART 3 - for sales in given year, compute  sales in which customers checked online reviews vs. sales in which customers did not read reviews.
+--PART 3 - for sales in given year, compute sales in which customers checked online reviews vs. sales in which customers did not read reviews.
 --Result  --------------------------------------------------------------------		
 --keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;	
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
-DROP TABLE IF EXISTS ${hiveconf:resultTableName};
-CREATE TABLE ${hiveconf:resultTableName}
+DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
+CREATE TABLE ${hiveconf:RESULT_TABLE}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
-STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:resultFile}' 
+STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}' 
 AS
 
 -- the real query part----------------------------------------------------------------------
@@ -122,5 +119,3 @@ ON q08_review_sales.id =  q08_all_sales.id
 --cleanup-------------------------------------------------------------------
 DROP TABLE if EXISTS q08_tmp_sales_review;
 DROP TABLE if EXISTS q08_tmp_webSales_date;
-
-

@@ -38,13 +38,12 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Resources
 
-
 ------ create input table for mahout --------------------------------------
 --keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
-DROP TABLE IF EXISTS q26_ctable2;
-CREATE TABLE q26_ctable2 (cid INT
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
+CREATE TABLE ${hiveconf:TEMP_TABLE} (cid INT
 			, id1 INT
 			, id3 INT
 			, id5 INT
@@ -60,13 +59,13 @@ CREATE TABLE q26_ctable2 (cid INT
 			, id10 INT
 			, id14 INT
 			, id16 INT) 
-       ROW FORMAT DELIMITED
-       FIELDS TERMINATED BY ' '
-       LINES TERMINATED BY '\n'
-       STORED AS TEXTFILE
-       LOCATION '${hiveconf:MH_TMP_DIR}';
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ' '
+LINES TERMINATED BY '\n'
+STORED AS TEXTFILE
+LOCATION '${hiveconf:TEMP_DIR}';
 
-INSERT INTO TABLE q26_ctable2
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
  SELECT ss.ss_customer_sk AS cid,
         count(CASE WHEN i.i_class_id=1  THEN 1 ELSE NULL END) AS id1,
         count(CASE WHEN i.i_class_id=3  THEN 1 ELSE NULL END) AS id3,
@@ -92,5 +91,3 @@ INSERT INTO TABLE q26_ctable2
 ;
 
 -------------------------------------------------------------------------------
-
-

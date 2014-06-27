@@ -37,14 +37,10 @@ set hive.optimize.index.filter;
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Resources
-ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q30/mapper_q30.py;
-ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q30/reducer_q30.py;
-ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q30/mapper2_q30.py;
-ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q30/reducer2_q30.py;
-
-set QUERY_NUM=q30;
-set resultTableName=${hiveconf:QUERY_NUM}result;
-set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
+ADD FILE ${hiveconf:QUERY_DIR}/mapper_q30.py;
+ADD FILE ${hiveconf:QUERY_DIR}/reducer_q30.py;
+ADD FILE ${hiveconf:QUERY_DIR}/mapper2_q30.py;
+ADD FILE ${hiveconf:QUERY_DIR}/reducer2_q30.py;
 
 
 --Result  --------------------------------------------------------------------		
@@ -52,10 +48,10 @@ set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:result
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
-DROP TABLE IF EXISTS ${hiveconf:resultTableName};
-CREATE TABLE ${hiveconf:resultTableName}
+DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
+CREATE TABLE ${hiveconf:RESULT_TABLE}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
-STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:resultFile}' 
+STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}' 
 AS
 -- Begin: the real query part
 SELECT ro2.item_sk, ro2.affine_item_sk, ro2.item, ro2.affine_item, ro2.frequency 
@@ -87,6 +83,3 @@ FROM (
 	affine_item, frequency)
 ) ro2
 ORDER BY ro2.frequency;
-
-
-

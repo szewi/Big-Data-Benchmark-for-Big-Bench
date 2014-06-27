@@ -38,16 +38,11 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 -- Resources
 
 -- Result file configuration
-set QUERY_NUM=q06;
-set resultTableName=${hiveconf:QUERY_NUM}result;
-set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
-
-
 
 -- Part 1 helper table(s) --------------------------------------------------------------
 
--- Uninon customer store_sales  and customer web_sales
-!echo Drop  q06_year_total_8;
+-- Union customer store_sales and customer web_sales
+!echo Drop q06_year_total_8;
 DROP TABLE IF EXISTS q06_year_total_8;
 
 !echo create q06_year_total_8;
@@ -65,7 +60,7 @@ CREATE TABLE q06_year_total_8
 	)
 ;
 
-!echo INSERT INTO TABLE  q06_year_total_8 ->  customer store_sales;
+!echo INSERT INTO TABLE q06_year_total_8 -> customer store_sales;
 INSERT INTO TABLE  q06_year_total_8 
 	-- customer store_sales
 	SELECT 	c_customer_id AS customer_id,
@@ -88,11 +83,10 @@ INSERT INTO TABLE  q06_year_total_8
 		GROUP BY ss.ss_customer_sk, dt.d_year
 	)sv
 	INNER JOIN customer c  ON c.c_customer_sk = sv.customer_sk
-
 ;
 
 
-!echo INSERT INTO TABLE  q06_year_total_8 -> customer web_sales;
+!echo INSERT INTO TABLE q06_year_total_8 -> customer web_sales;
 INSERT INTO TABLE  q06_year_total_8 
 	-- customer web_sales
 	SELECT 	c_customer_id AS customer_id,
@@ -115,14 +109,7 @@ INSERT INTO TABLE  q06_year_total_8
 		GROUP BY ws.ws_bill_customer_sk, dt.d_year
 	) sv2
 	INNER JOIN customer c ON c.c_customer_sk = sv2.customer_sk
-
-
 ;
-
-
- 
-
-
 
 
 --Part2: self-joins
@@ -138,19 +125,18 @@ INSERT INTO TABLE  q06_year_total_8
 --CREATE VIEW IF NOT EXISTS q06_t_c_firstyear AS SELECT * FROM q06_year_total_8;
 --CREATE VIEW IF NOT EXISTS q06_t_c_secyear   AS SELECT * FROM q06_year_total_8;
 
-
 --Result  --------------------------------------------------------------------		
 --keep result human readable
 set hive.exec.compress.output=false;
-set hive.exec.compress.output;	
+set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
-DROP TABLE IF EXISTS ${hiveconf:resultTableName};
-CREATE TABLE ${hiveconf:resultTableName}
+DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
+CREATE TABLE ${hiveconf:RESULT_TABLE}
 ROW FORMAT
 DELIMITED FIELDS TERMINATED BY ','
 LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table}
-LOCATION '${hiveconf:resultFile}' 
+LOCATION '${hiveconf:RESULT_DIR}' 
 AS
 -- the real query part
 SELECT
@@ -159,7 +145,7 @@ SELECT
   ts_s.customer_last_name,
   ts_s.c_preferred_cust_flag,
   ts_s.c_birth_country,
-  ts_s.c_login, 
+  ts_s.c_login,
   CASE WHEN tc_f.year_total > 0
     THEN tc_s.year_total / tc_f.year_total
   ELSE null END,
@@ -198,7 +184,7 @@ ORDER BY
 LIMIT 100;
 
 
----Cleanup-------------------------------------------------------------------  
+---Cleanup-------------------------------------------------------------------
 
 --DROP VIEW IF EXISTS q06_t_s_firstyear;
 --DROP VIEW IF EXISTS q06_t_s_secyear;

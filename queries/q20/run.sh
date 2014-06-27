@@ -1,96 +1,77 @@
 #!/usr/bin/env bash
 
-ENV_SETTINGS="`dirname $0`/../../setEnvVars"
-if [ ! -f "$ENV_SETTINGS" ]
-then
-        echo "Environment setup file $ENV_SETTINGS not found"
-        exit 1
-else
-        source "$ENV_SETTINGS"
-fi
+query_run_main_method () {
+	HIVE_SCRIPT="$QUERY_DIR/$QUERY_NAME.sql"
+	if [ ! -r "$HIVE_SCRIPT" ]
+	then
+		echo "SQL file $HIVE_SCRIPT can not be read."
+		exit 1
+	fi
 
-logEnvInformation
+	#EXECUTION Plan:
+	#step 1.  rm/mkdir TEMP_DIR	:	hadoop fs rm/mkdir TEMP_DIR
+	#step 2.  hive q20.sql		:	Run hive querys to extract kmeans input data
+	#step 3.  mahout input		:	Generating sparse vectors
+	#step 4.  mahout kmeans		:	Calculating k-means"
+	#step 5.  mahout dump > hdfs/res:	Converting result and copy result do hdfs query result folder
+	#step 6.  hive && hdfs 		:	cleanup.sql && hadoop fs rm MH
 
-#To debug start with: 
-#> run.sh <step> 
-#to execute only the specified step
+	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 1 ]] ; then
+		echo "========================="
+		echo "$QUERY_NAME Step 1/6: Prepare temp dir"
+		echo "========================="
+		hadoop fs -rm -r "$TEMP_DIR" &
+		hadoop fs -rm -r "$RESULT_DIR" &
+		wait
+		hadoop fs -mkdir -p "$TEMP_DIR" &
+		hadoop fs -mkdir -p "$RESULT_DIR" &
+		wait
+	fi
 
-#EXECUTION Plan:
-#step 1.  rm/mkdir MH_TMP_DIR	:	hadoop fs rm/mkdir MH_TMP_DIR
-#step 2.  hive q20.sql		:	Run hive querys to extract kmeans input data
-#step 3.  mahout input		:	Generating sparse vectors
-#step 4.  mahout kmeans		:	Calculating k-means"
-#step 5.  mahout dump > hdfs/res:	Converting result and copy result do hdfs query result folder
-#step 6.  hive && hdfs 		:	cleanup.sql && hadoop fs rm MH
+	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 2 ]] ; then
+		echo "========================="
+		echo "$QUERY_NAME Step 2/6: Executing hive queries"
+		echo "tmp output: ${TEMP_DIR}"
+		echo "========================="
+		# Write input for k-means into ctable
+		hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE_SCRIPT"
+	fi
 
-QUERY_NUM="q20"
-QUERY_DIR="${BIG_BENCH_QUERIES_DIR}/${QUERY_NUM}"
-MH_TMP_DIR=$BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR/$QUERY_NUM
-HIVE_TABLE_NAME=${MH_TMP_DIR}/ctable
+	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 3 ]] ; then
+		echo "========================="
+		echo "$QUERY_NAME Step 3/6: Generating sparse vectors"
+		echo "Command "mahout org.apache.mahout.clustering.conversion.InputDriver -i "${TEMP_DIR}" -o "${TEMP_DIR}/Vec" -v org.apache.mahout.math.RandomAccessSparseVector #-c UTF-8 
+		echo "tmp output: ${TEMP_DIR}/Vec"
+		echo "========================="
 
-resultTableName=${QUERY_NUM}result
-HDFS_RESULT_DIR=${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${resultTableName}
+		mahout org.apache.mahout.clustering.conversion.InputDriver -i "${TEMP_DIR}" -o "${TEMP_DIR}/Vec" -v org.apache.mahout.math.RandomAccessSparseVector #-c UTF-8 
+	fi
 
-if [ $# -lt 1 ] || [ $1 -eq 1 ] ; then
-	echo "========================="
-	echo "$QUERY_NUM Step 1/6: Prepare temp dir"
-	echo "========================="
-	hadoop fs -rm -r "$MH_TMP_DIR" &
-	hadoop fs -rm -r "$HDFS_RESULT_DIR" &
-	wait
-	hadoop fs -mkdir -p "$MH_TMP_DIR" &
-	hadoop fs -mkdir -p "$HDFS_RESULT_DIR" &
-	wait
-fi
+	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 4 ]] ; then
+		echo "========================="
+		echo "$QUERY_NAME Step 4/6: Calculating k-means"
+		echo "Command "mahout kmeans -i "$TEMP_DIR/Vec" -c "$TEMP_DIR/init-clusters" -o "$TEMP_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl
+		echo "tmp output: $TEMP_DIR/kmeans-clusters"
+		echo "========================="
 
-if [ $# -lt 1 ] || [ $1 -eq 2 ] ; then
-	echo "========================="
-	echo "$QUERY_NUM Step 2/6: Executing hive queries"
-	echo "tmp output: ${HIVE_TABLE_NAME}"
-	echo "========================="
-	# Write input for k-means into ctable
-	hive -hiveconf "MH_TMP_DIR=${HIVE_TABLE_NAME}" -f "${QUERY_DIR}"/${QUERY_NUM}.sql
-fi
+		mahout kmeans -i "$TEMP_DIR/Vec" -c "$TEMP_DIR/init-clusters" -o "$TEMP_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl
+	fi
 
-if [ $# -lt 1 ] || [ $1 -eq 3 ] ; then
-	echo "========================="
-	echo "$QUERY_NUM Step 3/6: Generating sparse vectors"
-	echo "Command "mahout org.apache.mahout.clustering.conversion.InputDriver -i "${HIVE_TABLE_NAME}" -o "${MH_TMP_DIR}"/Vec -v org.apache.mahout.math.RandomAccessSparseVector #-c UTF-8 
-	echo "tmp output: ${MH_TMP_DIR}/Vec"
-	echo "========================="
-
-	mahout org.apache.mahout.clustering.conversion.InputDriver -i "${HIVE_TABLE_NAME}" -o "${MH_TMP_DIR}"/Vec -v org.apache.mahout.math.RandomAccessSparseVector #-c UTF-8 
-fi
-
-if [ $# -lt 1 ] || [ $1 -eq 4 ] ; then
-	echo "========================="
-	echo "$QUERY_NUM Step 4/6: Calculating k-means"
-	echo "Command "mahout kmeans -i "$MH_TMP_DIR"/Vec -c "$MH_TMP_DIR"/init-clusters -o "$MH_TMP_DIR"/kmeans-clusters -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl
-	echo "tmp output: $MH_TMP_DIR/kmeans-clusters"
-	echo "========================="
-
-	mahout kmeans -i "$MH_TMP_DIR"/Vec -c "$MH_TMP_DIR"/init-clusters -o "$MH_TMP_DIR"/kmeans-clusters -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl
-fi
-
-if [ $# -lt 1 ] || [ $1 -eq 5 ] ; then
-	echo "========================="
-	echo "$QUERY_NUM Step 5/6: Converting result and store in hdfs ${HDFS_RESULT_DIR}/cluster.txt"
-	echo "command: mahout clusterdump -i $MH_TMP_DIR/kmeans-clusters/clusters-*-final  -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT | hadoop fs -copyFromLocal - ${HDFS_RESULT_DIR}/cluster.txt"
-	echo "========================="
+	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 5 ]] ; then
+		echo "========================="
+		echo "$QUERY_NAME Step 5/6: Converting result and store in hdfs ${RESULT_DIR}/cluster.txt"
+		echo "command: mahout clusterdump -i $TEMP_DIR/kmeans-clusters/clusters-*-final  -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT | hadoop fs -copyFromLocal - ${RESULT_DIR}/cluster.txt"
+		echo "========================="
 	
-	mahout clusterdump -i "$MH_TMP_DIR"/kmeans-clusters/clusters-*-final  -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT | hadoop fs -copyFromLocal - "${HDFS_RESULT_DIR}"/cluster.txt
-	#mahout seqdump -i $MH_TMP_DIR/Vec/ -c $MH_TMP_DIR/kmeans-clusters -o $MH_TMP_DIR/results -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl
-fi
+		mahout clusterdump -i "$TEMP_DIR"/kmeans-clusters/clusters-*-final -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT | hadoop fs -copyFromLocal - "${RESULT_DIR}/cluster.txt"
+		#mahout seqdump -i $TEMP_DIR/Vec/ -c $TEMP_DIR/kmeans-clusters -o $TEMP_DIR/results -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl
+	fi
 
-if [ $# -lt 1 ] || [ $1 -eq 6 ] ; then
-	echo "========================="
-	echo "$QUERY_NUM Step 6/6: Clean up"
-	echo "========================="
-	hive -f "${QUERY_DIR}"/cleanup.sql
-	hadoop fs -rm -r "$MH_TMP_DIR"
-fi
-
-echo "======= $QUERY_NUM  result ======="
-echo "results in: ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${QUERY_NUM}result"
-echo "to display : hadoop fs -cat ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${QUERY_NUM}result/*"
-echo "========================="
+	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 6 ]] ; then
+		echo "========================="
+		echo "$QUERY_NAME Step 6/6: Clean up"
+		echo "========================="
+		hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "${QUERY_DIR}/cleanup.sql"
+		hadoop fs -rm -r "$TEMP_DIR"
+	fi
+}

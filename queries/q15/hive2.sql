@@ -38,11 +38,6 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Resources
 
-set QUERY_NUM=q15;
-set QUERY_TMP_DIR=${env:BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}/${hiveconf:QUERY_NUM}tmp;
-set resultTableName=${hiveconf:QUERY_NUM}result;
-set resultFile=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName};
-
 DROP TABLE IF EXISTS q15_lm1;
 DROP TABLE IF EXISTS q15_lm2;
 DROP TABLE IF EXISTS q15_lm3;
@@ -60,7 +55,7 @@ CREATE EXTERNAL TABLE q15_lm1 (
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:QUERY_TMP_DIR}/output1/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output1/'
 ;
 
 CREATE EXTERNAL TABLE q15_lm2 (
@@ -68,7 +63,7 @@ CREATE EXTERNAL TABLE q15_lm2 (
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:QUERY_TMP_DIR}/output2/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output2/'
 ;
 
 CREATE EXTERNAL TABLE q15_lm3 (
@@ -76,7 +71,7 @@ CREATE EXTERNAL TABLE q15_lm3 (
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:QUERY_TMP_DIR}/output3/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output3/'
 ;
 
 CREATE EXTERNAL TABLE q15_lm4 (
@@ -84,7 +79,7 @@ CREATE EXTERNAL TABLE q15_lm4 (
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:QUERY_TMP_DIR}/output4/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output4/'
 ;
 
 CREATE EXTERNAL TABLE q15_lm5 (
@@ -92,7 +87,7 @@ CREATE EXTERNAL TABLE q15_lm5 (
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:QUERY_TMP_DIR}/output5/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output5/'
 ;
 
 CREATE EXTERNAL TABLE q15_lm6 (
@@ -100,7 +95,7 @@ CREATE EXTERNAL TABLE q15_lm6 (
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:QUERY_TMP_DIR}/output6/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output6/'
 ;
 
 CREATE EXTERNAL TABLE q15_lm7 (
@@ -108,7 +103,7 @@ CREATE EXTERNAL TABLE q15_lm7 (
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:QUERY_TMP_DIR}/output7/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output7/'
 ;
 
 CREATE EXTERNAL TABLE q15_lm8 (
@@ -116,7 +111,7 @@ CREATE EXTERNAL TABLE q15_lm8 (
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:QUERY_TMP_DIR}/output8/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output8/'
 ;
 
 CREATE EXTERNAL TABLE q15_lm9 (
@@ -124,7 +119,7 @@ CREATE EXTERNAL TABLE q15_lm9 (
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:QUERY_TMP_DIR}/output9/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output9/'
 ;
 
 CREATE EXTERNAL TABLE q15_lm10 (
@@ -132,32 +127,32 @@ CREATE EXTERNAL TABLE q15_lm10 (
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:QUERY_TMP_DIR}/output10/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output10/'
 ;
 
 
 
 -- (!) Set Paths --------------------------------------------------------------
---LOAD DATA INPATH '${hiveconf:QUERY_TMP_DIR}/output1/part-r-00000' OVERWRITE INTO TABLE q15_lm1;
---LOAD DATA INPATH '${hiveconf:QUERY_TMP_DIR}/output2/part-r-00000' OVERWRITE INTO TABLE q15_lm2;
---LOAD DATA INPATH '${hiveconf:QUERY_TMP_DIR}/output3/part-r-00000' OVERWRITE INTO TABLE q15_lm3;
---LOAD DATA INPATH '${hiveconf:QUERY_TMP_DIR}/output4/part-r-00000' OVERWRITE INTO TABLE q15_lm4;
---LOAD DATA INPATH '${hiveconf:QUERY_TMP_DIR}/output5/part-r-00000' OVERWRITE INTO TABLE q15_lm5;
---LOAD DATA INPATH '${hiveconf:QUERY_TMP_DIR}/output6/part-r-00000' OVERWRITE INTO TABLE q15_lm6;
---LOAD DATA INPATH '${hiveconf:QUERY_TMP_DIR}/output7/part-r-00000' OVERWRITE INTO TABLE q15_lm7;
---LOAD DATA INPATH '${hiveconf:QUERY_TMP_DIR}/output8/part-r-00000' OVERWRITE INTO TABLE q15_lm8;
---LOAD DATA INPATH '${hiveconf:QUERY_TMP_DIR}/output9/part-r-00000' OVERWRITE INTO TABLE q15_lm9;
---LOAD DATA INPATH '${hiveconf:QUERY_TMP_DIR}/output10/part-r-00000' OVERWRITE INTO TABLE q15_lm10;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output1/part-r-00000' OVERWRITE INTO TABLE q15_lm1;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output2/part-r-00000' OVERWRITE INTO TABLE q15_lm2;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output3/part-r-00000' OVERWRITE INTO TABLE q15_lm3;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output4/part-r-00000' OVERWRITE INTO TABLE q15_lm4;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output5/part-r-00000' OVERWRITE INTO TABLE q15_lm5;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output6/part-r-00000' OVERWRITE INTO TABLE q15_lm6;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output7/part-r-00000' OVERWRITE INTO TABLE q15_lm7;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output8/part-r-00000' OVERWRITE INTO TABLE q15_lm8;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output9/part-r-00000' OVERWRITE INTO TABLE q15_lm9;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output10/part-r-00000' OVERWRITE INTO TABLE q15_lm10;
 
 
 --Result  --------------------------------------------------------------------		
 --keep result human readable
 set hive.exec.compress.output=false;
-set hive.exec.compress.output;	
+set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
-DROP TABLE IF EXISTS ${hiveconf:resultTableName};
+DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 
-CREATE TABLE ${hiveconf:resultTableName}
+CREATE TABLE ${hiveconf:RESULT_TABLE}
 (
     cat             INT,
     intercept	    DOUBLE,
@@ -165,78 +160,78 @@ CREATE TABLE ${hiveconf:resultTableName}
 )
 ROW FORMAT
 DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
-STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:resultFile}' 
+STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}' 
 ;
 
 
 
-INSERT INTO TABLE ${hiveconf:resultTableName}
+INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
     SELECT 1,
            intercept,
-           slope        
+           slope
     FROM q15_lm1
     WHERE slope < 0;
 
-INSERT INTO TABLE ${hiveconf:resultTableName}
+INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
     SELECT 2,
            intercept,
-           slope        
+           slope
     FROM q15_lm2
     WHERE slope < 0;
 
-INSERT INTO TABLE ${hiveconf:resultTableName}
+INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
     SELECT 3,
            intercept,
-           slope        
+           slope
     FROM q15_lm3
     WHERE slope < 0;
 
-INSERT INTO TABLE ${hiveconf:resultTableName}
+INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
     SELECT 4,
            intercept,
-           slope        
+           slope
     FROM q15_lm4
     WHERE slope < 0;
 
-INSERT INTO TABLE ${hiveconf:resultTableName}
+INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
     SELECT 5,
            intercept,
-           slope        
+           slope
     FROM q15_lm5
     WHERE slope < 0;
 
-INSERT INTO TABLE ${hiveconf:resultTableName}
+INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
     SELECT 6,
            intercept,
-           slope        
+           slope
     FROM q15_lm6
     WHERE slope < 0;
 
-INSERT INTO TABLE ${hiveconf:resultTableName}
+INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
     SELECT 7,
            intercept,
-           slope        
+           slope
     FROM q15_lm7
     WHERE slope < 0;
 
-INSERT INTO TABLE ${hiveconf:resultTableName}
+INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
     SELECT 8,
            intercept,
-           slope        
+           slope
     FROM q15_lm8
     WHERE slope < 0;
 
-INSERT INTO TABLE ${hiveconf:resultTableName}
+INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
     SELECT 9,
            intercept,
-           slope        
+           slope
     FROM q15_lm9
     WHERE slope < 0;
 
-INSERT INTO TABLE ${hiveconf:resultTableName}
+INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
     SELECT 10,
            intercept,
-           slope        
+           slope
     FROM q15_lm10
     WHERE slope < 0;
 
@@ -263,6 +258,3 @@ DROP TABLE IF EXISTS q15_lm7;
 DROP TABLE IF EXISTS q15_lm8;
 DROP TABLE IF EXISTS q15_lm9;
 DROP TABLE IF EXISTS q15_lm10;
-
-
-

@@ -37,19 +37,16 @@ set hive.optimize.index.filter;
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Resources
-set QUERY_NUM=q23;
-set resultTableName2=${hiveconf:QUERY_NUM}result2;
-set resultFile2=${env:BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}/${hiveconf:resultTableName2};
 
 --- RESULT PART 2--------------------------------------
 --keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
-DROP TABLE IF EXISTS ${hiveconf:resultTableName2};
-CREATE TABLE ${hiveconf:resultTableName2}
+DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE2};
+CREATE TABLE ${hiveconf:RESULT_TABLE2}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
-STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:resultFile2}' 
+STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR2}' 
 AS
 -- Begin: the real query part
 SELECT 	inv1.w_warehouse_sk AS inv1_w_warehouse_sk, 
@@ -76,4 +73,3 @@ ORDER BY inv1_w_warehouse_sk,
 	inv2_d_moy, 
 	inv2_mean, 
 	inv2_cov;
-

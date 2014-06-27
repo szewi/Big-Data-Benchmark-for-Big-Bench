@@ -43,19 +43,18 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 --keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
-DROP TABLE IF EXISTS q28t_training;
-CREATE TABLE q28t_training 
-       ROW FORMAT DELIMITED
-       FIELDS TERMINATED BY '\t'
-       LINES TERMINATED BY '\n'
-       STORED AS TEXTFILE
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE1};
+CREATE TABLE ${hiveconf:TEMP_TABLE1} 
+	ROW FORMAT DELIMITED
+	FIELDS TERMINATED BY '\t'
+	LINES TERMINATED BY '\n'
+	STORED AS TEXTFILE
 	--STORED AS SEQUENCEFILE 
-       LOCATION '${hiveconf:MH_TMP_DIR}'
-
+	LOCATION '${hiveconf:TEMP_DIR1}'
 AS
 SELECT  pr_review_sk,
 	CASE pr_review_rating
-		when 1 then 'NEG' 
+		when 1 then 'NEG'
 		when 2 then 'NEG'
 		when 3 then 'NEU'
 		when 4 then 'POS'
@@ -72,18 +71,18 @@ WHERE pmod(pr_review_sk, 5) IN (1,2,3)
 --keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
-DROP TABLE IF EXISTS  q28_testing;
-CREATE TABLE q28_testing
-       ROW FORMAT DELIMITED
-       FIELDS TERMINATED BY '\t'
-       LINES TERMINATED BY '\n'
-       STORED AS TEXTFILE
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE2};
+CREATE TABLE ${hiveconf:TEMP_TABLE2}
+	ROW FORMAT DELIMITED
+	FIELDS TERMINATED BY '\t'
+	LINES TERMINATED BY '\n'
+	STORED AS TEXTFILE
 	--STORED AS SEQUENCEFILE 
-       LOCATION '${hiveconf:MH_TMP_DIR}2'
+	LOCATION '${hiveconf:TEMP_DIR2}'
 AS
 SELECT  pr_review_sk,
 	CASE pr_review_rating
-		when 1 then 'NEG' 
+		when 1 then 'NEG'
 		when 2 then 'NEG'
 		when 3 then 'NEU'
 		when 4 then 'POS'
@@ -94,5 +93,3 @@ FROM product_reviews
 WHERE pmod(pr_review_sk, 5) in (0,4)
 --limit 10000
 ;
-
-
