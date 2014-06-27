@@ -103,7 +103,17 @@ export BIG_BENCH_DATAGEN_STAGE_LOG="$BIG_BENCH_LOGS_DIR/dataGeneration.log"
 ## Data generation options
 ## ===================================================
 ## Option is used by scripts/bigBenchClusterDataGen.sh ; cluster node addresses
+# BIG_BENCH_NODES can be a list of hostnames as well as a path to a file containing hostnames
 export BIG_BENCH_NODES="bb-aws2 bb-aws3 bb-aws4"			#list of all nodes participating in the generation process
+# Do not change the following code
+if [ -r "$BIG_BENCH_NODES" ]
+then
+	while read host
+	do
+		HOSTLIST="$HOSTLIST $host"
+	done < "$BIG_BENCH_NODES"
+	export BIG_BENCH_NODES="$HOSTLIST"
+fi
 
 export BIG_BENCH_DATAGEN_DFS_REPLICATION="1" 			#(recommended:1) replication count for files written by the datagenerator 
 
