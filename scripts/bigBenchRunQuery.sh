@@ -193,13 +193,15 @@ if [ ! -w "$LOG_FILE_NAME" ] ; then
     exit 1
 fi
 
-echo "checking existence of: ${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
-hadoop fs -mkdir -p "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
-hadoop fs -chmod uga+rw "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
-
-echo "checking existence of: ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
-hadoop fs -mkdir -p "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
-hadoop fs -chmod uga+rw "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
+echo "creating folders and setting permissions"
+hadoop fs -mkdir -p "${RESULT_DIR}" &
+hadoop fs -mkdir -p "${TEMP_DIR}" &
+wait
+hadoop fs -chmod uga+rw "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}" &
+hadoop fs -chmod uga+rw "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}" &
+hadoop fs -chmod uga+rw "${RESULT_DIR}" &
+hadoop fs -chmod uga+rw "${TEMP_DIR}" &
+wait
 
 # start timed execution of query. Stderr is appended to stdout and both are written into logs/q??.log and to console
 
