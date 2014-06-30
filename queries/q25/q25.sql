@@ -57,12 +57,6 @@ CREATE TABLE ${hiveconf:TEMP_RESULT_TABLE} (
 			, recency INT
 			, frequency INT
 			, totalspend INT) 
-DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
-CREATE TABLE ${hiveconf:TEMP_TABLE} (	
-			  cid INT
-			, recency INT
-			, frequency INT
-			, totalspend INT) 
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY ' '
 LINES TERMINATED BY '\n'

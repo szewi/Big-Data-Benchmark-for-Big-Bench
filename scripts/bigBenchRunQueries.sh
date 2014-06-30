@@ -14,7 +14,7 @@ fi
 logEnvInformation
 
 # check arguments
-if [ $1 = "-h" ]
+if [ "$1" = "-h" ]
 then
 	echo "usage: `basename "$0"` [-y <query parameter file>] [-z <hive settings file>] [-p <benchmark phase>] [-s <stream number>] [-d <query part to debug>]"
 	exit 0
