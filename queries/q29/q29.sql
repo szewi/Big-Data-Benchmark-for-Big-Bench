@@ -1,40 +1,5 @@
--- Global hive options (see: Big-Bench/setEnvVars)
---set hive.exec.parallel=${env:BIG_BENCH_hive_exec_parallel};
---set hive.exec.parallel.thread.number=${env:BIG_BENCH_hive_exec_parallel_thread_number};
---set hive.exec.compress.intermediate=${env:BIG_BENCH_hive_exec_compress_intermediate};
---set mapred.map.output.compression.codec=${env:BIG_BENCH_mapred_map_output_compression_codec};
---set hive.exec.compress.output=${env:BIG_BENCH_hive_exec_compress_output};
---set mapred.output.compression.codec=${env:BIG_BENCH_mapred_output_compression_codec};
---set hive.default.fileformat=${env:BIG_BENCH_hive_default_fileformat};
---set hive.optimize.mapjoin.mapreduce=${env:BIG_BENCH_hive_optimize_mapjoin_mapreduce};
---set hive.optimize.bucketmapjoin=${env:BIG_BENCH_hive_optimize_bucketmapjoin};
---set hive.optimize.bucketmapjoin.sortedmerge=${env:BIG_BENCH_hive_optimize_bucketmapjoin_sortedmerge};
---set hive.auto.convert.join=${env:BIG_BENCH_hive_auto_convert_join};
---set hive.auto.convert.sortmerge.join=${env:BIG_BENCH_hive_auto_convert_sortmerge_join};
---set hive.auto.convert.sortmerge.join.noconditionaltask=${env:BIG_BENCH_hive_auto_convert_sortmerge_join_noconditionaltask};
---set hive.optimize.ppd=${env:BIG_BENCH_hive_optimize_ppd};
---set hive.optimize.index.filter=${env:BIG_BENCH_hive_optimize_index_filter};
+--Perform category afinity analysis for products purchased online together.
 
---display settings
-set hive.exec.parallel;
-set hive.exec.parallel.thread.number;
-set hive.exec.compress.intermediate;
-set mapred.map.output.compression.codec;
-set hive.exec.compress.output;
-set mapred.output.compression.codec;
-set hive.default.fileformat;
-set hive.optimize.mapjoin.mapreduce;
-set hive.mapjoin.smalltable.filesize;
-set hive.optimize.bucketmapjoin;
-set hive.optimize.bucketmapjoin.sortedmerge;
-set hive.auto.convert.join;
-set hive.auto.convert.sortmerge.join;
-set hive.auto.convert.sortmerge.join.noconditionaltask;
-set hive.optimize.ppd;
-set hive.optimize.index.filter;
-
--- Database
-use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Resources
 ADD FILE ${hiveconf:QUERY_DIR}/mapper_q29.py;
@@ -58,7 +23,8 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table}
 LOCATION '${hiveconf:RESULT_DIR}' 
 AS
 -- Begin: the real query part
-SELECT 	ro2.category_id, 
+SELECT 	
+	ro2.category_id, 
 	ro2.affine_category_id, 
 	ro2.category, 
 	ro2.affine_category, 
@@ -71,20 +37,15 @@ FROM
 		(
 			FROM 
 			(
+				SELECT	ws.ws_order_number 	AS ordernumber, 
+						i.i_category_id 	AS category_id, 
+						i.i_category		AS category
 				FROM web_sales ws 
-				JOIN item i 	ON ws.ws_item_sk = i.i_item_sk
-						AND i.i_category_id IS NOT NULL
-				MAP 	ws.ws_order_number, 
-					i.i_category_id, 
-					i.i_category
-				--USING 'python mapper_q29.py' no-op mapper TODO: we could replace the map with a SELECT clause
-				USING 'cat'
-				AS 	ordernumber, 
-					category_id, 
-					category
+				JOIN item i ON (ws.ws_item_sk = i.i_item_sk AND i.i_category_id IS NOT NULL)
 				CLUSTER BY ordernumber
 			) mo
-			REDUCE 	mo.ordernumber, 
+			REDUCE 	
+				mo.ordernumber, 
 				mo.category_id, 
 				mo.category
 			USING 'python reducer_q29.py'
@@ -106,7 +67,8 @@ FROM
 			frequency
 		CLUSTER BY combined_key
 	) mo2
-	REDUCE 	mo2.combined_key, 
+	REDUCE 	
+		mo2.combined_key, 
 		mo2.category_id, 
 		mo2.category, 
 		mo2.affine_category_id, 
@@ -119,4 +81,5 @@ FROM
 	  	affine_category, 
 		frequency)
 ) ro2
-ORDER BY ro2.frequency;
+CLUSTER BY ro2.frequency
+;

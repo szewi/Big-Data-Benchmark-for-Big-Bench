@@ -1,41 +1,15 @@
--- Global hive options (see: Big-Bench/setEnvVars)
---set hive.exec.parallel=${env:BIG_BENCH_hive_exec_parallel};
---set hive.exec.parallel.thread.number=${env:BIG_BENCH_hive_exec_parallel_thread_number};
---set hive.exec.compress.intermediate=${env:BIG_BENCH_hive_exec_compress_intermediate};
---set mapred.map.output.compression.codec=${env:BIG_BENCH_mapred_map_output_compression_codec};
---set hive.exec.compress.output=${env:BIG_BENCH_hive_exec_compress_output};
---set mapred.output.compression.codec=${env:BIG_BENCH_mapred_output_compression_codec};
---set hive.default.fileformat=${env:BIG_BENCH_hive_default_fileformat};
---set hive.optimize.mapjoin.mapreduce=${env:BIG_BENCH_hive_optimize_mapjoin_mapreduce};
---set hive.optimize.bucketmapjoin=${env:BIG_BENCH_hive_optimize_bucketmapjoin};
---set hive.optimize.bucketmapjoin.sortedmerge=${env:BIG_BENCH_hive_optimize_bucketmapjoin_sortedmerge};
---set hive.auto.convert.join=${env:BIG_BENCH_hive_auto_convert_join};
---set hive.auto.convert.sortmerge.join=${env:BIG_BENCH_hive_auto_convert_sortmerge_join};
---set hive.auto.convert.sortmerge.join.noconditionaltask=${env:BIG_BENCH_hive_auto_convert_sortmerge_join_noconditionaltask};
---set hive.optimize.ppd=${env:BIG_BENCH_hive_optimize_ppd};
---set hive.optimize.index.filter=${env:BIG_BENCH_hive_optimize_index_filter};
-
---display settings
-set hive.exec.parallel;
-set hive.exec.parallel.thread.number;
-set hive.exec.compress.intermediate;
-set mapred.map.output.compression.codec;
-set hive.exec.compress.output;
-set mapred.output.compression.codec;
-set hive.default.fileformat;
-set hive.optimize.mapjoin.mapreduce;
-set hive.mapjoin.smalltable.filesize;
-set hive.optimize.bucketmapjoin;
-set hive.optimize.bucketmapjoin.sortedmerge;
-set hive.auto.convert.join;
-set hive.auto.convert.sortmerge.join;
-set hive.auto.convert.sortmerge.join.noconditionaltask;
-set hive.optimize.ppd;
-set hive.optimize.index.filter;
--- Database
-use ${env:BIG_BENCH_HIVE_DATABASE};
+--Customer segmentation for return analysis: Customers are separated
+--along the following dimensions: return frequency, return order ratio (total num-
+--ber of orders partially or fully returned versus the total number of orders),
+--return item ratio (total number of items returned versus the number of items
+--purchased), return amount ration (total monetary amount of items returned ver-
+--sus the amount purchased), return order ratio. Consider the store returns during
+--a given year for the computation.
 
 -- Resources
+
+
+
 
 ------ create input table for mahout --------------------------------------
 --keep result human readable
@@ -59,9 +33,9 @@ LOCATION '${hiveconf:TEMP_DIR}';
 INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
 SELECT cid,
        100.0 * COUNT(distinct (CASE WHEN r_date IS NOT NULL THEN oid ELSE NULL end))/COUNT(distinct oid) 	AS r_order_ratio,
-       SUM(CASE WHEN r_date IS NOT NULL THEN 1 ELSE 0 END)/COUNT(item)*100 					AS r_item_ratio,
-       SUM(CASE WHEN r_date IS NOT NULL THEN r_amount ELSE 0.0 END)/SUM(s_amount)*100 				AS r_amount_ratio,
-       COUNT(distinct (CASE WHEN r_date IS NOT NULL THEN r_date ELSE NULL END)) 				AS r_freq
+       SUM(CASE WHEN r_date IS NOT NULL THEN 1 ELSE 0 END)/COUNT(item)*100 							AS r_item_ratio,
+       SUM(CASE WHEN r_date IS NOT NULL THEN r_amount ELSE 0.0 END)/SUM(s_amount)*100 					AS r_amount_ratio,
+       COUNT(distinct (CASE WHEN r_date IS NOT NULL THEN r_date ELSE NULL END)) 						AS r_freq
 
 FROM (
 

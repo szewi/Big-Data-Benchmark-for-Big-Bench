@@ -114,6 +114,7 @@ fi
 COMBINED_PARAMS_FILE="`mktemp`"
 if [ -r "$GLOBAL_QUERY_PARAMS_FILE" ]
 then
+	echo "!echo settings from global parameter file: $GLOBAL_QUERY_PARAMS_FILE ;" >> "$COMBINED_PARAMS_FILE"
 	cat "$GLOBAL_QUERY_PARAMS_FILE" > "$COMBINED_PARAMS_FILE"
 else
 	echo "Global query parameter file $GLOBAL_QUERY_PARAMS_FILE can not be read."
@@ -125,22 +126,32 @@ if [ -n "$USER_QUERY_PARAMS_FILE" ]
 then
 	if [ -r "$USER_QUERY_PARAMS_FILE" ]
 	then
+		echo "!echo settings file from -y <query parameter file> command line argument: $USER_QUERY_PARAMS_FILE ;" >> "$COMBINED_PARAMS_FILE"
+
 		cat "$USER_QUERY_PARAMS_FILE" >> "$COMBINED_PARAMS_FILE"
 	else
 		echo "User query parameter file $USER_QUERY_PARAMS_FILE can not be read."
 		rm -rf "$COMBINED_PARAMS_FILE"
 		exit 1
 	fi
+else
+	echo "!echo no settings file from -y <query parameter file> command line argument ;" >> "$COMBINED_PARAMS_FILE"
 fi
 
 LOCAL_HIVE_SETTINGS_FILE="$QUERY_DIR/hiveLocalSettings.sql"
 if [ -r "$LOCAL_HIVE_SETTINGS_FILE" ]
 then
+	echo "!echo settings from local settings file: $LOCAL_HIVE_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
 	cat "$LOCAL_HIVE_SETTINGS_FILE" >> "$COMBINED_PARAMS_FILE"
+else
+	echo "!echo no settings from local settings file: $LOCAL_HIVE_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
+
 fi
 
 if [ -r "$GLOBAL_HIVE_SETTINGS_FILE" ]
 then
+	echo "!echo settings from global settings file: $GLOBAL_HIVE_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
+
 	cat "$GLOBAL_HIVE_SETTINGS_FILE" >> "$COMBINED_PARAMS_FILE"
 else
 	echo "Global hive settings file $GLOBAL_HIVE_SETTINGS_FILE can not be read."
@@ -150,6 +161,7 @@ fi
 
 if [ -n "$USER_HIVE_SETTINGS_FILE" ]
 then
+	echo "!echo settings file from -z <hive settings file> command line argument: $USER_HIVE_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
 	if [ -r "$USER_HIVE_SETTINGS_FILE" ]
 	then
 		cat "$GLOBAL_HIVE_SETTINGS_FILE" >> "$COMBINED_PARAMS_FILE"
@@ -158,7 +170,11 @@ then
 		rm -rf "$COMBINED_PARAMS_FILE"
 		exit 1
 	fi
+else
+	echo "!echo no settings file from -z <hive settings file> command line argument ;" >> "$COMBINED_PARAMS_FILE"
+
 fi
+
 
 BENCHMARK_PHASE="${USER_BENCHMARK_PHASE:-$GLOBAL_BENCHMARK_PHASE}"
 STREAM_NUMBER="${USER_STREAM_NUMBER:-$GLOBAL_STREAM_NUMBER}"
@@ -175,13 +191,21 @@ LOG_FILE_NAME="$BIG_BENCH_LOGS_DIR/${TABLE_PREFIX}.log"
 HIVE_PARAMS="-hiveconf BENCHMARK_PHASE=$BENCHMARK_PHASE -hiveconf STREAM_NUMBER=$STREAM_NUMBER -hiveconf QUERY_NAME=$QUERY_NAME -hiveconf QUERY_DIR=$QUERY_DIR -hiveconf RESULT_TABLE=$RESULT_TABLE -hiveconf RESULT_DIR=$RESULT_DIR -hiveconf TEMP_TABLE=$TEMP_TABLE -hiveconf TEMP_DIR=$TEMP_DIR -hiveconf TABLE_PREFIX=$TABLE_PREFIX"
 
 echo "==============================================="
-echo "Running query: $QUERY_NAME"
+echo "Running query  : $QUERY_NAME"
+echo "-----------------------------------------------"
+echo "benchmark phase: $BENCHMARK_PHASE"
+echo "stream number  : $STREAM_NUMBER"
+echo "user parameter file : $USER_QUERY_PARAMS_FILE"
+echo "user settings file  :$USER_HIVE_SETTINGS_FILE"
+if [[ -n "$DEBUG_QUERY_PART" ]]; then
+	echo "query part to debug: $DEBUG_QUERY_PART"
+fi
 echo "log: $LOG_FILE_NAME"
 echo "==============================================="	
 
 ### Checking required folder: logs/; tmp/; result/ if they exist, create them and set permissions 
 
-echo "checking existence of: $BIG_BENCH_LOGS_DIR"
+echo "checking existence of local: $BIG_BENCH_LOGS_DIR"
 if [ ! -d "$BIG_BENCH_LOGS_DIR" ]; then
 	mkdir -p "$BIG_BENCH_LOGS_DIR"
 fi
@@ -220,3 +244,4 @@ echo "=========================" | tee -a "$LOG_FILE_NAME" 2>&1
 #cat "$LOG_FILE_NAME" >> "$BIG_BENCH_LOGS_DIR/allQueries.log"
 
 rm -rf "$COMBINED_PARAMS_FILE"
+

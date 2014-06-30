@@ -7,10 +7,6 @@ cd "$OLDPWD"
 ##  ADAPT BELOW VARIABLES TO YOUR CLUSTER
 ## ================================================================
 
-## ==========================
-## SSH options
-## ==========================
-BIG_BENCH_SSH_OPTIONS=""					   ## you want to make sure that you can reach all nodes in BIG_BENCH_NODES Via ssh. use this variable to specify the key file to ssh (e.g.: SSH_OPTIONS="-i <keyfile>")
 
 ## ==========================
 ## HADOOP environment
@@ -43,39 +39,11 @@ export BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$
 export BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$BIG_BENCH_HDFS_RELATIVE_TEMP_DIR"
 
 ## ==========================
-## HIVE (recommended version v0.12)
+## HIVE (recommended minimum version v0.12)
 ## ==========================
 export BIG_BENCH_HIVE_DATABASE="bigbenchORC"
 export BIG_BENCH_hive_default_fileformat_result_table="TEXTFILE"
 
-## IMPORTANT
-## All following 'BIG_BENCH_hive' options are disabled in the queries, because
-## hive optimizations are still unstable. e.g hive.optimize.ppd failes for COUNT(*) in conjunction with ORC file format in Hive v.0.12.0 for q14 and q21
-## exec.parallel is also considered unstable 
-## some of these options MAY work on your cluster and you can turn them on globally in your hive-site.xml. (us using your distributions configuration tool)
-## If you do not want to or cannot changes these settings cluster globally, here is what you can do:
-##   un-comment all '##export BIG_BENCH..' entry's in this file. Then find-replace the string '--set' with 'set' in all hive query files with this command:
-##   find "${BIG_BENCH_QUERIES_DIR}"/ -name "*.sql" -print | xargs sed -i 's/--set/set/g'
-
-##export BIG_BENCH_hive_exec_parallel="false"					## still considered unstable, may work on your cluster
-##export BIG_BENCH_hive_exec_parallel_thread_number="8"
-
-## Intermediate and Ouput table options
-##export BIG_BENCH_hive_default_fileformat="ORC"
-##export BIG_BENCH_hive_exec_compress_intermediate="true"		## if your cluser has a good network you may set this to false
-##export BIG_BENCH_mapred_map_output_compression_codec="org.apache.hadoop.io.compress.SnappyCodec"
-##export BIG_BENCH_hive_exec_compress_output="true"				## most queries override this to false to keep the result human readable
-##export BIG_BENCH_mapred_output_compression_codec="org.apache.hadoop.io.compress.SnappyCodec"
-
-## Optimizations
-##export BIG_BENCH_hive_optimize_mapjoin_mapreduce="true"
-##export BIG_BENCH_hive_optimize_bucketmapjoin="true"
-##export BIG_BENCH_hive_optimize_bucketmapjoin_sortedmerge="true"
-##export BIG_BENCH_hive_auto_convert_join="true"				##may produces map-joins, which fail if not enough memory is available for the job
-##export BIG_BENCH_hive_auto_convert_sortmerge_join="true"
-##export BIG_BENCH_hive_auto_convert_sortmerge_join_noconditionaltask="true"
-##export BIG_BENCH_hive_optimize_index_filter="true"
-##export BIG_BENCH_hive_optimize_ppd="false"					##predicate push down for ORC tables fails on Hive v.0.12.0 
 
 ## ================================================================
 ##  /END/  ADAPT BELOW VARIABLES TO YOUR CLUSTER
@@ -102,9 +70,59 @@ export BIG_BENCH_DATAGEN_STAGE_LOG="$BIG_BENCH_LOGS_DIR/dataGeneration.log"
 ## ===================================================
 ## Data generation options
 ## ===================================================
-## Option is used by scripts/bigBenchClusterDataGen.sh ; cluster node addresses
+
+#(recommended:1) replication count for files written by the datagenerator to HDFS into dir:  BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR
+export BIG_BENCH_DATAGEN_DFS_REPLICATION="1" 			
+
+# if empty, generate all tables. 
+# Else: specify tables to generate e.g.: BIG_BENCH_DATAGEN_TABLES="item customer store"
+# Tables to choose from: customer customer_address customer_demographics date_dim household_demographics income_band inventory item item_marketprices product_reviews promotion reason ship_mode store store_returns store_sales time_dim warehouse web_clickstreams web_page  web_returns web_sales web_site
+export BIG_BENCH_DATAGEN_TABLES=""										
+
+
+#do not touch lines below, unless you are sure you need to tamper with that
+export BIG_BENCH_DATAGEN_CORE_SITE="$BIG_BENCH_HADOOP_CONF/core-site.xml"
+export BIG_BENCH_DATAGEN_HDFS_SITE="$BIG_BENCH_HADOOP_CONF/hdfs-site.xml"
+
+
+# --------------------------------------------
+# Hadoop data gen options
+# --------------------------------------------
+# specify JVM arguments like: -Xmx2000m; 
+# default of: 300m is sufficient if the datagen only uses 1 worker thread per map task 
+# Add +100MB per addition worker if you modified: BIGBENCH_DATAGEN_HADOOP_OPTIONS
+export BIG_BENCH_HADOOP_DATAGEN_JVM_ENV=" -DDEBUG_PRINT_PERIODIC_THREAD_DUMPS=5000 -Xmx300m " 		
+
+
+# if you increase -workers, you must also increase the -Xmx setting in BIG_BENCH_DATAGEN_JVM_ENV; 		
+#-ap:=automatic progress ,3000ms intervall; prevents hadoop from killing long running jobs
+#-workers:=limit hadoop based data generator to use 1 CPU core per map task. 
+export BIGBENCH_DATAGEN_HADOOP_OPTIONS=" -workers 1 -ap 3000 "	
+
+
+# --------------------------------------------
+# scripts/bigBenchClusterDataGen.sh options
+# --------------------------------------------
 # BIG_BENCH_NODES can be a list of hostnames as well as a path to a file containing hostnames
-export BIG_BENCH_NODES="bb-aws2 bb-aws3 bb-aws4"			#list of all nodes participating in the generation process
+export BIG_BENCH_NODES="localhost"		
+	
+
+## SSH options
+BIG_BENCH_SSH_OPTIONS=""					   ## you want to make sure that you can reach all nodes in BIG_BENCH_NODES Via ssh. use this variable to specify the key file to ssh (e.g.: SSH_OPTIONS="-i <keyfile>")
+
+# specify JVM arguments like: -Xmx2000m
+# 300m is sufficient if the datagen only uses 1 worker thread (default: unrestricted)
+# Calculation: 200Mb +(100MB*threads per node)
+export BIG_BENCH_DATAGEN_JVM_ENV="  " 	  
+
+
+
+## ===================================================
+## END OF SETTINGS
+## ===================================================
+
+
+## check BIG_BENCH_NODES variable for file path
 # Do not change the following code
 if [ -r "$BIG_BENCH_NODES" ]
 then
@@ -115,29 +133,6 @@ then
 	export BIG_BENCH_NODES="$HOSTLIST"
 fi
 
-export BIG_BENCH_DATAGEN_DFS_REPLICATION="1" 			#(recommended:1) replication count for files written by the datagenerator 
-
-# if empty-> generate all tables. Else: specify tables to generate.
-# e.g. BIGBENCH_TABLES="item customer store". 
-# Tables to choose from: customer customer_address customer_demographics date_dim household_demographics income_band inventory item item_marketprices product_reviews promotion reason ship_mode store store_returns store_sales time_dim warehouse web_clickstreams web_page  web_returns web_sales web_site
-export BIG_BENCH_DATAGEN_TABLES=""										
-
-## ===================================================
-## Data generation environment
-## ===================================================
-#do not touch lines below, unless you are sure you need to tamper with that
-export BIG_BENCH_DATAGEN_CORE_SITE="$BIG_BENCH_HADOOP_CONF/core-site.xml"
-export BIG_BENCH_DATAGEN_HDFS_SITE="$BIG_BENCH_HADOOP_CONF/hdfs-site.xml"
-
-# specify JVM arguments like: -Xmx2000m; 300m is sufficient if the datagen only uses 1 worker thread per map task (default). 
-# Add +100MB per addition worker.
-export BIG_BENCH_HADOOP_DATAGEN_JVM_ENV=" -Xmx300m " 		
-export BIG_BENCH_DATAGEN_JVM_ENV="  " 	  #unrestricted
-
-#-ap:=automatic progress; 
-#-workers:=limit hadoop based data generator to use 1 CPU core per map task. 
-# if you increase -workers, you must also increase the -Xmx setting in BIG_BENCH_DATAGEN_JVM_ENV; 		
-export BIGBENCH_DATAGEN_HADOOP_OPTIONS=" -workers 1 -ap 3000 "	#-ap==automatic progress 3000ms intervall; prevents hadoop from killing long running jobs
 
 ## ===================================================
 ## Set permissions

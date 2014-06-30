@@ -32,23 +32,32 @@ query_run_main_method () {
 	hadoop fs -mkdir -p "${RESULT_DIR}"
 	hadoop fs -chmod uga+rw "${RESULT_DIR}"
 
+
+if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 1 ]] ; then
 	echo "========================="
 	echo "$QUERY_NAME Step 1/4: make view"
 	echo "========================="
 	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE1_SCRIPT"
+fi
 
+if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 2 ]] ; then
 	echo "========================="
 	echo "$QUERY_NAME Step 2/4: make result 1"
 	echo "========================="
 	hive -hiveconf "RESULT_TABLE1=$RESULT_TABLE1" -hiveconf "RESULT_DIR1=$RESULT_DIR1" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE2_SCRIPT"
+fi
 
+if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 3 ]] ; then
 	echo "========================="
 	echo "$QUERY_NAME Step 3/4: make result 2"
 	echo "========================="
 	hive -hiveconf "RESULT_TABLE2=$RESULT_TABLE2" -hiveconf "RESULT_DIR2=$RESULT_DIR2" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE3_SCRIPT"
+fi
 
+if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 4 ]] ; then
 	echo "========================="
 	echo "$QUERY_NAME Step 4/4: cleanup"
 	echo "========================="
 	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "${QUERY_DIR}/cleanup.sql"
+fi
 }
