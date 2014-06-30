@@ -1,45 +1,9 @@
--- Global hive options (see: Big-Bench/setEnvVars)
---set hive.exec.parallel=${env:BIG_BENCH_hive_exec_parallel};
---set hive.exec.parallel.thread.number=${env:BIG_BENCH_hive_exec_parallel_thread_number};
---set hive.exec.compress.intermediate=${env:BIG_BENCH_hive_exec_compress_intermediate};
---set mapred.map.output.compression.codec=${env:BIG_BENCH_mapred_map_output_compression_codec};
---set hive.exec.compress.output=${env:BIG_BENCH_hive_exec_compress_output};
---set mapred.output.compression.codec=${env:BIG_BENCH_mapred_output_compression_codec};
---set hive.default.fileformat=${env:BIG_BENCH_hive_default_fileformat};
---set hive.optimize.mapjoin.mapreduce=${env:BIG_BENCH_hive_optimize_mapjoin_mapreduce};
---set hive.optimize.bucketmapjoin=${env:BIG_BENCH_hive_optimize_bucketmapjoin};
---set hive.optimize.bucketmapjoin.sortedmerge=${env:BIG_BENCH_hive_optimize_bucketmapjoin_sortedmerge};
---set hive.auto.convert.join=${env:BIG_BENCH_hive_auto_convert_join};
---set hive.auto.convert.sortmerge.join=${env:BIG_BENCH_hive_auto_convert_sortmerge_join};
---set hive.auto.convert.sortmerge.join.noconditionaltask=${env:BIG_BENCH_hive_auto_convert_sortmerge_join_noconditionaltask};
---set hive.optimize.ppd=${env:BIG_BENCH_hive_optimize_ppd};
---set hive.optimize.index.filter=${env:BIG_BENCH_hive_optimize_index_filter};
-
---display settings
-set hive.exec.parallel;
-set hive.exec.parallel.thread.number;
-set hive.exec.compress.intermediate;
-set mapred.map.output.compression.codec;
-set hive.exec.compress.output;
-set mapred.output.compression.codec;
-set hive.default.fileformat;
-set hive.optimize.mapjoin.mapreduce;
-set hive.mapjoin.smalltable.filesize;
-set hive.optimize.bucketmapjoin;
-set hive.optimize.bucketmapjoin.sortedmerge;
-set hive.auto.convert.join;
-set hive.auto.convert.sortmerge.join;
-set hive.auto.convert.sortmerge.join.noconditionaltask;
-set hive.optimize.ppd;
-set hive.optimize.index.filter;
-
--- Database
-use ${env:BIG_BENCH_HIVE_DATABASE};
+--Find the top 30 products that are mostly viewed together with a given
+--product in online store. Note that the order of products viewed does not matter.
 
 -- Resources
 add file ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
 
--- Result file configuration
 
 --Result -------------------------------------------------------------------------
 --keep result human readable
@@ -64,10 +28,10 @@ FROM (
 
 	) q02_map_output
 	REDUCE q02_map_output.cid, q02_map_output.pid
-	USING 'java ${env:BIG_BENCH_java_child_process_xmx} -cp bigbenchqueriesmr.jar de.bankmark.bigbench.queries.q02.Red -ITEM_SET_MAX 500 '
+	USING 'java ${env:BIG_BENCH_java_child_process_xmx} -cp bigbenchqueriesmr.jar de.bankmark.bigbench.queries.q02.Red -ITEM_SET_MAX ${hiveconf:q02_NPATH_ITEM_SET_MAX} '
 	AS (pid1 BIGINT, pid2 BIGINT)
 ) q02_temp_basket
-WHERE pid1 = 1416
+WHERE pid1 in ( ${hiveconf:q02_pid1_IN} )
 GROUP BY pid1, pid2
-ORDER BY pid1 ,cnt ,pid2
-LIMIT 30;
+CLUSTER BY pid1 ,cnt ,pid2
+LIMIT  ${hiveconf:q02_limit};

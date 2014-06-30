@@ -2,6 +2,8 @@ import sys
 import traceback
 import os
 
+days_param = int(sys.argv[1])
+
 def npath(vals):
 	vals.sort()
 	last_viewed_item = -1
@@ -10,7 +12,7 @@ def npath(vals):
 		if i[3] == '\N' and i[2] != '\N':
 			last_viewed_item = i[2]
 			last_viewed_date = i[0]
-		elif i[3] != '\N' and i[2] != '\N' and last_viewed_item > -1 and last_viewed_date > (i[0]-11) :
+		elif i[3] != '\N' and i[2] != '\N' and last_viewed_item > -1 and last_viewed_date > (i[0]- days_param ) :
 			print "%s\t%s" % (last_viewed_item, i[2])
 			last_viewed_item = i[2]
 			last_viewed_date = i[0]

@@ -1,69 +1,26 @@
--- Global hive options (see: Big-Bench/setEnvVars)
---set hive.exec.parallel=${env:BIG_BENCH_hive_exec_parallel};
---set hive.exec.parallel.thread.number=${env:BIG_BENCH_hive_exec_parallel_thread_number};
---set hive.exec.compress.intermediate=${env:BIG_BENCH_hive_exec_compress_intermediate};
---set mapred.map.output.compression.codec=${env:BIG_BENCH_mapred_map_output_compression_codec};
---set hive.exec.compress.output=${env:BIG_BENCH_hive_exec_compress_output};
---set mapred.output.compression.codec=${env:BIG_BENCH_mapred_output_compression_codec};
---set hive.default.fileformat=${env:BIG_BENCH_hive_default_fileformat};
---set hive.optimize.mapjoin.mapreduce=${env:BIG_BENCH_hive_optimize_mapjoin_mapreduce};
---set hive.optimize.bucketmapjoin=${env:BIG_BENCH_hive_optimize_bucketmapjoin};
---set hive.optimize.bucketmapjoin.sortedmerge=${env:BIG_BENCH_hive_optimize_bucketmapjoin_sortedmerge};
---set hive.auto.convert.join=${env:BIG_BENCH_hive_auto_convert_join};
---set hive.auto.convert.sortmerge.join=${env:BIG_BENCH_hive_auto_convert_sortmerge_join};
---set hive.auto.convert.sortmerge.join.noconditionaltask=${env:BIG_BENCH_hive_auto_convert_sortmerge_join_noconditionaltask};
---set hive.optimize.ppd=${env:BIG_BENCH_hive_optimize_ppd};
---set hive.optimize.index.filter=${env:BIG_BENCH_hive_optimize_index_filter};
+--Build a model using logistic regression: based on existing users online
+--activities and demographics, for a visitor to an online store, predict the visitors
+--likelihood to be interested in a given category.
 
-
-
---  10mb smalltable.filesize should be sufficient for all static tables of bigbench
+-- Hive 0.12 bug, hive ignores  'hive.mapred.local.mem' resulting in out of memory errors in map joins!
+-- (more exactly: bug in Hadoop 2.2 where hadoop-env.cmd sets the -xmx parameter multiple times, effectivly overriding the user set hive.mapred.locla.mem setting. see: https://issues.apache.org/jira/browse/HADOOP-10245
+-- There are 3 workarounds: 
+-- 1) assign more memory to the local!! Hadoop JVM client (not! mapred.map.memory)-> map-join child vm will inherit the parents jvm settings
+-- 2) reduce "hive.smalltable.filesize" to ~1MB (depends on your cluster settings for the local JVM)
+-- 3) turn off "hive.auto.convert.join" to prevent hive from converting the join to a mapjoin.
+--- set hive.auto.convert.join;
+--- set hive.auto.convert.join=false;
+--- 10mb smalltable.filesize should be sufficient for all static tables of bigbench
 --- set hive.mapjoin.smalltable.filesize;
 --- set hive.mapjoin.smalltable.filesize=12144;
 --- set hive.mapred.local.mem;
---- set hive.mapred.local.mem=768;
-
+--- set hive.mapred.local.mem=2048;
 --- set hive.mapjoin.localtask.max.memory.usage;
 --- set hive.mapjoin.localtask.max.memory.usage=0.99;
 
---- set hive.auto.convert.join.noconditionaltask.size = 10000;
--- Hive 0.12 bug, hive ignores  hive.mapred.local.mem and hive.mapjoin.smalltable.filesize, resulting in out of memory errors
--- q5 fails on hash table join. Somehow, the local task used for hash join only allocates 256Mb of memory. Neither hive.mapred.local.mem nor mapreduce.map.java.opts can change this behaviour. 
--- The only two workarounds are: reduce the "hive.smalltable.filesize" or turn of "hive.auto.convert.join" to prevent hive from converting the join to a mapjoin.
-set hive.auto.convert.join;
-set hive.auto.convert.join=false;
-set hive.auto.convert.join;
-
---display settings
-set hive.exec.parallel;
-set hive.exec.parallel.thread.number;
-set hive.exec.compress.intermediate;
-set mapred.map.output.compression.codec;
-set hive.exec.compress.output;
-set mapred.output.compression.codec;
-set hive.default.fileformat;
-set hive.optimize.mapjoin.mapreduce;
-set hive.mapjoin.smalltable.filesize;
-set hive.optimize.bucketmapjoin;
-set hive.optimize.bucketmapjoin.sortedmerge;
-set hive.auto.convert.join;
-set hive.auto.convert.sortmerge.join;
-set hive.auto.convert.sortmerge.join.noconditionaltask;
-set hive.optimize.ppd;
-set hive.optimize.index.filter;
-set hive.mapjoin.smalltable.filesize;
-set hive.mapred.local.mem;
-set hive.mapjoin.localtask.max.memory.usage;
-
-
-
-
--- Database
-use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Resources
 
--- Result file configuration
 
 --Result  --------------------------------------------------------------------		
 --keep result human readable
@@ -85,29 +42,33 @@ LOCATION '${hiveconf:TEMP_DIR}'
 AS
 -- the real query part
 
-	SELECT 	q05_tmp_Cust.c_customer_sk , 
+
+	SELECT 	
+		q05_tmp_Cust.c_customer_sk , 
 		q05_tmp_Cust.college_education , 
 		q05_tmp_Cust.male, 
 		CASE WHEN q05_tmp_Cust.clicks_in_category > 2 THEN 1 ELSE 0 END AS label
 	FROM (
-		SELECT 	q05_tmp_cust_clicks.c_customer_sk 	AS c_customer_sk, 
+		SELECT 	
+			q05_tmp_cust_clicks.c_customer_sk 		AS c_customer_sk, 
 			q05_tmp_cust_clicks.college_education 	AS college_education, 
-			q05_tmp_cust_clicks.male 		AS male, 
-			SUM(CASE WHEN q05_tmp_cust_clicks.i_category ='Books' 
+			q05_tmp_cust_clicks.male 			AS male, 
+			SUM(CASE WHEN q05_tmp_cust_clicks.i_category =${hiveconf:q05_i_category}
 				THEN 1 ELSE 0 END) 		AS clicks_in_category
 		FROM ( 
-			SELECT 	ct.c_customer_sk 		AS c_customer_sk, 
-				CASE WHEN cdt.cd_education_status IN ('Advanced Degree', 'College', '4 yr Degree', '2 yr Degree') 
+			SELECT 	
+				ct.c_customer_sk 		AS c_customer_sk, 
+				CASE WHEN cdt.cd_education_status IN (${hiveconf:q05_cd_education_status_IN}) 
 					THEN 1 
 					ELSE 0 END 		AS college_education, 
-				CASE WHEN cdt.cd_gender = 'M' 
+				CASE WHEN cdt.cd_gender = ${hiveconf:q05_cd_gender}
 					THEN 1 
 					ELSE 0 END 		AS male,
-				 it.i_category 			AS i_category
+				 it.i_category 		AS i_category
 			FROM customer ct
-			INNER JOIN customer_demographics cdt  ON ct.c_current_cdemo_sk  = cdt.cd_demo_sk
-			INNER JOIN web_clickstreams 	 wcst ON wcst.wcs_user_sk 	= ct.c_customer_sk  
-			INNER JOIN item 		 it   ON wcst.wcs_item_sk 	= it.i_item_sk
+			INNER JOIN customer_demographics 	cdt  ON ct.c_current_cdemo_sk = cdt.cd_demo_sk
+			INNER JOIN web_clickstreams 	 	wcst ON wcst.wcs_user_sk 	= ct.c_customer_sk  
+			INNER JOIN item 		 		it   ON wcst.wcs_item_sk 	= it.i_item_sk
 
 		) q05_tmp_cust_clicks
 		GROUP BY 	q05_tmp_cust_clicks.c_customer_sk, 

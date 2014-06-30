@@ -1,49 +1,15 @@
--- Global hive options (see: Big-Bench/setEnvVars)
---set hive.exec.parallel=${env:BIG_BENCH_hive_exec_parallel};
---set hive.exec.parallel.thread.number=${env:BIG_BENCH_hive_exec_parallel_thread_number};
---set hive.exec.compress.intermediate=${env:BIG_BENCH_hive_exec_compress_intermediate};
---set mapred.map.output.compression.codec=${env:BIG_BENCH_mapred_map_output_compression_codec};
---set hive.exec.compress.output=${env:BIG_BENCH_hive_exec_compress_output};
---set mapred.output.compression.codec=${env:BIG_BENCH_mapred_output_compression_codec};
---set hive.default.fileformat=${env:BIG_BENCH_hive_default_fileformat};
---set hive.optimize.mapjoin.mapreduce=${env:BIG_BENCH_hive_optimize_mapjoin_mapreduce};
---set hive.optimize.bucketmapjoin=${env:BIG_BENCH_hive_optimize_bucketmapjoin};
---set hive.optimize.bucketmapjoin.sortedmerge=${env:BIG_BENCH_hive_optimize_bucketmapjoin_sortedmerge};
---set hive.auto.convert.join=${env:BIG_BENCH_hive_auto_convert_join};
---set hive.auto.convert.sortmerge.join=${env:BIG_BENCH_hive_auto_convert_sortmerge_join};
---set hive.auto.convert.sortmerge.join.noconditionaltask=${env:BIG_BENCH_hive_auto_convert_sortmerge_join_noconditionaltask};
---set hive.optimize.ppd=${env:BIG_BENCH_hive_optimize_ppd};
---set hive.optimize.index.filter=${env:BIG_BENCH_hive_optimize_index_filter};
-
---display settings
-set hive.exec.parallel;
-set hive.exec.parallel.thread.number;
-set hive.exec.compress.intermediate;
-set mapred.map.output.compression.codec;
-set hive.exec.compress.output;
-set mapred.output.compression.codec;
-set hive.default.fileformat;
-set hive.optimize.mapjoin.mapreduce;
-set hive.mapjoin.smalltable.filesize;
-set hive.optimize.bucketmapjoin;
-set hive.optimize.bucketmapjoin.sortedmerge;
-set hive.auto.convert.join;
-set hive.auto.convert.sortmerge.join;
-set hive.auto.convert.sortmerge.join.noconditionaltask;
-set hive.optimize.ppd;
-set hive.optimize.index.filter;
-
--- Database
-use ${env:BIG_BENCH_HIVE_DATABASE};
+--For a given product, measure the correlation of sentiments, including
+--the number of reviews and average review ratings, on product monthly revenues.
 
 -- Resources
 
--- Result file configuration
-	
+
 --Result  --------------------------------------------------------------------		
 --keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;	
+
+
 
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE}
@@ -54,13 +20,15 @@ AS
 select  corr(reviews_count,avg_rating) 
 FROM  
 (
-	SELECT 	p.pr_item_sk 	AS pid,
+	SELECT 	
+		p.pr_item_sk 	AS pid,
 		p.r_count 	AS reviews_count,
 		p.avg_rating 	AS avg_rating,
 		s.revenue 	AS m_revenue
 	FROM 
 	(
-		SELECT 	pr_item_sk,
+		SELECT 	
+			pr_item_sk,
 			count(*) AS r_count,
 			avg(pr_review_rating) AS avg_rating
 		FROM 	product_reviews
@@ -72,14 +40,18 @@ FROM
 	INNER JOIN 
 	(
 		SELECT 	ws_item_sk,
-			sum(ws_net_paid) AS revenue
-		FROM web_sales
-			-- ws_sold_date_sk > 2003-01-02 -30 days AND ws_sold_date_sk < 2003-01-02: Days from 1900-01-01 till 2003-01-02 ==> 37621 
-		WHERE ws_sold_date_sk > 37621-30 
-		  AND ws_sold_date_sk < 37621 
-		  AND ws_item_sk IS NOT null
+				sum(ws_net_paid) AS revenue
+		FROM web_sales ws
+		-- Select date range of interest
+		LEFT SEMI JOIN (	
+				SELECT d_date_sk 
+				FROM  date_dim d
+				WHERE d.d_date >= '${hiveconf:q11_startDate}'
+				AND   d.d_date <= '${hiveconf:q11_endDate}'
+			) dd on ( ws.ws_sold_date_sk=dd.d_date_sk )
+		WHERE ws_item_sk IS NOT null
 		
-                --this is GROUP BY 1 in original::same as ws_item_sk here::hive complains anyhow
+          --this is GROUP BY 1 in original::same as ws_item_sk here::hive complains anyhow
 		GROUP BY ws_item_sk 
 	) s
 	ON p.pr_item_sk = s.ws_item_sk

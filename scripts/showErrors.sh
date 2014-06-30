@@ -15,8 +15,8 @@ if [ $# -lt 1 ]
 then
 	ERRLOG_FILE_NAME="$BIG_BENCH_LOGS_DIR/queryErrors.log"
 
-	grep -n -i -E 'FAIL|ERROR:|Could not|Exception|unexpected' "$BIG_BENCH_LOADING_STAGE_LOG" > $ERRLOG_FILE_NAME
-	grep -n -i -E 'FAIL|ERROR:|Could not|Exception|unexpected' "$BIG_BENCH_LOGS_DIR"/q[0-9][0-9]*.log >> $ERRLOG_FILE_NAME
+	grep -n -i -E 'FAIL|ERROR:|Could not|Exception|unexpected' "$BIG_BENCH_LOADING_STAGE_LOG"  | grep -v "Failed Shuffles=0"  > $ERRLOG_FILE_NAME
+	grep -n -i -E 'FAIL|ERROR:|Could not|Exception|unexpected' "$BIG_BENCH_LOGS_DIR"/q[0-9][0-9]*.log | grep -v "Failed Shuffles=0" >> $ERRLOG_FILE_NAME
 
 	if [ -s "$ERRLOG_FILE_NAME" ]
 	then
