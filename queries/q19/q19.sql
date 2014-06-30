@@ -36,8 +36,8 @@ set hive.optimize.index.filter;
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Resources
---ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q19/mapper_19.py;
---ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q19/reducer_19.py;
+--ADD FILE ${hiveconf:QUERY_DIR}/mapper_19.py;
+--ADD FILE ${hiveconf:QUERY_DIR}/reducer_19.py;
 
 
 -- Result file configuration
@@ -46,8 +46,8 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 
 
 -----Store returns in date range q19_tmp_date1-------------------------------------------------
-DROP VIEW IF EXISTS q19_tmp_sr_items;
-CREATE VIEW q19_tmp_sr_items AS
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE1};
+CREATE VIEW ${hiveconf:TEMP_TABLE1} AS
 SELECT
     i_item_sk item_id,
     sum(sr_return_quantity) sr_item_qty
@@ -64,9 +64,9 @@ HAVING sum(sr_return_quantity) > 0;
 
 
 -----Web returns in daterange q19_tmp_date2 ------------------------------------------------------
-DROP VIEW IF EXISTS q19_tmp_wr_items;
---make q19_tmp_wr_items
-CREATE VIEW q19_tmp_wr_items AS
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE2};
+--make ${hiveconf:TEMP_TABLE2}
+CREATE VIEW ${hiveconf:TEMP_TABLE2} AS
 SELECT
     i_item_sk item_id,
     sum(wr_return_quantity) wr_item_qty
@@ -82,9 +82,9 @@ GROUP BY i_item_sk
 HAVING sum(wr_return_quantity) > 0;
 
 ----return items -------------------------------------------------------------------
-DROP VIEW IF EXISTS q19_tmp_return_items;
---make q19_tmp_return_items
-CREATE VIEW q19_tmp_return_items AS
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE3};
+--make ${hiveconf:TEMP_TABLE3}
+CREATE VIEW ${hiveconf:TEMP_TABLE3} AS
 	SELECT 
 		st.item_id item,
 		sr_item_qty,
@@ -92,8 +92,8 @@ CREATE VIEW q19_tmp_return_items AS
 		wr_item_qty,
 		100.0*wr_item_qty/(sr_item_qty+wr_item_qty)/2.0 wr_dev,
 		(sr_item_qty+wr_item_qty)/2.0 average
-	FROM q19_tmp_sr_items st
-	INNER JOIN q19_tmp_wr_items wt ON st.item_id = wt.item_id
+	FROM ${hiveconf:TEMP_TABLE1} st
+	INNER JOIN ${hiveconf:TEMP_TABLE2} wt ON st.item_id = wt.item_id
 	ORDER BY average desc
 	LIMIT 100;
 
@@ -125,7 +125,7 @@ FROM
 		sentiment_word
 	)  
 	FROM product_reviews  pr
-	LEFT SEMI JOIN q19_tmp_return_items ri ON pr.pr_item_sk = ri.item
+	LEFT SEMI JOIN ${hiveconf:TEMP_TABLE3} ri ON pr.pr_item_sk = ri.item
 ) q19_tmp_sentiment
 WHERE q19_tmp_sentiment.sentiment = 'NEG ';
 
@@ -133,6 +133,6 @@ WHERE q19_tmp_sentiment.sentiment = 'NEG ';
 --- cleanup---------------------------------------------------------------------------
 
 
-DROP VIEW IF EXISTS q19_tmp_sr_items;
-DROP VIEW IF EXISTS q19_tmp_wr_items;
-DROP VIEW IF EXISTS q19_tmp_return_items;
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE1};
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE2};
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE3};

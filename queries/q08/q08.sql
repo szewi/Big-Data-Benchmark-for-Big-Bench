@@ -37,7 +37,7 @@ set hive.optimize.index.filter;
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Resources
-ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q08/q8_reducer.py;
+ADD FILE ${hiveconf:QUERY_DIR}/q8_reducer.py;
 
 -- Result file configuration
 
@@ -47,8 +47,8 @@ ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q08/q8_reducer.py;
 --year.
 
 --PART 1 - sales that users have viewed the review pages--------------------------------------------------------
-DROP TABLE if EXISTS q08_tmp_sales_review;
-CREATE TABLE if not exists q08_tmp_sales_review AS 
+DROP TABLE if EXISTS ${hiveconf:TEMP_TABLE1};
+CREATE TABLE if not exists ${hiveconf:TEMP_TABLE1} AS 
 SELECT DISTINCT q08_nPath.s_sk AS s_sk
 	FROM (
 		FROM (	
@@ -78,8 +78,8 @@ SELECT DISTINCT q08_nPath.s_sk AS s_sk
 ;
 
 --PART 2 - helper table: sales within one year starting 1999-09-02  ---------------------------------------
-DROP TABLE if EXISTS q08_tmp_webSales_date;
-CREATE TABLE IF NOT EXISTS q08_tmp_webSales_date AS 
+DROP TABLE if EXISTS ${hiveconf:TEMP_TABLE2};
+CREATE TABLE IF NOT EXISTS ${hiveconf:TEMP_TABLE2} AS 
 SELECT ws_net_paid, ws_order_number
 FROM web_sales ws
 where ws.ws_sold_date_sk > 36403 and ws.ws_sold_date_sk <36403+365
@@ -102,20 +102,19 @@ SELECT 	q08_review_sales.amount 			AS q08_review_sales_amount,
 	q08_all_sales.amount - q08_review_sales.amount  AS no_q08_review_sales_amount
 FROM	(
 	SELECT 1 AS id, sum (ws_net_paid) as amount 
-	FROM q08_tmp_webSales_date ws
-	INNER JOIN q08_tmp_sales_review sr ON ws.ws_order_number = sr.s_sk
+	FROM ${hiveconf:TEMP_TABLE2} ws
+	INNER JOIN ${hiveconf:TEMP_TABLE1} sr ON ws.ws_order_number = sr.s_sk
 ) q08_review_sales
 
 JOIN (
 	SELECT 1 AS id, sum (ws_net_paid) as amount
-	FROM q08_tmp_webSales_date ws
+	FROM ${hiveconf:TEMP_TABLE2} ws
 	
 )  q08_all_sales 
 ON q08_review_sales.id =  q08_all_sales.id
 ;
 
 
-
 --cleanup-------------------------------------------------------------------
-DROP TABLE if EXISTS q08_tmp_sales_review;
-DROP TABLE if EXISTS q08_tmp_webSales_date;
+DROP TABLE if EXISTS ${hiveconf:TEMP_TABLE1};
+DROP TABLE if EXISTS ${hiveconf:TEMP_TABLE2};

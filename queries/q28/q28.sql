@@ -37,7 +37,7 @@ set hive.optimize.index.filter;
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Resources
---ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q28/mapper_q28.py;
+--ADD FILE ${hiveconf:QUERY_DIR}/mapper_q28.py;
 
 --Result 1 Training table for mahout--------------------------------------------------------------------		
 --keep result human readable

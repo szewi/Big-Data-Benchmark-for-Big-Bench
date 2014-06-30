@@ -196,6 +196,9 @@ if [ ! -w "$LOG_FILE_NAME" ] ; then
 fi
 
 echo "creating folders and setting permissions"
+hadoop fs -rm -r -skipTrash "${RESULT_DIR}" &
+hadoop fs -rm -r -skipTrash "${TEMP_DIR}" &
+wait
 hadoop fs -mkdir -p "${RESULT_DIR}" &
 hadoop fs -mkdir -p "${TEMP_DIR}" &
 wait

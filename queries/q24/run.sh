@@ -8,5 +8,12 @@ query_run_main_method () {
 		exit 1
 	fi
 
+	# define used temp tables
+	TEMP_TABLE1="${TABLE_PREFIX}_competitor_price_view"
+	TEMP_TABLE2="${TABLE_PREFIX}_self_ws_view"
+	TEMP_TABLE3="${TABLE_PREFIX}_self_ss_view"
+
+	HIVE_PARAMS="$HIVE_PARAMS -hiveconf TEMP_TABLE1=$TEMP_TABLE1 -hiveconf TEMP_TABLE2=$TEMP_TABLE2 -hiveconf TEMP_TABLE3=$TEMP_TABLE3"
+
         hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE_SCRIPT"
 }

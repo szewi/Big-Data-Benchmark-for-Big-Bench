@@ -37,16 +37,16 @@ set hive.optimize.index.filter;
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Resources
-ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q04/q4_mapper1.py;
-ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q04/q4_mapper2.py;
-ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q04/q4_reducer1.py;
-ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q04/q4_reducer2.py;
+ADD FILE ${hiveconf:QUERY_DIR}/q4_mapper1.py;
+ADD FILE ${hiveconf:QUERY_DIR}/q4_mapper2.py;
+ADD FILE ${hiveconf:QUERY_DIR}/q4_reducer1.py;
+ADD FILE ${hiveconf:QUERY_DIR}/q4_reducer2.py;
 
 -- Result file configuration
 
 -- Part 1: join webclickstreams with user, webpage and date -----------			  
-DROP VIEW IF EXISTS q04_tmp_sessions;
-CREATE VIEW q04_tmp_sessions AS 
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE1};
+CREATE VIEW ${hiveconf:TEMP_TABLE1} AS 
 SELECT * 
 FROM (
 	FROM (
@@ -82,22 +82,22 @@ CLUSTER BY sessionid
 --LIMIT 2500;
 
 -- Part 2: Abandoned shopping carts ----------------------------------
-DROP VIEW IF EXISTS q04_tmp_cart_abandon;
-CREATE VIEW q04_tmp_cart_abandon AS 
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE2};
+CREATE VIEW ${hiveconf:TEMP_TABLE2} AS 
 SELECT * 
 FROM (
 	--FROM (
-	--	FROM q04_tmp_sessions
-        -- 	MAP 	q04_tmp_sessions.uid, 
-	--		q04_tmp_sessions.item, 
-	--		q04_tmp_sessions.wptype, 
-	--		q04_tmp_sessions.tstamp, 
-	--		q04_tmp_sessions.sessionid
+	--	FROM ${hiveconf:TEMP_TABLE1}
+        -- 	MAP 	${hiveconf:TEMP_TABLE1}.uid, 
+	--		${hiveconf:TEMP_TABLE1}.item, 
+	--		${hiveconf:TEMP_TABLE1}.wptype, 
+	--		${hiveconf:TEMP_TABLE1}.tstamp, 
+	--		${hiveconf:TEMP_TABLE1}.sessionid
 	--	-- USING 'python q4_mapper2.py'   AS uid, item, wptype, tstamp, sessionid  ||| use cat instead beacause this is a no-op mapper
        	--	USING 'cat'   AS uid, item, wptype, tstamp, sessionid
      	--	CLUSTER BY sessionid
 	--) q04_tmp_map_output
-	FROM q04_tmp_sessions q04_tmp_map_output
+	FROM ${hiveconf:TEMP_TABLE1} q04_tmp_map_output
 	REDUCE 	q04_tmp_map_output.uid, 
 		q04_tmp_map_output.item, 
 		q04_tmp_map_output.wptype, 
@@ -120,11 +120,11 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 AS
 -- the real query part
 SELECT c.sid, COUNT (*) AS s_pages
-FROM q04_tmp_cart_abandon c JOIN q04_tmp_sessions s ON s.sessionid = c.sid
+FROM ${hiveconf:TEMP_TABLE2} c JOIN ${hiveconf:TEMP_TABLE1} s ON s.sessionid = c.sid
 GROUP BY c.sid
 ;
 
 
 --cleanup --------------------------------------------
-DROP VIEW IF EXISTS q04_tmp_sessions;
-DROP VIEW IF EXISTS q04_tmp_cart_abandon;
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE1};
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE2};

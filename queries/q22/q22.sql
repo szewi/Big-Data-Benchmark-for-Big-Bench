@@ -55,8 +55,8 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 --    AND datediff(d_date, '2000-05-08') <= 30;
 
 
-DROP TABLE IF EXISTS q22_inner;
-CREATE TABLE q22_inner AS
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE1};
+CREATE TABLE ${hiveconf:TEMP_TABLE1} AS
 SELECT 	w_warehouse_name, 
 	i_item_id,
 	 sum(CASE WHEN datediff(d_date, '2000-05-08') < 0 
@@ -83,10 +83,10 @@ FROM (
 GROUP BY w_warehouse_name, i_item_id;
 
 
-DROP TABLE IF EXISTS q22_conditional_ratio;
-CREATE TABLE q22_conditional_ratio AS
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE2};
+CREATE TABLE ${hiveconf:TEMP_TABLE2} AS
   SELECT w_warehouse_name, inv_after/inv_before
-    FROM q22_inner
+    FROM ${hiveconf:TEMP_TABLE1}
    WHERE inv_before > 0
      AND inv_after/inv_before >= 2.0/3.0 
      AND inv_after/inv_before <= 3.0/2.0;
@@ -104,13 +104,13 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 AS
 -- the real query part
   SELECT name.w_warehouse_name, i_item_id, inv_before, inv_after
-    FROM q22_inner name 
-    JOIN q22_conditional_ratio nombre 
+    FROM ${hiveconf:TEMP_TABLE1} name 
+    JOIN ${hiveconf:TEMP_TABLE2} nombre 
       ON name.w_warehouse_name = nombre.w_warehouse_name
    ORDER BY w_warehouse_name, i_item_id;
 
 
 ---- cleanup ----------------
-DROP TABLE IF EXISTS q22_conditional_ratio;
-DROP TABLE IF EXISTS q22_inner;
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE2};
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE1};
 --DROP TABLE IF EXISTS q22_coalition_22;

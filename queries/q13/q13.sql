@@ -46,8 +46,8 @@ set hive.enforce.bucketing=true;
 set hive.enforce.sorting=true;
 set mapreduce.reduce.input.limit=-1;
 
-DROP TABLE IF EXISTS q13_customer_year_total;
-CREATE TABLE q13_customer_year_total
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
+CREATE TABLE ${hiveconf:TEMP_TABLE}
 (
  customer_id            STRING
 ,customer_first_name    STRING
@@ -66,7 +66,7 @@ CREATE TABLE q13_customer_year_total
 
 --table contains the values of the intersection of customer table and store_sales tables values 
 --that meet the necessary requirements and whose year value is either 1999 or 2000
-INSERT INTO TABLE q13_customer_year_total 
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE} 
 --PARTITION (year ,sale_type)
 	SELECT	c_customer_id	AS  customer_id,
 		c_first_name	AS  customer_first_name,
@@ -91,7 +91,7 @@ INSERT INTO TABLE q13_customer_year_total
 
 --table contains the values of the intersection of customer table and web_sales tables values that 
 --meet the necessary requirements and whose year value is either 1999 or 2000
-INSERT INTO TABLE q13_customer_year_total 
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE} 
 --PARTITION (year ,sale_type)
 	SELECT 	c_customer_id  AS  customer_id,
 		c_first_name   AS  customer_first_name,
@@ -121,16 +121,16 @@ INSERT INTO TABLE q13_customer_year_total
 --DROP VIEW IF EXISTS q13_t_w_secyear;
 
 --CREATE VIEW IF NOT EXISTS q13_t_s_firstyear AS
---SELECT * FROM q13_customer_year_total;
+--SELECT * FROM ${hiveconf:TEMP_TABLE};
 
 --CREATE VIEW IF NOT EXISTS q13_t_s_secyear AS
---SELECT * FROM q13_customer_year_total;
+--SELECT * FROM ${hiveconf:TEMP_TABLE};
 
 --CREATE VIEW IF NOT EXISTS q13_t_w_firstyear AS
---SELECT * FROM q13_customer_year_total;
+--SELECT * FROM ${hiveconf:TEMP_TABLE};
 
 --CREATE VIEW IF NOT EXISTS q13_t_w_secyear AS
---SELECT * FROM q13_customer_year_total;
+--SELECT * FROM ${hiveconf:TEMP_TABLE};
 
 --Result  --------------------------------------------------------------------		
 --keep result human readable
@@ -154,10 +154,10 @@ SELECT
     THEN ts_s.year_total / ts_f.year_total
   ELSE null END
 
-FROM  		q13_customer_year_total ts_f
-  INNER JOIN 	q13_customer_year_total ts_s ON ts_f.customer_id = ts_s.customer_id
-  INNER JOIN 	q13_customer_year_total tw_f ON ts_f.customer_id = tw_f.customer_id
-  INNER JOIN 	q13_customer_year_total tw_s ON ts_f.customer_id = tw_s.customer_id 	
+FROM  		${hiveconf:TEMP_TABLE} ts_f
+  INNER JOIN 	${hiveconf:TEMP_TABLE} ts_s ON ts_f.customer_id = ts_s.customer_id
+  INNER JOIN 	${hiveconf:TEMP_TABLE} tw_f ON ts_f.customer_id = tw_f.customer_id
+  INNER JOIN 	${hiveconf:TEMP_TABLE} tw_s ON ts_f.customer_id = tw_s.customer_id 	
 --  q13_t_s_firstyear ts_f
 --  INNER JOIN q13_t_s_secyear   ts_s ON ts_f.customer_id = ts_s.customer_id
 --  INNER JOIN q13_t_w_firstyear tw_f ON ts_f.customer_id = tw_f.customer_id
@@ -184,7 +184,7 @@ ORDER BY
 LIMIT 100;
 
 --cleanup -----------------------------------------------------------
-DROP TABLE IF EXISTS q13_customer_year_total;
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 --DROP VIEW IF EXISTS q13_t_s_firstyear;
 --DROP VIEW IF EXISTS q13_t_s_secyear;
 --DROP VIEW IF EXISTS q13_t_w_firstyear;

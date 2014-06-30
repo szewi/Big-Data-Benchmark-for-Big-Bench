@@ -39,4 +39,4 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 -- Resources
 
 -- Clean up ---------------------------------------------
-DROP VIEW IF EXISTS q23_tmp_inv;
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE};

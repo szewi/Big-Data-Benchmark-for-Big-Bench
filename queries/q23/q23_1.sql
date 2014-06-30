@@ -36,8 +36,8 @@ set hive.optimize.index.filter;
 -- Database
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
-DROP VIEW IF EXISTS q23_tmp_inv;
-CREATE VIEW q23_tmp_inv AS
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE};
+CREATE VIEW ${hiveconf:TEMP_TABLE} AS
 SELECT 	w_warehouse_name, 
 	w_warehouse_sk, 
 	i_item_sk, 

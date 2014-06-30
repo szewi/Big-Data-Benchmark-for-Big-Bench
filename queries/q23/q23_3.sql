@@ -59,8 +59,8 @@ SELECT 	inv1.w_warehouse_sk AS inv1_w_warehouse_sk,
 	inv2.d_moy AS inv2_d_moy,
 	inv2.mean AS inv2_mean, 
 	inv2.cov AS inv2_cov
-FROM q23_tmp_inv inv1 
-JOIN q23_tmp_inv inv2 	ON inv1.i_item_sk = inv2.i_item_sk
+FROM ${hiveconf:TEMP_TABLE} inv1 
+JOIN ${hiveconf:TEMP_TABLE} inv2 	ON inv1.i_item_sk = inv2.i_item_sk
 		AND inv1.w_warehouse_sk =  inv2.w_warehouse_sk
 		AND inv1.d_moy= 2
 		AND inv2.d_moy= 2 + 1

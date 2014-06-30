@@ -28,9 +28,11 @@ query_run_main_method () {
 	RESULT_TABLE2="result2"
 	RESULT_DIR2="$RESULT_DIR/$RESULT_TABLE2"
 
-	hadoop fs -rm -r -skipTrash "${RESULT_DIR}"/*
-	hadoop fs -mkdir -p "${RESULT_DIR}"
-	hadoop fs -chmod uga+rw "${RESULT_DIR}"
+	HIVE_PARAMS="$HIVE_PARAMS -hiveconf RESULT_TABLE1=$RESULT_TABLE1 -hiveconf RESULT_DIR1=$RESULT_DIR1 -hiveconf RESULT_TABLE2=$RESULT_TABLE2 -hiveconf RESULT_DIR2=$RESULT_DIR2"
+
+	#hadoop fs -rm -r -skipTrash "${RESULT_DIR}"/*
+	#hadoop fs -mkdir -p "${RESULT_DIR}"
+	#hadoop fs -chmod uga+rw "${RESULT_DIR}"
 
 	echo "========================="
 	echo "$QUERY_NAME Step 1/4: make view"
@@ -40,12 +42,12 @@ query_run_main_method () {
 	echo "========================="
 	echo "$QUERY_NAME Step 2/4: make result 1"
 	echo "========================="
-	hive -hiveconf "RESULT_TABLE1=$RESULT_TABLE1" -hiveconf "RESULT_DIR1=$RESULT_DIR1" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE2_SCRIPT"
+	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE2_SCRIPT"
 
 	echo "========================="
 	echo "$QUERY_NAME Step 3/4: make result 2"
 	echo "========================="
-	hive -hiveconf "RESULT_TABLE2=$RESULT_TABLE2" -hiveconf "RESULT_DIR2=$RESULT_DIR2" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE3_SCRIPT"
+	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE3_SCRIPT"
 
 	echo "========================="
 	echo "$QUERY_NAME Step 4/4: cleanup"

@@ -38,8 +38,8 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 
 
 -- ss_sold_date_sk > 2002-01-02
-DROP TABLE IF EXISTS q25_usersegments;
-CREATE TABLE q25_usersegments AS
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
+CREATE TABLE ${hiveconf:TEMP_TABLE} AS
 SELECT 
     ss_customer_sk 	AS cid,
     ss_ticket_number 	AS oid,
@@ -52,7 +52,7 @@ GROUP BY ss_customer_sk, ss_ticket_number, ss_sold_date_sk
 ;
 
 
-INSERT INTO TABLE q25_usersegments
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
 SELECT 
     ws_bill_customer_sk AS cid,
     ws_order_number 	AS oid,
@@ -71,8 +71,8 @@ GROUP BY ws_bill_customer_sk, ws_order_number, ws_sold_date_sk;
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;	
 
-DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
-CREATE TABLE ${hiveconf:TEMP_TABLE} (	cid INT
+DROP TABLE IF EXISTS ${hiveconf:TEMP_RESULT_TABLE};
+CREATE TABLE ${hiveconf:TEMP_RESULT_TABLE} (	cid INT
 				, recency INT
 				, frequency INT
 				, totalspend INT) 
@@ -80,9 +80,9 @@ ROW FORMAT DELIMITED
 FIELDS TERMINATED BY ' '
 LINES TERMINATED BY '\n'
 STORED AS TEXTFILE
-LOCATION '${hiveconf:TEMP_DIR}';
+LOCATION '${hiveconf:TEMP_RESULT_DIR}';
 
-INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
+INSERT INTO TABLE ${hiveconf:TEMP_RESULT_TABLE}
 
 SELECT 
     cid 		AS id,
@@ -91,9 +91,9 @@ SELECT
          ELSE 0.0 END 	AS recency,
     count(oid) 		AS frequency,
     sum(amount) 	AS totalspend
-FROM q25_usersegments
+FROM ${hiveconf:TEMP_TABLE}
 GROUP BY cid;
 
 
 --- CLEANUP--------------------------------------------
-DROP TABLE q25_usersegments;
+DROP TABLE ${hiveconf:TEMP_TABLE};

@@ -28,6 +28,14 @@ query_run_main_method () {
 	MR_CLASS="de.bankmark.bigbench.queries.${QUERY_NAME}.MRlinearRegression"
 	MR_JARCLASS="${MR_JAR} ${MR_CLASS}"
 
+	# define used temp tables
+	MATRIX_BASENAME="${TABLE_PREFIX}_matrix"
+	MATRIX_BASEDIR="$TEMP_DIR/$MATRIX_BASENAME"
+	LM_BASENAME="${TABLE_PREFIX}_lm"
+	LM_BASEDIR="$TEMP_DIR/output"
+
+	HIVE_PARAMS="$HIVE_PARAMS -hiveconf MATRIX_BASENAME=$MATRIX_BASENAME -hiveconf MATRIX_BASEDIR=$MATRIX_BASEDIR -hiveconf LM_BASENAME=$LM_BASENAME -hiveconf LM_BASEDIR=$LM_BASEDIR"
+
 	echo "========================="
 	echo "$QUERY_NAME Settings"
 	echo "========================="
@@ -41,9 +49,9 @@ query_run_main_method () {
 		echo "========================="
 		echo "$QUERY_NAME Step 1: Prepare required resources"
 		echo "========================="
-		hadoop fs -rm -r -skipTrash "${TEMP_DIR}"/*
-		hadoop fs -mkdir -p "${TEMP_DIR}"
-		hadoop fs -chmod uga+rw "${TEMP_DIR}"
+		#hadoop fs -rm -r -skipTrash "${TEMP_DIR}"/*
+		#hadoop fs -mkdir -p "${TEMP_DIR}"
+		#hadoop fs -chmod uga+rw "${TEMP_DIR}"
 		hadoop fs -copyFromLocal "${MR_JAR}" "${TEMP_DIR}/"
 	fi
 
@@ -60,7 +68,7 @@ query_run_main_method () {
 		echo "========================="
 		echo "$QUERY_NAME Step 3: prepare M/R job environment"
 		echo "========================="
-		hadoop fs -rm -r -skipTrash  "${TEMP_DIR}"/output*
+		hadoop fs -rm -r -skipTrash "$LM_BASEDIR"*
 
 		echo "========================="
 		echo "$QUERY_NAME Step 3: exec M/R job linear regression analysis"
@@ -70,11 +78,11 @@ query_run_main_method () {
 		do
 			echo "-------------------------"
 			echo "$QUERY_NAME Step 3: linear regression analysis Matrix ${i}/10"
-			echo "in: ${TEMP_DIR}/q15_matrix${i}"
-			echo "out: ${TEMP_DIR}/output${i}"
-			echo "Exec: hadoop jar ${MR_JARCLASS} ${TEMP_DIR}/q15_matrix${i} ${TEMP_DIR}/output${i} "
+			echo "in: ${MATRIX_BASEDIR}${i}"
+			echo "out: ${LM_BASEDIR}${i}"
+			echo "Exec: hadoop jar ${MR_JARCLASS} ${MATRIX_BASEDIR}${i} ${LM_BASEDIR}${i}"
 			echo "-------------------------"
-			hadoop jar "${MR_JAR}" "${MR_CLASS}" "${TEMP_DIR}/q15_matrix${i}" "${TEMP_DIR}/output${i}" 
+			hadoop jar "${MR_JAR}" "${MR_CLASS}" "${MATRIX_BASEDIR}${i}" "${LM_BASEDIR}${i}" 
 		done
 		wait 
 	fi

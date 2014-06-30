@@ -45,8 +45,8 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 --consecutive months.
 
 --1)
-DROP VIEW IF EXISTS q12_click;
-CREATE VIEW IF NOT EXISTS q12_click AS
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE1};
+CREATE VIEW IF NOT EXISTS ${hiveconf:TEMP_TABLE1} AS
  SELECT c.wcs_item_sk 		AS item,
         c.wcs_user_sk 		AS uid,
         c.wcs_click_date_sk 	AS c_date,
@@ -59,8 +59,8 @@ CREATE VIEW IF NOT EXISTS q12_click AS
   ORDER BY c_date, c_time;
 
 --2)
-DROP VIEW IF EXISTS q12_sale;
-CREATE VIEW IF NOT EXISTS q12_sale AS 
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE2};
+CREATE VIEW IF NOT EXISTS ${hiveconf:TEMP_TABLE2} AS 
  SELECT ss.ss_item_sk 		AS item,
         ss.ss_customer_sk 	AS uid,
         ss.ss_sold_date_sk 	AS s_date,
@@ -84,7 +84,7 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table}  LOCATION '${hiv
 AS
 -- the real query part	
 SELECT c_date, s_date, s.uid
-  FROM q12_click c JOIN q12_sale s
+  FROM ${hiveconf:TEMP_TABLE1} c JOIN ${hiveconf:TEMP_TABLE2} s
     ON c.uid = s.uid
  WHERE c.c_date < s.s_date;
 
@@ -95,5 +95,5 @@ SELECT c_date, s_date, s.uid
 -------------------------------------------------------------------------------
 
 -- cleanup -------------------------------------------------------------
-DROP VIEW IF EXISTS q12_click;
-DROP VIEW IF EXISTS q12_sale;
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE1};
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE2};

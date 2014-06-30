@@ -42,11 +42,11 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 -- Part 1 helper table(s) --------------------------------------------------------------
 
 -- Union customer store_sales and customer web_sales
-!echo Drop q06_year_total_8;
-DROP TABLE IF EXISTS q06_year_total_8;
+!echo Drop ${hiveconf:TEMP_TABLE};
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 
-!echo create q06_year_total_8;
-CREATE TABLE q06_year_total_8
+!echo create ${hiveconf:TEMP_TABLE};
+CREATE TABLE ${hiveconf:TEMP_TABLE}
 	(customer_id              STRING,
 	customer_first_name       STRING,
 	customer_last_name        STRING,
@@ -60,8 +60,8 @@ CREATE TABLE q06_year_total_8
 	)
 ;
 
-!echo INSERT INTO TABLE q06_year_total_8 -> customer store_sales;
-INSERT INTO TABLE  q06_year_total_8 
+!echo INSERT INTO TABLE ${hiveconf:TEMP_TABLE} -> customer store_sales;
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE} 
 	-- customer store_sales
 	SELECT 	c_customer_id AS customer_id,
 		c_first_name  AS customer_first_name,
@@ -86,8 +86,8 @@ INSERT INTO TABLE  q06_year_total_8
 ;
 
 
-!echo INSERT INTO TABLE q06_year_total_8 -> customer web_sales;
-INSERT INTO TABLE  q06_year_total_8 
+!echo INSERT INTO TABLE ${hiveconf:TEMP_TABLE} -> customer web_sales;
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE} 
 	-- customer web_sales
 	SELECT 	c_customer_id AS customer_id,
 		c_first_name  AS customer_first_name,
@@ -120,10 +120,10 @@ INSERT INTO TABLE  q06_year_total_8
 --DROP VIEW IF EXISTS q06_t_c_firstyear;
 --DROP VIEW IF EXISTS q06_t_c_secyear;
 
---CREATE VIEW IF NOT EXISTS q06_t_s_firstyear AS SELECT * FROM q06_year_total_8;
---CREATE VIEW IF NOT EXISTS q06_t_s_secyear   AS SELECT * FROM q06_year_total_8;
---CREATE VIEW IF NOT EXISTS q06_t_c_firstyear AS SELECT * FROM q06_year_total_8;
---CREATE VIEW IF NOT EXISTS q06_t_c_secyear   AS SELECT * FROM q06_year_total_8;
+--CREATE VIEW IF NOT EXISTS q06_t_s_firstyear AS SELECT * FROM ${hiveconf:TEMP_TABLE};
+--CREATE VIEW IF NOT EXISTS q06_t_s_secyear   AS SELECT * FROM ${hiveconf:TEMP_TABLE};
+--CREATE VIEW IF NOT EXISTS q06_t_c_firstyear AS SELECT * FROM ${hiveconf:TEMP_TABLE};
+--CREATE VIEW IF NOT EXISTS q06_t_c_secyear   AS SELECT * FROM ${hiveconf:TEMP_TABLE};
 
 --Result  --------------------------------------------------------------------		
 --keep result human readable
@@ -157,10 +157,10 @@ SELECT
 --  INNER JOIN q06_t_s_secyear 	ts_s ON ts_f.customer_id = ts_s.customer_id
 --  INNER JOIN q06_t_c_secyear 	tc_s ON ts_f.customer_id = tc_s.customer_id
 --  INNER JOIN q06_t_c_firstyear 	tc_f ON ts_f.customer_id = tc_f.customer_id
-FROM 	     q06_year_total_8 	ts_f
-  INNER JOIN q06_year_total_8 	ts_s ON ts_f.customer_id = ts_s.customer_id
-  INNER JOIN q06_year_total_8 	tc_s ON ts_f.customer_id = tc_s.customer_id
-  INNER JOIN q06_year_total_8 	tc_f ON ts_f.customer_id = tc_f.customer_id
+FROM 	     ${hiveconf:TEMP_TABLE} 	ts_f
+  INNER JOIN ${hiveconf:TEMP_TABLE} 	ts_s ON ts_f.customer_id = ts_s.customer_id
+  INNER JOIN ${hiveconf:TEMP_TABLE} 	tc_s ON ts_f.customer_id = tc_s.customer_id
+  INNER JOIN ${hiveconf:TEMP_TABLE} 	tc_f ON ts_f.customer_id = tc_f.customer_id
 
 
 WHERE ts_f.sale_type    = 's'
@@ -190,4 +190,4 @@ LIMIT 100;
 --DROP VIEW IF EXISTS q06_t_s_secyear;
 --DROP VIEW IF EXISTS q06_t_c_firstyear;
 --DROP VIEW IF EXISTS q06_t_c_secyear;
-DROP TABLE IF EXISTS q06_year_total_8;
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};

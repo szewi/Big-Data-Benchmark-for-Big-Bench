@@ -41,139 +41,139 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -------------------------------------------------------------------------------
 
-DROP TABLE IF EXISTS q18_lm1;
-DROP TABLE IF EXISTS q18_lm2;
-DROP TABLE IF EXISTS q18_lm3;
-DROP TABLE IF EXISTS q18_lm4;
-DROP TABLE IF EXISTS q18_lm5;
-DROP TABLE IF EXISTS q18_lm6;
-DROP TABLE IF EXISTS q18_lm7;
-DROP TABLE IF EXISTS q18_lm8;
-DROP TABLE IF EXISTS q18_lm9;
-DROP TABLE IF EXISTS q18_lm10;
-DROP TABLE IF EXISTS q18_lm11;
-DROP TABLE IF EXISTS q18_lm12;
+DROP TABLE IF EXISTS ${hiveconf:LM_BASENAME}1;
+DROP TABLE IF EXISTS ${hiveconf:LM_BASENAME}2;
+DROP TABLE IF EXISTS ${hiveconf:LM_BASENAME}3;
+DROP TABLE IF EXISTS ${hiveconf:LM_BASENAME}4;
+DROP TABLE IF EXISTS ${hiveconf:LM_BASENAME}5;
+DROP TABLE IF EXISTS ${hiveconf:LM_BASENAME}6;
+DROP TABLE IF EXISTS ${hiveconf:LM_BASENAME}7;
+DROP TABLE IF EXISTS ${hiveconf:LM_BASENAME}8;
+DROP TABLE IF EXISTS ${hiveconf:LM_BASENAME}9;
+DROP TABLE IF EXISTS ${hiveconf:LM_BASENAME}10;
+DROP TABLE IF EXISTS ${hiveconf:LM_BASENAME}11;
+DROP TABLE IF EXISTS ${hiveconf:LM_BASENAME}12;
 
-CREATE EXTERNAL TABLE q18_lm1 (
+CREATE EXTERNAL TABLE ${hiveconf:LM_BASENAME}1 (
     intercept            DOUBLE,
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output1/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:LM_BASEDIR}1'
 ;
 
-CREATE EXTERNAL TABLE q18_lm2 (
+CREATE EXTERNAL TABLE ${hiveconf:LM_BASENAME}2 (
     intercept            DOUBLE,
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output2/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:LM_BASEDIR}2'
 ;
 
-CREATE EXTERNAL TABLE q18_lm3 (
+CREATE EXTERNAL TABLE ${hiveconf:LM_BASENAME}3 (
     intercept            DOUBLE,
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output3/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:LM_BASEDIR}3'
 ;
 
-CREATE EXTERNAL TABLE q18_lm4 (
+CREATE EXTERNAL TABLE ${hiveconf:LM_BASENAME}4 (
     intercept            DOUBLE,
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output4/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:LM_BASEDIR}4'
 ;
 
-CREATE EXTERNAL TABLE q18_lm5 (
+CREATE EXTERNAL TABLE ${hiveconf:LM_BASENAME}5 (
     intercept            DOUBLE,
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output5/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:LM_BASEDIR}5'
 ;
 
-CREATE EXTERNAL TABLE q18_lm6 (
+CREATE EXTERNAL TABLE ${hiveconf:LM_BASENAME}6 (
     intercept            DOUBLE,
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output6/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:LM_BASEDIR}6'
 ;
 
-CREATE EXTERNAL TABLE q18_lm7 (
+CREATE EXTERNAL TABLE ${hiveconf:LM_BASENAME}7 (
     intercept            DOUBLE,
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output7/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:LM_BASEDIR}7'
 ;
 
-CREATE EXTERNAL TABLE q18_lm8 (
+CREATE EXTERNAL TABLE ${hiveconf:LM_BASENAME}8 (
     intercept            DOUBLE,
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output8/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:LM_BASEDIR}8'
 ;
 
-CREATE EXTERNAL TABLE q18_lm9 (
+CREATE EXTERNAL TABLE ${hiveconf:LM_BASENAME}9 (
     intercept            DOUBLE,
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output9/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:LM_BASEDIR}9'
 ;
 
-CREATE EXTERNAL TABLE q18_lm10 (
+CREATE EXTERNAL TABLE ${hiveconf:LM_BASENAME}10 (
     intercept            DOUBLE,
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output10/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:LM_BASEDIR}10'
 ;
 
-CREATE EXTERNAL TABLE q18_lm11 (
+CREATE EXTERNAL TABLE ${hiveconf:LM_BASENAME}11 (
     intercept            DOUBLE,
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output11/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:LM_BASEDIR}11'
 ;
 
-CREATE EXTERNAL TABLE  q18_lm12 (
+CREATE EXTERNAL TABLE  ${hiveconf:LM_BASENAME}12 (
     intercept            DOUBLE,
     slope                DOUBLE
  )
  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
- STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}/output12/'
+ STORED AS TEXTFILE LOCATION '${hiveconf:LM_BASEDIR}12'
 ;
 
 
 
 
 -- (!) Set Paths --------------------------------------------------------------
---LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output1/part-r-00000' OVERWRITE INTO TABLE q18_lm1;
---LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output2/part-r-00000' OVERWRITE INTO TABLE q18_lm2;
---LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output3/part-r-00000' OVERWRITE INTO TABLE q18_lm3;
---LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output4/part-r-00000' OVERWRITE INTO TABLE q18_lm4;
---LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output5/part-r-00000' OVERWRITE INTO TABLE q18_lm5;
---LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output6/part-r-00000' OVERWRITE INTO TABLE q18_lm6;
---LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output7/part-r-00000' OVERWRITE INTO TABLE q18_lm7;
---LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output8/part-r-00000' OVERWRITE INTO TABLE q18_lm8;
---LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output9/part-r-00000' OVERWRITE INTO TABLE q18_lm9;
---LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output10/part-r-00000' OVERWRITE INTO TABLE q18_lm10;
---LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output11/part-r-00000' OVERWRITE INTO TABLE q18_lm11;
---LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output12/part-r-00000' OVERWRITE INTO TABLE q18_lm12;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output1/part-r-00000' OVERWRITE INTO TABLE ${hiveconf:LM_BASENAME}1;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output2/part-r-00000' OVERWRITE INTO TABLE ${hiveconf:LM_BASENAME}2;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output3/part-r-00000' OVERWRITE INTO TABLE ${hiveconf:LM_BASENAME}3;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output4/part-r-00000' OVERWRITE INTO TABLE ${hiveconf:LM_BASENAME}4;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output5/part-r-00000' OVERWRITE INTO TABLE ${hiveconf:LM_BASENAME}5;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output6/part-r-00000' OVERWRITE INTO TABLE ${hiveconf:LM_BASENAME}6;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output7/part-r-00000' OVERWRITE INTO TABLE ${hiveconf:LM_BASENAME}7;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output8/part-r-00000' OVERWRITE INTO TABLE ${hiveconf:LM_BASENAME}8;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output9/part-r-00000' OVERWRITE INTO TABLE ${hiveconf:LM_BASENAME}9;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output10/part-r-00000' OVERWRITE INTO TABLE ${hiveconf:LM_BASENAME}10;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output11/part-r-00000' OVERWRITE INTO TABLE ${hiveconf:LM_BASENAME}11;
+--LOAD DATA INPATH '${hiveconf:TEMP_DIR}/output12/part-r-00000' OVERWRITE INTO TABLE ${hiveconf:LM_BASENAME}12;
 
 
 -------------------------------------------------------------------------------
 
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
-DROP TABLE IF EXISTS q18_store_coefficient;
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 
-CREATE TABLE q18_store_coefficient
+CREATE TABLE ${hiveconf:TEMP_TABLE}
 (
     cat             INT,
     intercept	    DOUBLE,
@@ -182,77 +182,77 @@ CREATE TABLE q18_store_coefficient
 
 
 
-INSERT INTO TABLE q18_store_coefficient
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
     SELECT 1,
            intercept,
            slope        
-    FROM q18_lm1;
+    FROM ${hiveconf:LM_BASENAME}1;
 
-INSERT INTO TABLE q18_store_coefficient
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
     SELECT 2,
            intercept,
            slope
-    FROM q18_lm2;
+    FROM ${hiveconf:LM_BASENAME}2;
 
-INSERT INTO TABLE q18_store_coefficient
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
     SELECT 3,
            intercept,
            slope
-    FROM q18_lm3;
+    FROM ${hiveconf:LM_BASENAME}3;
 
-INSERT INTO TABLE q18_store_coefficient
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
     SELECT 4,
            intercept,
            slope
-    FROM q18_lm4;
+    FROM ${hiveconf:LM_BASENAME}4;
 
-INSERT INTO TABLE q18_store_coefficient
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
     SELECT 5,
            intercept,
            slope
-    FROM q18_lm5;
+    FROM ${hiveconf:LM_BASENAME}5;
 
-INSERT INTO TABLE q18_store_coefficient
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
     SELECT 6,
            intercept,
            slope
-    FROM q18_lm6;
+    FROM ${hiveconf:LM_BASENAME}6;
 
-INSERT INTO TABLE q18_store_coefficient
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
     SELECT 7,
            intercept,
            slope
-    FROM q18_lm7;
+    FROM ${hiveconf:LM_BASENAME}7;
 
-INSERT INTO TABLE q18_store_coefficient
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
     SELECT 8,
            intercept,
            slope
-    FROM q18_lm8;
+    FROM ${hiveconf:LM_BASENAME}8;
 
-INSERT INTO TABLE q18_store_coefficient
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
     SELECT 9,
            intercept,
            slope
-    FROM q18_lm9;
+    FROM ${hiveconf:LM_BASENAME}9;
 
-INSERT INTO TABLE q18_store_coefficient
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
     SELECT 10,
            intercept,
            slope
-    FROM q18_lm10;
+    FROM ${hiveconf:LM_BASENAME}10;
 
-INSERT INTO TABLE q18_store_coefficient
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
     SELECT 11,
            intercept,
            slope
-    FROM q18_lm11;
+    FROM ${hiveconf:LM_BASENAME}11;
 
-INSERT INTO TABLE q18_store_coefficient
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
     SELECT 12,
            intercept,
            slope
-    FROM q18_lm12;
+    FROM ${hiveconf:LM_BASENAME}12;
 
 -------------------------------------------------------------------------------
 

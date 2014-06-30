@@ -40,17 +40,17 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Result file configuration
 
-DROP TABLE IF EXISTS q07_specific_month_88;
-DROP TABLE IF EXISTS q07_cat_avg_price_88;
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE1};
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE2};
 
-CREATE TABLE q07_specific_month_88 AS
+CREATE TABLE ${hiveconf:TEMP_TABLE1} AS
        SELECT DISTINCT(d_month_seq) AS d_month_seq
          FROM date_dim 
         WHERE d_year = 2002 AND d_moy = 7
 ;
 
 
-CREATE TABLE q07_cat_avg_price_88 AS
+CREATE TABLE ${hiveconf:TEMP_TABLE2} AS
        SELECT i_category AS i_category, 
               AVG(i_current_price) * 1.2 AS avg_price
          FROM item
@@ -78,8 +78,8 @@ FROM (
                JOIN store_sales 	  s ON c.c_customer_sk 	= s.ss_customer_sk
                JOIN date_dim 		  d ON s.ss_sold_date_sk = d.d_date_sk
                JOIN item 		  i ON s.ss_item_sk 	= i.i_item_sk
-               JOIN q07_specific_month_88 m ON d.d_month_seq 	= m.d_month_seq
-               JOIN q07_cat_avg_price_88  p ON p.i_category 	= i.i_category
+               JOIN ${hiveconf:TEMP_TABLE1} m ON d.d_month_seq 	= m.d_month_seq
+               JOIN ${hiveconf:TEMP_TABLE2}  p ON p.i_category 	= i.i_category
 ) q07_temp 
 WHERE q07_temp.i_current_price > q07_temp.avg_price
 GROUP BY q07_temp.ca_state
@@ -89,5 +89,5 @@ LIMIT 100;
 
 
 --Cleanup ----------------------------------------------------------------
-DROP TABLE IF EXISTS q07_specific_month_88;
-DROP TABLE IF EXISTS q07_cat_avg_price_88;
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE1};
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE2};

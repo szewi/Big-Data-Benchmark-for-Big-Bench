@@ -38,7 +38,7 @@ use ${env:BIG_BENCH_HIVE_DATABASE};
 
 -- Resources
 --ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q03/mapper_q3.py;
-ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q03/reducer_q3.py;
+ADD FILE ${hiveconf:QUERY_DIR}/reducer_q3.py;
 
 -- Result file configuration
 

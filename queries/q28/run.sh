@@ -13,6 +13,8 @@ query_run_main_method () {
  	TEMP_TABLE2="q28_testing"
  	TEMP_DIR2="$TEMP_DIR/$TEMP_TABLE2"
 
+	HIVE_PARAMS="$HIVE_PARAMS -hiveconf TEMP_TABLE1=$TEMP_TABLE1 -hiveconf TEMP_DIR1=$TEMP_DIR1 -hiveconf TEMP_TABLE2=$TEMP_TABLE2 -hiveconf TEMP_DIR2=$TEMP_DIR2"
+
 	HDFS_RESULT_FILE="${RESULT_DIR}/classifierResult.txt"
 	HDFS_RAW_RESULT_FILE="${RESULT_DIR}/classifierResult_raw.txt"
 
@@ -32,7 +34,7 @@ query_run_main_method () {
 		echo "========================="
 
 		# Write input for k-means into temp tables
-		hive -hiveconf "TEMP_TABLE1=$TEMP_TABLE1" -hiveconf "TEMP_DIR1=$TEMP_DIR1" -hiveconf "TEMP_TABLE2=$TEMP_TABLE2" -hiveconf "TEMP_DIR2=$TEMP_DIR2" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE_SCRIPT"
+		hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE_SCRIPT"
 	fi
 
 	SEQ_FILE_1="$TEMP_DIR/Seq1"
@@ -98,7 +100,7 @@ query_run_main_method () {
 		echo "========================="
 		echo "$QUERY_NAME Step 8/8: Clean up"
 		echo "========================="
-		hive -hiveconf "TEMP_TABLE1=$TEMP_TABLE1" -hiveconf "TEMP_DIR1=$TEMP_DIR1" -hiveconf "TEMP_TABLE2=$TEMP_TABLE2" -hiveconf "TEMP_DIR2=$TEMP_DIR2" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "${QUERY_DIR}/cleanup.sql"
+		hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "${QUERY_DIR}/cleanup.sql"
 		hadoop fs -rm -r "$TEMP_DIR"
 	fi
 
