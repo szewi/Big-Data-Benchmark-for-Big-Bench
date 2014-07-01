@@ -42,6 +42,8 @@ query_run_main_method () {
 	VEC_FILE_1="$TEMP_DIR/Vec1"
 	VEC_FILE_2="$TEMP_DIR/Vec2"
 
+	MAHOUT_TEMP_DIR="$TEMP_DIR/mahout_temp"
+
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 3 ]] ; then
 		echo "========================="
 		echo "$QUERY_NAME step 3/8: Generating sequence files"
@@ -73,7 +75,7 @@ query_run_main_method () {
 		echo "Used Command: "mahout trainnb -i "$VEC_FILE_1/tfidf-vectors" -o "$TEMP_DIR/model" -el -li "$TEMP_DIR/labelindex" -ow 
 		echo "tmp result in: $TEMP_DIR/model"
 		echo "========================="
-		mahout trainnb -i "$VEC_FILE_1/tfidf-vectors" -o "$TEMP_DIR/model" -el -li "$TEMP_DIR/labelindex" -ow 
+		mahout trainnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_1/tfidf-vectors" -o "$TEMP_DIR/model" -el -li "$TEMP_DIR/labelindex" -ow
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 6 ]] ; then
@@ -83,7 +85,7 @@ query_run_main_method () {
 		echo "tmp result in: $TEMP_DIR/result"
 		echo "========================="
 
-		mahout testnb -i "$VEC_FILE_2/tfidf-vectors" -m "$TEMP_DIR/model" -l "$TEMP_DIR/labelindex" -ow -o "$TEMP_DIR/result" |& tee >( grep -A 300 "Standard NB Results:" | hadoop fs  -copyFromLocal -f - "$HDFS_RESULT_FILE" )
+		mahout testnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_2/tfidf-vectors" -m "$TEMP_DIR/model" -l "$TEMP_DIR/labelindex" -ow -o "$TEMP_DIR/result" |& tee >( grep -A 300 "Standard NB Results:" | hadoop fs  -copyFromLocal -f - "$HDFS_RESULT_FILE" )
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 7 ]] ; then
@@ -93,7 +95,7 @@ query_run_main_method () {
 		echo "OUT: $HDFS_RAW_RESULT_FILE"
 		echo "========================="
 
-		mahout seqdumper -i "$TEMP_DIR/result/part-m-00000" | hadoop fs -copyFromLocal -f - "$HDFS_RAW_RESULT_FILE"
+		mahout seqdumper --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR/result/part-m-00000" | hadoop fs -copyFromLocal -f - "$HDFS_RAW_RESULT_FILE"
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 8 ]] ; then
