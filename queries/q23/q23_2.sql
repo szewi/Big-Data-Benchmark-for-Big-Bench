@@ -39,7 +39,7 @@ CLUSTER BY
 		inv1_w_warehouse_sk, 
 		inv1_i_item_sk, 
 		inv1_d_moy,
-	     inv1_mean, 
+		inv1_mean, 
 		inv1_cov, 
 		inv2_d_moy, 
 		inv2_mean, 
