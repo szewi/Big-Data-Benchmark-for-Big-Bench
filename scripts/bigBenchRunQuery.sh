@@ -122,20 +122,14 @@ else
 	exit 1
 fi
 
-if [ -n "$USER_QUERY_PARAMS_FILE" ]
+if [ -r "$GLOBAL_HIVE_SETTINGS_FILE" ]
 then
-	if [ -r "$USER_QUERY_PARAMS_FILE" ]
-	then
-		echo "!echo settings file from -y <query parameter file> command line argument: $USER_QUERY_PARAMS_FILE ;" >> "$COMBINED_PARAMS_FILE"
-
-		cat "$USER_QUERY_PARAMS_FILE" >> "$COMBINED_PARAMS_FILE"
-	else
-		echo "User query parameter file $USER_QUERY_PARAMS_FILE can not be read."
-		rm -rf "$COMBINED_PARAMS_FILE"
-		exit 1
-	fi
+	echo "!echo settings from global settings file: $GLOBAL_HIVE_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
+	cat "$GLOBAL_HIVE_SETTINGS_FILE" >> "$COMBINED_PARAMS_FILE"
 else
-	echo "!echo no settings file from -y <query parameter file> command line argument ;" >> "$COMBINED_PARAMS_FILE"
+	echo "Global hive settings file $GLOBAL_HIVE_SETTINGS_FILE can not be read."
+	rm -rf "$COMBINED_PARAMS_FILE"
+	exit 1
 fi
 
 LOCAL_HIVE_SETTINGS_FILE="$QUERY_DIR/hiveLocalSettings.sql"
@@ -148,15 +142,19 @@ else
 
 fi
 
-if [ -r "$GLOBAL_HIVE_SETTINGS_FILE" ]
+if [ -n "$USER_QUERY_PARAMS_FILE" ]
 then
-	echo "!echo settings from global settings file: $GLOBAL_HIVE_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
-
-	cat "$GLOBAL_HIVE_SETTINGS_FILE" >> "$COMBINED_PARAMS_FILE"
+	if [ -r "$USER_QUERY_PARAMS_FILE" ]
+	then
+		echo "!echo settings file from -y <query parameter file> command line argument: $USER_QUERY_PARAMS_FILE ;" >> "$COMBINED_PARAMS_FILE"
+		cat "$USER_QUERY_PARAMS_FILE" >> "$COMBINED_PARAMS_FILE"
+	else
+		echo "User query parameter file $USER_QUERY_PARAMS_FILE can not be read."
+		rm -rf "$COMBINED_PARAMS_FILE"
+		exit 1
+	fi
 else
-	echo "Global hive settings file $GLOBAL_HIVE_SETTINGS_FILE can not be read."
-	rm -rf "$COMBINED_PARAMS_FILE"
-	exit 1
+	echo "!echo no settings file from -y <query parameter file> command line argument ;" >> "$COMBINED_PARAMS_FILE"
 fi
 
 if [ -n "$USER_HIVE_SETTINGS_FILE" ]
@@ -174,7 +172,6 @@ else
 	echo "!echo no settings file from -z <hive settings file> command line argument ;" >> "$COMBINED_PARAMS_FILE"
 
 fi
-
 
 BENCHMARK_PHASE="${USER_BENCHMARK_PHASE:-$GLOBAL_BENCHMARK_PHASE}"
 STREAM_NUMBER="${USER_STREAM_NUMBER:-$GLOBAL_STREAM_NUMBER}"
@@ -247,4 +244,3 @@ echo "=========================" | tee -a "$LOG_FILE_NAME" 2>&1
 #cat "$LOG_FILE_NAME" >> "$BIG_BENCH_LOGS_DIR/allQueries.log"
 
 rm -rf "$COMBINED_PARAMS_FILE"
-
