@@ -8,9 +8,9 @@ query_run_main_method () {
 		exit 1
 	fi
 
-	TEMP_TABLE1="q28t_training"
+	TEMP_TABLE1="${TEMP_TABLE}_training"
  	TEMP_DIR1="$TEMP_DIR/$TEMP_TABLE1"
- 	TEMP_TABLE2="q28_testing"
+ 	TEMP_TABLE2="${TEMP_TABLE}_testing"
  	TEMP_DIR2="$TEMP_DIR/$TEMP_TABLE2"
 
 	HIVE_PARAMS="$HIVE_PARAMS -hiveconf TEMP_TABLE1=$TEMP_TABLE1 -hiveconf TEMP_DIR1=$TEMP_DIR1 -hiveconf TEMP_TABLE2=$TEMP_TABLE2 -hiveconf TEMP_DIR2=$TEMP_DIR2"
@@ -22,8 +22,8 @@ query_run_main_method () {
 		echo "========================="
 		echo "$QUERY_NAME step 1/8: prepare/initialize"
 		echo "========================="
-		hadoop fs -rm -r "$TEMP_DIR"
-		hadoop fs -mkdir -p "$TEMP_DIR"
+		#hadoop fs -rm -r "$TEMP_DIR"
+		#hadoop fs -mkdir -p "$TEMP_DIR"
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 2 ]] ; then

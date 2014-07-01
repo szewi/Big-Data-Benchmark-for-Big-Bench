@@ -9,8 +9,8 @@ query_run_main_method () {
 	fi
 
 	# define used temp tables
-	TEMP_TABLE1="${TABLE_PREFIX}_click"
-	TEMP_TABLE2="${TABLE_PREFIX}_sale"
+	TEMP_TABLE1="${TEMP_TABLE}_click"
+	TEMP_TABLE2="${TEMP_TABLE}_sale"
 
 	HIVE_PARAMS="$HIVE_PARAMS -hiveconf TEMP_TABLE1=$TEMP_TABLE1 -hiveconf TEMP_TABLE2=$TEMP_TABLE2"
 

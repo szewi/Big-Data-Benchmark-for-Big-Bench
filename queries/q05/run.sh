@@ -22,12 +22,12 @@ query_run_main_method () {
 		echo "========================="
 		echo "$QUERY_NAME Step 1/4: Prepare temp dir"
 		echo "========================="
-		hadoop fs -rm -r "$TEMP_DIR" &
-		hadoop fs -rm -r "$RESULT_DIR" &
-		wait
-		hadoop fs -mkdir -p "$TEMP_DIR" &
-		hadoop fs -mkdir -p "$RESULT_DIR" &
-		wait
+		#hadoop fs -rm -r "$TEMP_DIR" &
+		#hadoop fs -rm -r "$RESULT_DIR" &
+		#wait
+		#hadoop fs -mkdir -p "$TEMP_DIR" &
+		#hadoop fs -mkdir -p "$RESULT_DIR" &
+		#wait
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 2 ]] ; then

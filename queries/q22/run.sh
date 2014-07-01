@@ -8,8 +8,8 @@ query_run_main_method () {
 		exit 1
 	fi
 
-	TEMP_TABLE1="${TABLE_PREFIX}_inner"
-	TEMP_TABLE2="${TABLE_PREFIX}_conditional_ratio"
+	TEMP_TABLE1="${TEMP_TABLE}_inner"
+	TEMP_TABLE2="${TEMP_TABLE}_conditional_ratio"
 
 	HIVE_PARAMS="$HIVE_PARAMS -hiveconf TEMP_TABLE1=$TEMP_TABLE1 -hiveconf TEMP_TABLE2=$TEMP_TABLE2"
 

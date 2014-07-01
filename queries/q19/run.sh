@@ -8,9 +8,9 @@ query_run_main_method () {
 		exit 1
 	fi
 
-	TEMP_TABLE1="${TABLE_PREFIX}_tmp_sr_items"
-	TEMP_TABLE2="${TABLE_PREFIX}_tmp_wr_items"
-	TEMP_TABLE3="${TABLE_PREFIX}_tmp_return_items"
+	TEMP_TABLE1="${TEMP_TABLE}_sr_items"
+	TEMP_TABLE2="${TEMP_TABLE}_wr_items"
+	TEMP_TABLE3="${TEMP_TABLE}_return_items"
 
 	HIVE_PARAMS="$HIVE_PARAMS -hiveconf TEMP_TABLE1=$TEMP_TABLE1 -hiveconf TEMP_TABLE2=$TEMP_TABLE2 -hiveconf TEMP_TABLE3=$TEMP_TABLE3"
 

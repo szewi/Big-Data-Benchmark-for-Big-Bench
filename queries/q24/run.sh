@@ -9,9 +9,9 @@ query_run_main_method () {
 	fi
 
 	# define used temp tables
-	TEMP_TABLE1="${TABLE_PREFIX}_competitor_price_view"
-	TEMP_TABLE2="${TABLE_PREFIX}_self_ws_view"
-	TEMP_TABLE3="${TABLE_PREFIX}_self_ss_view"
+	TEMP_TABLE1="${TEMP_TABLE}_competitor_price_view"
+	TEMP_TABLE2="${TEMP_TABLE}_self_ws_view"
+	TEMP_TABLE3="${TEMP_TABLE}_self_ss_view"
 
 	HIVE_PARAMS="$HIVE_PARAMS -hiveconf TEMP_TABLE1=$TEMP_TABLE1 -hiveconf TEMP_TABLE2=$TEMP_TABLE2 -hiveconf TEMP_TABLE3=$TEMP_TABLE3"
 
