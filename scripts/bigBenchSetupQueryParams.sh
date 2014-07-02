@@ -72,8 +72,6 @@ while getopts ":q:y:z:p:s:d:" opt; do
 	esac
 done
 
-# source the query's run.sh as early as possible
-# this allows setting variables from run.sh which were not defined on command line
 if [ -z "$QUERY_NUMBER" ]
 then
 	echo "The query number must be set."
@@ -97,24 +95,6 @@ QUERY_DIR="$BIG_BENCH_QUERIES_DIR/$QUERY_NAME"
 if [ ! -d "$QUERY_DIR" ]
 then
 	echo "Query directory $QUERY_DIR does not exist"
-	exit 1
-fi
-
-SCRIPT_FILENAME="$QUERY_DIR/run.sh"
-
-if [ -r "$SCRIPT_FILENAME" ]
-then
-	source "$SCRIPT_FILENAME"
-else
-	echo "File $SCRIPT_FILENAME containing main method not found, aborting script."
-	exit 1
-fi
-
-# check if the main method was implemented properly in the run.sh
-QUERY_MAIN_METHOD="query_run_main_method"
-if ! declare -F "$QUERY_MAIN_METHOD" > /dev/null 2>&1
-then
-	echo "$QUERY_MAIN_METHOD was not implemented, aborting script"
 	exit 1
 fi
 
@@ -194,6 +174,33 @@ TEMP_DIR="$BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR/$TEMP_TABLE"
 LOG_FILE_NAME="$BIG_BENCH_LOGS_DIR/${TABLE_PREFIX}.log"
 
 HIVE_PARAMS="-hiveconf BENCHMARK_PHASE=$BENCHMARK_PHASE -hiveconf STREAM_NUMBER=$STREAM_NUMBER -hiveconf QUERY_NAME=$QUERY_NAME -hiveconf QUERY_DIR=$QUERY_DIR -hiveconf RESULT_TABLE=$RESULT_TABLE -hiveconf RESULT_DIR=$RESULT_DIR -hiveconf TEMP_TABLE=$TEMP_TABLE -hiveconf TEMP_DIR=$TEMP_DIR -hiveconf TABLE_PREFIX=$TABLE_PREFIX"
+
+# source run.sh as late as possible to allow run.sh to use all above defined variables
+SCRIPT_FILENAME="$QUERY_DIR/run.sh"
+if [ -r "$SCRIPT_FILENAME" ]
+then
+	source "$SCRIPT_FILENAME"
+else
+	echo "File $SCRIPT_FILENAME containing main method not found, aborting script."
+	exit 1
+fi
+
+# check if the main method was implemented properly in the run.sh
+QUERY_MAIN_METHOD="query_run_main_method"
+if ! declare -F "$QUERY_MAIN_METHOD" > /dev/null 2>&1
+then
+	echo "$QUERY_MAIN_METHOD was not implemented, aborting script"
+	exit 1
+fi
+
+# check if the main method was implemented properly in the run.sh
+QUERY_CLEAN_METHOD="query_run_clean_method"
+if ! declare -F "$QUERY_CLEAN_METHOD" > /dev/null 2>&1
+then
+	echo "$QUERY_CLEAN_METHOD was not implemented, aborting script"
+	exit 1
+fi
+
 
 "$SCRIPT_MAIN_METHOD"
 

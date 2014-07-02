@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+TEMP_TABLE1="${TEMP_TABLE}_training"
+TEMP_DIR1="$TEMP_DIR/$TEMP_TABLE1"
+TEMP_TABLE2="${TEMP_TABLE}_testing"
+TEMP_DIR2="$TEMP_DIR/$TEMP_TABLE2"
+
+HIVE_PARAMS="$HIVE_PARAMS -hiveconf TEMP_TABLE1=$TEMP_TABLE1 -hiveconf TEMP_DIR1=$TEMP_DIR1 -hiveconf TEMP_TABLE2=$TEMP_TABLE2 -hiveconf TEMP_DIR2=$TEMP_DIR2"
+
 query_run_main_method () {
 	HIVE_SCRIPT="$QUERY_DIR/$QUERY_NAME.sql"
 	if [ ! -r "$HIVE_SCRIPT" ]
@@ -7,13 +14,6 @@ query_run_main_method () {
 		echo "SQL file $HIVE_SCRIPT can not be read."
 		exit 1
 	fi
-
-	TEMP_TABLE1="${TEMP_TABLE}_training"
- 	TEMP_DIR1="$TEMP_DIR/$TEMP_TABLE1"
- 	TEMP_TABLE2="${TEMP_TABLE}_testing"
- 	TEMP_DIR2="$TEMP_DIR/$TEMP_TABLE2"
-
-	HIVE_PARAMS="$HIVE_PARAMS -hiveconf TEMP_TABLE1=$TEMP_TABLE1 -hiveconf TEMP_DIR1=$TEMP_DIR1 -hiveconf TEMP_TABLE2=$TEMP_TABLE2 -hiveconf TEMP_DIR2=$TEMP_DIR2"
 
 	HDFS_RESULT_FILE="${RESULT_DIR}/classifierResult.txt"
 	HDFS_RAW_RESULT_FILE="${RESULT_DIR}/classifierResult_raw.txt"
@@ -110,4 +110,8 @@ query_run_main_method () {
 	echo "to display : hadoop fs -cat $HDFS_RESULT_FILE"
 	echo "to display raw : hadoop fs -cat $HDFS_RAW_RESULT_FILE"
 	echo "========================="
+}
+
+query_run_clean_method () {
+	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -e "DROP TABLE IF EXISTS $TEMP_TABLE1; DROP TABLE IF EXISTS $TEMP_TABLE2; DROP TABLE IF EXISTS $RESULT_TABLE;"
 }

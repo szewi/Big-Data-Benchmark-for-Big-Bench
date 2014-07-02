@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+TEMP_RESULT_TABLE="${TABLE_PREFIX}_temp_result"
+TEMP_RESULT_DIR="$TEMP_DIR/$TEMP_RESULT_TABLE"
+
+HIVE_PARAMS="$HIVE_PARAMS -hiveconf TEMP_RESULT_TABLE=$TEMP_RESULT_TABLE -hiveconf TEMP_RESULT_DIR=$TEMP_RESULT_DIR"
+
 query_run_main_method () {
 	HIVE_SCRIPT="$QUERY_DIR/$QUERY_NAME.sql"
 	if [ ! -r "$HIVE_SCRIPT" ]
@@ -15,11 +20,6 @@ query_run_main_method () {
 	#step 4.  mahout kmeans		:	Calculating k-means"
 	#step 5.  mahout dump > hdfs/res:	Converting result and copy result do hdfs query result folder
 	#step 6.  hive && hdfs 		:	cleanup.sql && hadoop fs rm MH
-
-	TEMP_RESULT_TABLE="${TABLE_PREFIX}_temp_result"
-	TEMP_RESULT_DIR="$TEMP_DIR/$TEMP_RESULT_TABLE"
-
-	HIVE_PARAMS="$HIVE_PARAMS -hiveconf TEMP_RESULT_TABLE=$TEMP_RESULT_TABLE -hiveconf TEMP_RESULT_DIR=$TEMP_RESULT_DIR"
 
 	MAHOUT_TEMP_DIR="$TEMP_DIR/mahout_temp"
 
@@ -81,4 +81,8 @@ query_run_main_method () {
 		hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "${QUERY_DIR}/cleanup.sql"
 		hadoop fs -rm -r "$TEMP_RESULT_DIR"
 	fi
+}
+
+query_run_clean_method () {
+	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -e "DROP TABLE IF EXISTS $TEMP_TABLE; DROP TABLE IF EXISTS $TEMP_RESULT_TABLE; DROP TABLE IF EXISTS $RESULT_TABLE;"
 }

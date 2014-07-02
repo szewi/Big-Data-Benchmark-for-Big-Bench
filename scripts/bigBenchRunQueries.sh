@@ -94,10 +94,10 @@ then
 	RUN_QUERY_ARGS="$RUN_QUERY_ARGS -d $DEBUG_QUERY_PART"
 fi
 
-echo "==============================================="
-echo "cleanup tmp files from previous query runs"
-echo "==============================================="
-"$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchCleanQueries.sh"
+#echo "==============================================="
+#echo "cleanup tmp files from previous query runs"
+#echo "==============================================="
+#"$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchCleanQueries.sh"
 
 echo "checking existence of: $BIG_BENCH_LOGS_DIR"
 if [ ! -d "$BIG_BENCH_LOGS_DIR" ]; then
