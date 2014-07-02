@@ -39,7 +39,7 @@ FROM (
 			  --select store_name for stores with flat or declining sales in 3 consecutive months.
 			  SELECT s_store_name
 			  FROM  store s
-			  JOIN q18_store_coefficient c on  s.s_store_sk = c.cat
+			  JOIN ${hiveconf:TEMP_TABLE} c on  s.s_store_sk = c.cat
 			  WHERE  c.slope < 0 
 		) tmp
 		JOIN   product_reviews pr ON (true)
