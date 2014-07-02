@@ -95,32 +95,14 @@ then
 fi
 
 echo "==============================================="
-echo "cleanup tmp files from previous query runs"
-echo "==============================================="
-"$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchCleanQueries.sh"
-
-echo "checking existence of: $BIG_BENCH_LOGS_DIR"
-if [ ! -d "$BIG_BENCH_LOGS_DIR" ]; then
-	if ! mkdir -p "$BIG_BENCH_LOGS_DIR" ; then
-		echo "ERROR: cannot write to: $BIG_BENCH_LOGS_DIR, no permission"
-		exit 1
-	fi
-fi
-
-echo "==============================================="
-echo "Running queries $FIRST_QUERY-$LAST_QUERY"
-#echo "logging run to: $BIG_BENCH_LOGS_DIR/allQueries.log"
+echo "Cleaning queries $FIRST_QUERY-$LAST_QUERY"
 echo "==============================================="
 
 for (( i=$FIRST_QUERY; i <=$LAST_QUERY; i++ ))
 do
-	"$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchRunQuery.sh" -q $i $RUN_QUERY_ARGS
+	"$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchCleanQuery.sh" -q $i $RUN_QUERY_ARGS
 done
 
 echo "==============================================="
-echo "All queries finished"
+echo "All queries cleaned"
 echo "==============================================="
-"$BIG_BENCH_BASH_SCRIPT_DIR/showErrors.sh" 
-
-"$BIG_BENCH_BASH_SCRIPT_DIR/showTimes.sh" 
-"$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchZipQueryLogs.sh" 

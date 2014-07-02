@@ -27,9 +27,9 @@ echo "USAGE: -mapTasks <number> -sf <number>  (SF: scalingFactor 1==1GB, 10==10G
 echo "PDGFOptions: $@"
 echo "HadoopClusterExecOptions: $HadoopClusterExecOptions"
 
-PDGF_ARCHIVE_NAME=pdgfEnvironment.tar
-PDGF_DISTRIBUTED_NODE_DIR=$PDGF_ARCHIVE_NAME/data-generator/
-PDGF_ARCHIVE_PATH=$BIG_BENCH_HOME/$PDGF_ARCHIVE_NAME
+PDGF_ARCHIVE_NAME="pdgfEnvironment.tar"
+PDGF_DISTRIBUTED_NODE_DIR="$PDGF_ARCHIVE_NAME/data-generator/"
+PDGF_ARCHIVE_PATH="$BIG_BENCH_HOME/$PDGF_ARCHIVE_NAME"
 
 if grep -q "IS_EULA_ACCEPTED=true" "$BIG_BENCH_DATA_GENERATOR_DIR/Constants.properties"; then
   echo "EULA is accepted"
@@ -38,7 +38,7 @@ else
 	echo "data generator EULA"
 	echo "==============================================="
 	echo "This is your first run of the data generation tool. Please accept the EULA."
-	java -jar "$BIG_BENCH_DATA_GENERATOR_DIR"/pdgf.jar -ns -c
+	java -jar "$BIG_BENCH_DATA_GENERATOR_DIR/pdgf.jar" -ns -c
 	if grep -q "IS_EULA_ACCEPTED=true" "$BIG_BENCH_DATA_GENERATOR_DIR/Constants.properties"; then
 		echo "OK"
 	else
@@ -51,7 +51,7 @@ fi
 echo "==============================================="
 echo "Deleting any previously generated data, results and logs."
 echo "==============================================="
-${BIG_BENCH_BASH_SCRIPT_DIR}/cleanBigBenchData.sh
+"${BIG_BENCH_BASH_SCRIPT_DIR}/bigBenchCleanData.sh"
 echo "OK"
 echo "==============================================="
 echo "make hdfs benchmark data dir: "${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}

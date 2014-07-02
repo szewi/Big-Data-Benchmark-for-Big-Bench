@@ -36,7 +36,7 @@ NODE_COUNT=${#IPs[@]}
 echo "==============================================="
 echo "Deleting any previously generated data, results and logs."
 echo "==============================================="
-${BIG_BENCH_BASH_SCRIPT_DIR}/cleanBigBenchData.sh
+"${BIG_BENCH_BASH_SCRIPT_DIR}/bigBenchCleanData.sh"
 echo "OK"
 echo "==============================================="
 echo "make hdfs benchmark data dir: "${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}
@@ -62,12 +62,12 @@ echo "==============================================="
 echo "Starting data generation job."
 echo "==============================================="
 HADOOP_CP=`hadoop classpath`
-echo "HADOOP CLASSPATH: "$HADOOP_CP
+echo "HADOOP CLASSPATH: $HADOOP_CP"
 
 for (( i=0; i<${NODE_COUNT}; i++ ));
 do
-  echo ssh ${BIG_BENCH_SSH_OPTIONS} ${IPs[$i]} java ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:${BIG_BENCH_DATA_GENERATOR_DIR}/pdgf.jar" ${CLUSTER_CONF} pdgf.Controller  -nc ${NODE_COUNT} -nn $((i+1)) -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" -s ${BIGBENCH_TABLES} $@
-       ssh ${BIG_BENCH_SSH_OPTIONS} ${IPs[$i]} java ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:${BIG_BENCH_DATA_GENERATOR_DIR}/pdgf.jar" ${CLUSTER_CONF} pdgf.Controller  -nc ${NODE_COUNT} -nn $((i+1)) -ns -c -o "\'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/\'+table.getName\(\)+\'/\'" -s ${BIGBENCH_TABLES} $@ &
+	echo ssh ${BIG_BENCH_SSH_OPTIONS} ${IPs[$i]} java ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:${BIG_BENCH_DATA_GENERATOR_DIR}/pdgf.jar" ${CLUSTER_CONF} pdgf.Controller  -nc ${NODE_COUNT} -nn $((i+1)) -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" -s ${BIGBENCH_TABLES} $@
+	ssh ${BIG_BENCH_SSH_OPTIONS} ${IPs[$i]} java ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:${BIG_BENCH_DATA_GENERATOR_DIR}/pdgf.jar" ${CLUSTER_CONF} pdgf.Controller  -nc ${NODE_COUNT} -nn $((i+1)) -ns -c -o "\'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/\'+table.getName\(\)+\'/\'" -s ${BIGBENCH_TABLES} $@ &
 
 done
 wait
