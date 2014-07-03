@@ -2,19 +2,19 @@ import sys
 import traceback
 import os
 
-days_param = int(sys.argv[1])
+days_param = long(sys.argv[1])
 
 def npath(vals):
 	vals.sort()
 	last_viewed_item = -1
 	last_viewed_date = -1
 	for i in vals:
-		if i[3] == '\N' and i[2] != '\N':
-			last_viewed_item = i[2]
+		if i[2] == '\N' and i[1] != '\N':
+			last_viewed_item = i[1]
 			last_viewed_date = i[0]
-		elif i[3] != '\N' and i[2] != '\N' and last_viewed_item > -1 and last_viewed_date > (i[0]- days_param ) :
-			print "%s\t%s" % (last_viewed_item, i[2])
-			last_viewed_item = i[2]
+		elif i[2] != '\N' and i[1] != '\N' and last_viewed_item > -1 and last_viewed_date >= (i[0]- days_param ) :
+			print "%s\t%s" % (last_viewed_item, i[1])
+			last_viewed_item = i[1]
 			last_viewed_date = i[0]
 		
 
@@ -24,23 +24,23 @@ if __name__ == "__main__":
 	vals = []
 
 	for line in sys.stdin:
-		user, wcs_date, wcs_time, item_key, sale = line.strip().split("\t")
+		user, wcs_date, item_key, sale = line.strip().split("\t")
 
 		try:
-			wcs_date = int(wcs_date)
-			item_key = int(item_key)
+			wcs_date = long(wcs_date)
+			item_key = long(item_key)
 		except ValueError:
 			wcs_date = -1
 			item_key = -1
 			continue
 
-		if user != '\N' :
-			if last_user == user :
-				vals.append((wcs_date, wcs_time, item_key, sale))
+
+		if last_user == user :
+			vals.append((wcs_date, item_key, sale))
 		else :
 			npath(vals)
 			vals = []
 			last_user = user;
-			vals.append((wcs_date, wcs_time, item_key, sale))
+			vals.append((wcs_date, item_key, sale))
 	npath(vals)	
 	

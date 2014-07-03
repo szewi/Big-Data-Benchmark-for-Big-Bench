@@ -6,8 +6,6 @@
 --ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q03/mapper_q3.py;
 ADD FILE ${hiveconf:QUERY_DIR}/reducer_q3.py;
 
-
-
 --Result -------------------------------------------------------------------------
 --keep result human readable
 set hive.exec.compress.output=false;
@@ -21,26 +19,33 @@ AS
 -- the real query part
 SELECT lastviewed_item, purchased_item, count(*) 
 FROM (
-        FROM (	
-		SELECT 
-			wcs_user_sk 		AS user,
-			wcs_click_date_sk 	AS lastviewed_date,
-			wcs_click_time_sk 	AS lastviewed_time,
-			wcs_item_sk 		AS lastviewed_item,
-			wcs_sales_sk 		AS lastviewed_sale
-		 FROM web_clickstreams
-		 CLUSTER BY user
+        FROM (
+			SELECT 
+				wcs_user_sk 		AS user,
+				wcs_click_date_sk 	AS lastviewed_date,
+				wcs_item_sk 		AS lastviewed_item,
+				wcs_sales_sk 		AS lastviewed_sale
+			 FROM web_clickstreams w			
+			 -- only select clickstreams resulting in a purchase user_sk = null -> only non buying visitor
+			 WHERE wcs_user_sk  IS NOT NULL 
+			 
+							
+			 CLUSTER BY user
         ) q03_map_output
         REDUCE 
-		q03_map_output.user, 
-		q03_map_output.lastviewed_date,
-		q03_map_output.lastviewed_time,
-		q03_map_output.lastviewed_item,
-		q03_map_output.lastviewed_sale
+			q03_map_output.user, 
+			q03_map_output.lastviewed_date,
+			q03_map_output.lastviewed_item,
+			q03_map_output.lastviewed_sale
+		
 		--Reducer script selects only products viewed within  'q03_days_before_purchase'  days before the purchase date 
         USING 'python reducer_q3.py ${hiveconf:q03_days_before_purchase}'
         AS (lastviewed_item BIGINT, purchased_item BIGINT)
 ) q03_nPath
+join item i on (i.i_item_sk =  q03_nPath.lastviewed_item
+				--Only products in certain categories 
+				AND i.i_category_id IN (${hiveconf:q03_purchased_item_category_IN}) 	
+				)
 WHERE purchased_item IN ( ${hiveconf:q03_purchased_item_IN} )
-GROUP BY lastviewed_item, purchased_item
+GROUP BY lastviewed_item, purchased_item,i_category
 ;

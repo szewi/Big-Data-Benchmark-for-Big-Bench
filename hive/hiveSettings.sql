@@ -6,7 +6,7 @@
 -- output and itermediate table settings 
 -- ###########################
 -- if you cluster has good cpu's but limited network bandwith, this could speed up the exchange of intermediate results (this option should be turund on if you cluster has high 'net wait i/o%'
--- set hive.exec.compress.intermediate=false;
+-- set hive.exec.compress.intermediate=true;
 -- set mapred.map.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;
 
 -- default is to keep the created result tables human readable.
@@ -53,23 +53,25 @@ set hive.exec.reducers.bytes.per.reducer=256000000;
 set hive.mapjoin.smalltable.filesize=5000000; 
 -- set hive.mapjoin.localtask.max.memory.usage=0.90;
 
--- set hive.auto.convert.sortmerge.join=false;
+-- set hive.auto.convert.sortmerge.join=true;
 -- set hive.auto.convert.sortmerge.join.noconditionaltask=true;
 -- set hive.auto.convert.join.noconditionaltask.size=10000;
--- set hive.optimize.bucketmapjoin=false;
+-- set hive.optimize.bucketmapjoin=true;
 -- set hive.optimize.bucketmapjoin.sortedmerge=false;
-
+-- set hive.optimize.skewjoin=true; --READ FIRST: https://issues.apache.org/jira/browse/HIVE-5888
+-- set hive.optimize.skewjoin.compiletime=true;
+-- set hive.groupby.skewindata=true;
 
 -- ###########################
 -- Other tuning options
 -- ###########################
 -- exec.parallel is still considered unstable, but has the potential to increase you utilization by running multiple independent stages of a query in parallel
--- set hive.exec.parallel=false;
+-- set hive.exec.parallel=true;
 -- set hive.exec.parallel.thread.number=8;
 
 -- predicate pushdown for ORC-files (eager filtering of columns)
 -- set hive.optimize.ppd=true;
--- set hive.optimize.index.filter=false
+-- set hive.optimize.index.filter=true;
 
 
 
@@ -101,6 +103,9 @@ set hive.optimize.mapjoin.mapreduce;
 set hive.mapred.local.mem;
 set hive.mapjoin.smalltable.filesize; 
 set hive.mapjoin.localtask.max.memory.usage;
+set hive.optimize.skewjoin;
+set hive.optimize.skewjoin.compiletime;
+set hive.groupby.skewindata;
 
 -- Database
 use ${env:BIG_BENCH_HIVE_DATABASE};
