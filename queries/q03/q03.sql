@@ -3,7 +3,7 @@
 --days before the purchase date are considered.
 
 -- Resources
---ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/q03/mapper_q3.py;
+--ADD FILE ${hiveconf:QUERY_DIR}//mapper_q3.py;
 ADD FILE ${hiveconf:QUERY_DIR}/reducer_q3.py;
 
 --Result -------------------------------------------------------------------------

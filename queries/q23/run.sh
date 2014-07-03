@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+RESULT_TABLE1="${RESULT_TABLE}1"
+RESULT_DIR1="$RESULT_DIR/$RESULT_TABLE1"
+RESULT_TABLE2="${RESULT_TABLE}2"
+RESULT_DIR2="$RESULT_DIR/$RESULT_TABLE2"
+
+HIVE_PARAMS="$HIVE_PARAMS -hiveconf RESULT_TABLE1=$RESULT_TABLE1 -hiveconf RESULT_DIR1=$RESULT_DIR1 -hiveconf RESULT_TABLE2=$RESULT_TABLE2 -hiveconf RESULT_DIR2=$RESULT_DIR2"
+
 query_run_main_method () {
 
 	HIVE1_SCRIPT="$QUERY_DIR/q23_1.sql"
@@ -22,13 +29,6 @@ query_run_main_method () {
 		echo "SQL file $HIVE3_SCRIPT can not be read."
 		exit 1
 	fi
-
-	RESULT_TABLE1="${RESULT_TABLE}1"
-	RESULT_DIR1="$RESULT_DIR/$RESULT_TABLE1"
-	RESULT_TABLE2="${RESULT_TABLE}2"
-	RESULT_DIR2="$RESULT_DIR/$RESULT_TABLE2"
-
-	HIVE_PARAMS="$HIVE_PARAMS -hiveconf RESULT_TABLE1=$RESULT_TABLE1 -hiveconf RESULT_DIR1=$RESULT_DIR1 -hiveconf RESULT_TABLE2=$RESULT_TABLE2 -hiveconf RESULT_DIR2=$RESULT_DIR2"
 
 	#hadoop fs -rm -r -skipTrash "${RESULT_DIR}"/*
 	#hadoop fs -mkdir -p "${RESULT_DIR}"
@@ -62,4 +62,8 @@ if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 4 ]] ; then
 	echo "========================="
 	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "${QUERY_DIR}/cleanup.sql"
 fi
+}
+
+query_run_clean_method () {
+	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -e "DROP VIEW IF EXISTS $TEMP_TABLE; DROP TABLE IF EXISTS $RESULT_TABLE1; DROP TABLE IF EXISTS $RESULT_TABLE2;"
 }
