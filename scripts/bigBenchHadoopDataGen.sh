@@ -49,7 +49,7 @@ fi
 
 # delete any previously generated data
 echo "==============================================="
-echo "Deleting any previously generated data, results and logs."
+echo "Deleting any previously generated data."
 echo "==============================================="
 "${BIG_BENCH_BASH_SCRIPT_DIR}/bigBenchCleanData.sh"
 echo "OK"

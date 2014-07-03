@@ -11,5 +11,6 @@ fi
 
 logEnvInformation
 
-echo "cleaning ${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
-hadoop fs -rm -r -skipTrash "${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
+echo "cleaning HIVE TABLES"
+hive -f "${BIG_BENCH_HIVE_SCRIPT_DIR}/dropTables.sql"
+rm -rf "$BIG_BENCH_LOADING_STAGE_LOG"
