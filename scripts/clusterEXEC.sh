@@ -15,7 +15,7 @@ IPs=(${BIG_BENCH_NODES})
 NODE_COUNT=${#IPs[@]}
 SELF=`hostname -s`
 
-for (( i=0; i<${NODE_COUNT}; i++ ));
+for (( i = 0; i < ${NODE_COUNT}; i++ ));
 do
 #  if [ $SELF != ${IPs[$i]} ]
 #  then

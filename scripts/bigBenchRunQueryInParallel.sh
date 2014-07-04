@@ -14,18 +14,19 @@ fi
 logEnvInformation
 
 # check arguments
-if [ "$1" = "-h" ]
+if [[ $# -eq 0 || "$1" = "-h" ]]
 then
-	echo "usage: `basename "$0"` [-y <query parameter file>] [-z <hive settings file>] [-p <benchmark phase>] [-s <stream number>] [-d <query part to debug>]"
+	echo "usage: `basename "$0"` -q <query number> [-y <query parameter file>] [-z <hive settings file>] [-p <benchmark phase>] -s <number of parallel streams> [-d <query part to debug>]"
 	exit 0
 fi
 
-FIRST_QUERY="1"
-LAST_QUERY="30"
-
 # parse command line arguments
-while getopts ":y:z:p:s:d:" opt; do
+while getopts ":q:y:z:p:s:d:" opt; do
 	case $opt in
+		q)
+			#echo "-q was triggered, Parameter: $OPTARG" >&2
+			QUERY_NUMBER="$OPTARG"
+		;;
 		y)
 			#echo "-y was triggered, Parameter: $OPTARG" >&2
 			USER_QUERY_PARAMS_FILE="$OPTARG"
@@ -57,6 +58,14 @@ while getopts ":y:z:p:s:d:" opt; do
 	esac
 done
 
+if [ -n "$QUERY_NUMBER" ]
+then
+	RUN_QUERY_ARGS="-q $QUERY_NUMBER"
+else
+	echo "Query number option is required"
+	exit 1
+fi
+
 if [ -n "$USER_QUERY_PARAMS_FILE" ]
 then
 	if [ -r "$USER_QUERY_PARAMS_FILE" ]
@@ -86,7 +95,10 @@ fi
 
 if [ -n "$USER_STREAM_NUMBER" ]
 then
-	RUN_QUERY_ARGS="$RUN_QUERY_ARGS -s $USER_STREAM_NUMBER"
+	NUMBER_OF_PARALLEL_STREAMS="$USER_STREAM_NUMBER"
+else
+	echo "The number of parallel streams option is required"
+	exit 1
 fi
 
 if [ -n "$DEBUG_QUERY_PART" ]
@@ -94,15 +106,8 @@ then
 	RUN_QUERY_ARGS="$RUN_QUERY_ARGS -d $DEBUG_QUERY_PART"
 fi
 
-echo "==============================================="
-echo "Cleaning queries $FIRST_QUERY-$LAST_QUERY"
-echo "==============================================="
-
-for (( i = $FIRST_QUERY; i <= $LAST_QUERY; i++ ))
+for (( i = 0; i < $NUMBER_OF_PARALLEL_STREAMS; i++ ))
 do
-	"$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchCleanQuery.sh" -q $i $RUN_QUERY_ARGS
+	"$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchRunQuery.sh" -s $i $RUN_QUERY_ARGS &
 done
-
-echo "==============================================="
-echo "All queries cleaned"
-echo "==============================================="
+wait

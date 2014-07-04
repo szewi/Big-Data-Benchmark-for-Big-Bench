@@ -112,7 +112,7 @@ echo "Running queries $FIRST_QUERY-$LAST_QUERY"
 #echo "logging run to: $BIG_BENCH_LOGS_DIR/allQueries.log"
 echo "==============================================="
 
-for (( i=$FIRST_QUERY; i <=$LAST_QUERY; i++ ))
+for (( i = $FIRST_QUERY; i <= $LAST_QUERY; i++ ))
 do
 	"$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchRunQuery.sh" -q $i $RUN_QUERY_ARGS
 done

@@ -66,10 +66,10 @@ run_main_method () {
 	# start timed execution of query. Stderr is appended to stdout and both are written into logs/q??.log and to console
 
 	# Run the main method implemented in the query's run.sh
-	time ("$QUERY_MAIN_METHOD" ; echo "======= $QUERY_NAME time =========") > >(tee -a "$LOG_FILE_NAME") 2>&1 
+	time ("$QUERY_MAIN_METHOD" ; echo "======= $TABLE_PREFIX time =========") > >(tee -a "$LOG_FILE_NAME") 2>&1 
 	echo "==========================="
 
-	echo "======= $QUERY_NAME result =======" | tee -a "$LOG_FILE_NAME" 2>&1
+	echo "======= $TABLE_PREFIX result =======" | tee -a "$LOG_FILE_NAME" 2>&1
 	echo "results in: $RESULT_DIR" | tee -a "$LOG_FILE_NAME" 2>&1
 	echo "to display: hadoop fs -ls $RESULT_DIR/*" | tee -a "$LOG_FILE_NAME" 2>&1
 	echo "=========================" | tee -a "$LOG_FILE_NAME" 2>&1

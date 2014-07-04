@@ -64,7 +64,7 @@ echo "==============================================="
 HADOOP_CP=`hadoop classpath`
 echo "HADOOP CLASSPATH: $HADOOP_CP"
 
-for (( i=0; i<${NODE_COUNT}; i++ ));
+for (( i = 0; i < ${NODE_COUNT}; i++ ));
 do
 	echo ssh ${BIG_BENCH_SSH_OPTIONS} ${IPs[$i]} java ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:${BIG_BENCH_DATA_GENERATOR_DIR}/pdgf.jar" ${CLUSTER_CONF} pdgf.Controller  -nc ${NODE_COUNT} -nn $((i+1)) -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" -s ${BIGBENCH_TABLES} $@
 	ssh ${BIG_BENCH_SSH_OPTIONS} ${IPs[$i]} java ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:${BIG_BENCH_DATA_GENERATOR_DIR}/pdgf.jar" ${CLUSTER_CONF} pdgf.Controller  -nc ${NODE_COUNT} -nn $((i+1)) -ns -c -o "\'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/\'+table.getName\(\)+\'/\'" -s ${BIGBENCH_TABLES} $@ &
