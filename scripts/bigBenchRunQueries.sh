@@ -29,7 +29,7 @@ while getopts ":b:y:z:p:s:d:" opt; do
 		b)
 			#echo "-b was triggered, Parameter: $OPTARG" >&2
 			case "$OPTARG" in
-				"h" | "hive" | "s" | "shark")
+				"hive" | "shark")
 					USER_BINARY="$OPTARG"
 				;;
 				*)
