@@ -30,9 +30,8 @@ FROM (
 				w.wp_type 		AS wpt
 			FROM web_clickstreams c 
 			JOIN  ${hiveconf:TEMP_TABLE1} d	ON	( c.wcs_click_date_sk = d.d_date_sk)
-			INNER JOIN web_page w 	ON 	( c.wcs_web_page_sk = w.wp_web_page_sk 
-									  AND c.wcs_user_sk is not null
-									)
+			INNER JOIN web_page w 	ON  c.wcs_web_page_sk = w.wp_web_page_sk 
+			WHERE c.wcs_user_sk is not null
 			CLUSTER BY uid
 		) q08_map_output
 	REDUCE q08_map_output.uid, 

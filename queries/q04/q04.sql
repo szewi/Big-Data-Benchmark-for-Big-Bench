@@ -19,11 +19,11 @@ FROM (
 		SELECT 	
 			c.wcs_user_sk 		AS uid , 
 			c.wcs_item_sk 		AS item , 
-			w.wp_type 		AS wptype , 
+			w.wp_type 			AS wptype , 
 			t.t_time+unix_timestamp(d.d_date,'yyyy-MM-dd') AS tstamp
                FROM web_clickstreams c 
                JOIN web_page w ON (c.wcs_web_page_sk = w.wp_web_page_sk 
-               				 AND c.wcs_user_sk IS NOT NULL)
+									AND c.wcs_user_sk IS NOT NULL)
                JOIN date_dim d ON c.wcs_click_date_sk = d.d_date_sk
                JOIN time_dim t ON c.wcs_click_time_sk = t.t_time_sk
 		CLUSTER BY uid
@@ -33,12 +33,13 @@ FROM (
 			, q04_tmp_map_output.item
 			, q04_tmp_map_output.wptype
 			, q04_tmp_map_output.tstamp
-		USING 'python q4_reducer1.py' AS (
-					  uid 	BIGINT
-					, item 	BIGINT
-					, wptype STRING
-					, tstamp BIGINT
-					, sessionid STRING)
+		USING 'python q4_reducer1.py ${hiveconf:q04_timeout}' 
+		AS (
+				  uid 	BIGINT
+				, item 	BIGINT
+				, wptype STRING
+				, tstamp BIGINT
+				, sessionid STRING)
 ) q04_tmp_sessionize
 --ORDER BY uid, tstamp --ORDER BY is bad! total ordering ->only one reducer
 --LIMIT 2500

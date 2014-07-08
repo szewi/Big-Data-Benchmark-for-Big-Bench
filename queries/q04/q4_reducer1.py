@@ -1,11 +1,13 @@
 import sys
 
+timeout = long(sys.argv[1])
+
 def sessionize(vals):
 	session = 1
 	vals.sort()
 	cur_time = vals[0][0]
 	for tup in vals:
-		if tup[0] - cur_time > 300:
+		if tup[0] - cur_time > timeout:
 			session += 1
 		cur_time = tup[0]
 		print "%s\t%s\t%s\t%s\t%s" % (tup[1], tup[2], tup[3], tup[0], tup[1]+'_'+str(session))
