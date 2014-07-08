@@ -70,7 +70,9 @@ set hive.mapjoin.smalltable.filesize=5000000;
 -- set hive.exec.parallel.thread.number=8;
 
 -- predicate pushdown for ORC-files (eager filtering of columns)
--- set hive.optimize.ppd=true;
+-- set hive.optimize.ppd=false;
+-- set hive.optimize.ppd.storage=false;
+set hive.ppd.recognizetransivity=false;
 -- set hive.optimize.index.filter=true;
 
 
