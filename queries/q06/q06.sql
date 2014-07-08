@@ -61,7 +61,7 @@ INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
 ;
 
 
-!echo INSERT INTO TABLE  ${hiveconf:TEMP_TABLE} -> customer web_sales;
+!echo INSERT INTO TABLE ${hiveconf:TEMP_TABLE} -> customer web_sales;
 INSERT INTO TABLE ${hiveconf:TEMP_TABLE} 
 	-- customer web_sales
 	SELECT 	
@@ -164,7 +164,7 @@ CLUSTER BY
   ts_s.c_preferred_cust_flag,
   ts_s.c_birth_country,
   ts_s.c_login
-LIMIT  ${hiveconf:q06_LIMIT};
+LIMIT ${hiveconf:q06_LIMIT};
 
 
 ---Cleanup-------------------------------------------------------------------

@@ -61,7 +61,7 @@ query_run_main_method () {
 		echo "========================="
 		echo "$QUERY_NAME Step 2/6: exec hive query(s) part 1 (create matrix)"
 		echo "========================="
-		hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE1_SCRIPT"
+		"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE1_SCRIPT"
 	fi
 
 	#Step 3. Hadoop Part 1---- MRlinearRegression--------------------------------------------------------------
@@ -92,7 +92,7 @@ query_run_main_method () {
 		echo "========================="
 		echo "$QUERY_NAME Step 4/6: exec hive query(s) part 2, aggregate linear regression"
 		echo "========================="
-		hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE2_SCRIPT"
+		"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE2_SCRIPT"
 	fi
 
 	#Step 5. Hive 3-----------------------------------------------------------------------
@@ -100,8 +100,8 @@ query_run_main_method () {
 		echo "========================="
 		echo "$QUERY_NAME Step 5/6: exec hive query(s) part 3, combine with sentiment analysis"
 		echo "========================="
-		echo "hive --auxpath \"$BIG_BENCH_QUERIES_DIR/Resources/opennlp-maxent-3.0.3.jar:$BIG_BENCH_QUERIES_DIR/Resources/opennlp-tools-1.5.3.jar\" -f \"${QUERY_DIR}/hive3.sql\""
-		hive --auxpath "$BIG_BENCH_QUERIES_DIR/Resources/opennlp-maxent-3.0.3.jar:$BIG_BENCH_QUERIES_DIR/Resources/opennlp-tools-1.5.3.jar" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE3_SCRIPT"
+		echo "$BINARY --auxpath \"$BIG_BENCH_QUERIES_DIR/Resources/opennlp-maxent-3.0.3.jar:$BIG_BENCH_QUERIES_DIR/Resources/opennlp-tools-1.5.3.jar\" -f \"${QUERY_DIR}/hive3.sql\""
+		"$BINARY" --auxpath "$BIG_BENCH_QUERIES_DIR/Resources/opennlp-maxent-3.0.3.jar:$BIG_BENCH_QUERIES_DIR/Resources/opennlp-tools-1.5.3.jar" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE3_SCRIPT"
 	fi
 
 	#Step 6. Hadoop  3-----------------------------------------------------------------------
@@ -110,11 +110,11 @@ query_run_main_method () {
 		echo "========================="
 		echo "$QUERY_NAME Step 6/6: cleaning up temporary files"
 		echo "========================="
-		hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "${QUERY_DIR}/cleanup.sql"
+		"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "${QUERY_DIR}/cleanup.sql"
 		hadoop fs -rm -r -skipTrash "${TEMP_DIR}"/*
 	fi
 }
 
 query_run_clean_method () {
-	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -e "DROP TABLE IF EXISTS $TEMP_TABLE; DROP TABLE IF EXISTS $RESULT_TABLE;"
+	"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -e "DROP TABLE IF EXISTS $TEMP_TABLE; DROP TABLE IF EXISTS $RESULT_TABLE;"
 }

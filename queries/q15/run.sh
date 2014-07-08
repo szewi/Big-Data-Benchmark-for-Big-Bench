@@ -60,7 +60,7 @@ query_run_main_method () {
 		echo "========================="
 		echo "$QUERY_NAME Step 2: exec hive query(s) part 1 (create matrix)"
 		echo "========================="
-		hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE1_SCRIPT"
+		"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE1_SCRIPT"
 	fi
 
 	#Step 3. Hadoop Part 1---- MRlinearRegression--------------------------------------------------------------
@@ -92,7 +92,7 @@ query_run_main_method () {
 		echo "========================="
 		echo "$QUERY_NAME Step 4: exec hive query(s) part 2"
 		echo "========================="
-		hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE2_SCRIPT"
+		"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE2_SCRIPT"
 	fi
 
 	#Step 5. Hadoop  3-----------------------------------------------------------------------
@@ -107,5 +107,5 @@ query_run_main_method () {
 }
 
 query_run_clean_method () {
-	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -e "DROP TABLE IF EXISTS $TEMP_TABLE; DROP TABLE IF EXISTS $RESULT_TABLE;"
+	"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -e "DROP TABLE IF EXISTS $TEMP_TABLE; DROP TABLE IF EXISTS $RESULT_TABLE;"
 }
