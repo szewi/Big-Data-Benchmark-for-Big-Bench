@@ -6,6 +6,7 @@ ADD FILE ${hiveconf:QUERY_DIR}/mapper_q29.py;
 ADD FILE ${hiveconf:QUERY_DIR}/reducer_q29.py;
 ADD FILE ${hiveconf:QUERY_DIR}/mapper2_q29.py;
 ADD FILE ${hiveconf:QUERY_DIR}/reducer2_q29.py;
+--ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar; 
 
 -- Resources
 
@@ -23,63 +24,37 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table}
 LOCATION '${hiveconf:RESULT_DIR}' 
 AS
 -- Begin: the real query part
-SELECT 	
-	ro2.category_id, 
-	ro2.affine_category_id, 
-	ro2.category, 
-	ro2.affine_category, 
-	ro2.frequency 
+
+SELECT 
+	ro.category_id 				AS category_id, 
+	ro.affine_category_id 		AS affine_category_id, 
+	ro.category 				AS category, 
+	ro.affine_category 			AS affine_category,
+	count(*) as frequency
 FROM 
 (
 	FROM 
 	(
-		FROM 
-		(
-			FROM 
-			(
-				SELECT	ws.ws_order_number 	AS ordernumber, 
-						i.i_category_id 	AS category_id, 
-						i.i_category		AS category
-				FROM web_sales ws 
-				JOIN item i ON (ws.ws_item_sk = i.i_item_sk AND i.i_category_id IS NOT NULL)
-				CLUSTER BY ordernumber
-			) mo
-			REDUCE 	
-				mo.ordernumber, 
-				mo.category_id, 
-				mo.category
-			USING 'python reducer_q29.py'
-			AS 	(category_id,
-				 category, 
-				 affine_category_id, 
-				 affine_category )
-		) ro
-		MAP 	ro.category_id, 
-			ro.category, 
-			ro.affine_category_id, 
-			ro.affine_category
-		USING 'python mapper2_q29.py'
-		AS 	combined_key, 
-			category_id, 
-			category, 
-			affine_category_id, 
-			affine_category, 
-			frequency
-		CLUSTER BY combined_key
-	) mo2
+		SELECT	ws.ws_order_number 	AS ordernumber, 
+				i.i_category_id 	AS category_id, 
+				i.i_category		AS category
+		FROM web_sales ws 
+		JOIN item i ON (ws.ws_item_sk = i.i_item_sk 
+					AND i.i_category_id IS NOT NULL)
+		CLUSTER BY ordernumber
+	) mo
 	REDUCE 	
-		mo2.combined_key, 
-		mo2.category_id, 
-		mo2.category, 
-		mo2.affine_category_id, 
-		mo2.affine_category, 
-		mo2.frequency
-	USING 'python reducer2_q29.py'
-	AS (	category_id, 
-		category, 
-		affine_category_id, 
-	  	affine_category, 
-		frequency)
-) ro2
-CLUSTER BY ro2.frequency
+		mo.ordernumber, 
+		mo.category_id, 
+		mo.category
+	USING 'python reducer_q29.py'
+--	USING 'java ${env:BIG_BENCH_java_child_process_xmx} -cp bigbenchqueriesmr.jar de.bankmark.bigbench.queries.q29.Red'
+
+	AS 	(category_id,
+		 category, 
+		 affine_category_id, 
+		 affine_category )
+) ro
+GROUP BY ro.category_id , ro.affine_category_id, ro.category ,ro.affine_category
+CLUSTER BY frequency 
 ;
