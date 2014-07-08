@@ -30,7 +30,7 @@ set q03_purchased_item_IN=16891;
 set q03_purchased_item_category_IN=1,2,3,4,5;
 
 -------- Q04 -----------
---no params
+set q04_timeout=300;
 
 -------- Q05 -----------
 set q05_i_category='Books';

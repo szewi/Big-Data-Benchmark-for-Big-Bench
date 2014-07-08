@@ -3,9 +3,10 @@
 --likelihood to be interested in a given category.
 
 -- Hive 0.12 bug, hive ignores  'hive.mapred.local.mem' resulting in out of memory errors in map joins!
--- (more exactly: bug in Hadoop 2.2 where hadoop-env.cmd sets the -xmx parameter multiple times, effectivly overriding the user set hive.mapred.locla.mem setting. see: https://issues.apache.org/jira/browse/HADOOP-10245
+-- (more exactly: bug in Hadoop 2.2 where hadoop-env.cmd sets the -xmx parameter multiple times, effectively overriding the user set hive.mapred.locla.mem setting. see: https://issues.apache.org/jira/browse/HADOOP-10245
 -- There are 3 workarounds: 
--- 1) assign more memory to the local!! Hadoop JVM client (not! mapred.map.memory)-> map-join child vm will inherit the parents jvm settings
+-- 1) assign more memory to the local!! Hadoop JVM client via 'HADOOP_CLIENT_OPTS'. (Cloudera->hive service settings->gateway default group->Resourcemanagement->Java-Heap size)
+--    Map-join child vm will inherit the parents jvm settings. 
 -- 2) reduce "hive.smalltable.filesize" to ~1MB (depends on your cluster settings for the local JVM)
 -- 3) turn off "hive.auto.convert.join" to prevent hive from converting the join to a mapjoin.
 --- set hive.auto.convert.join;
@@ -67,8 +68,9 @@ AS
 				 it.i_category 		AS i_category
 			FROM customer ct
 			INNER JOIN customer_demographics 	cdt  ON ct.c_current_cdemo_sk = cdt.cd_demo_sk
-			INNER JOIN web_clickstreams 	 	wcst ON wcst.wcs_user_sk 	= ct.c_customer_sk  
-			INNER JOIN item 		 		it   ON wcst.wcs_item_sk 	= it.i_item_sk
+			INNER JOIN web_clickstreams 	 	wcst ON (wcst.wcs_user_sk 	= ct.c_customer_sk   
+														 AND wcs_user_sk IS NOT NULL)
+			INNER JOIN item						it   ON wcst.wcs_item_sk 	= it.i_item_sk
 
 		) q05_tmp_cust_clicks
 		GROUP BY 	q05_tmp_cust_clicks.c_customer_sk, 

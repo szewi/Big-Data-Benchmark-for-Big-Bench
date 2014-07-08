@@ -1,4 +1,5 @@
 --Perform category affinity analysis for products viewed together.
+
 -- Resources
 ADD FILE ${hiveconf:QUERY_DIR}/mapper_q30.py;
 ADD FILE ${hiveconf:QUERY_DIR}/reducer_q30.py;
@@ -25,19 +26,15 @@ SELECT
 	ro2.frequency 
 FROM (
 	FROM (
-		SELECT concat(	ro.item_id, 
-					':',
-					ro.affine_item_id) 	AS combined_key,
+		SELECT concat(	ro.item_id, ':', ro.affine_item_id) AS combined_key,
 			ro.item_id 				AS item_id, 
-			ro.item 					AS item, 
-			ro.affine_item_id 			AS affine_item_id, 
+			ro.item 				AS item, 
+			ro.affine_item_id 		AS affine_item_id, 
 			ro.affine_item 			AS affine_item,
 			1 						AS frequency
 		FROM (
 			FROM (
-				SELECT concat(	wcs.wcs_user_sk, 
-						':', 
-						wcs.wcs_click_date_sk) 	AS key,
+				SELECT concat(	wcs.wcs_user_sk, ':', 	wcs.wcs_click_date_sk) 	AS key,
 					i.i_item_sk 				AS item_sk,
 					i.i_item_id 				AS item
 				FROM web_clickstreams wcs 
