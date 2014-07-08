@@ -22,7 +22,7 @@ then
 fi
 
 HIVE_BINARY="/usr/bin/hive"
-SHARK_BINARY="/var/lib/spark/shark-0.9.1/bin/shark-withinfo"
+SHARK_BINARY="$BIG_BENCH_SHARK_HOME/bin/shark-withinfo"
 
 GLOBAL_QUERY_PARAMS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/queryParameters.sql"
 GLOBAL_HIVE_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/hiveSettings.sql"

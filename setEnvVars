@@ -44,6 +44,7 @@ export BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$BIG_BENC
 export BIG_BENCH_HIVE_DATABASE="bigbenchORC"
 export BIG_BENCH_hive_default_fileformat_result_table="TEXTFILE"
 
+export BIG_BENCH_SHARK_HOME="/var/lib/spark/shark-0.9.1"
 
 ## ================================================================
 ##  /END/  ADAPT BELOW VARIABLES TO YOUR CLUSTER
