@@ -24,6 +24,7 @@ run_main_method () {
 	echo "==============================================="
 	echo "Running query  : $QUERY_NAME"
 	echo "-----------------------------------------------"
+	echo "used binary: $BINARY"
 	echo "benchmark phase: $BENCHMARK_PHASE"
 	echo "stream number  : $STREAM_NUMBER"
 	echo "user parameter file : $USER_QUERY_PARAMS_FILE"

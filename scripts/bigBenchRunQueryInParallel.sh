@@ -21,11 +21,23 @@ then
 fi
 
 # parse command line arguments
-while getopts ":q:y:z:p:s:d:" opt; do
+while getopts ":q:b:y:z:p:s:d:" opt; do
 	case $opt in
 		q)
 			#echo "-q was triggered, Parameter: $OPTARG" >&2
 			QUERY_NUMBER="$OPTARG"
+		;;
+		b)
+			#echo "-b was triggered, Parameter: $OPTARG" >&2
+			case "$OPTARG" in
+				"h" | "hive" | "s" | "shark")
+					USER_BINARY="$OPTARG"
+				;;
+				*)
+					echo "binary must be h/hive or s/shark"
+					exit 1
+				;;
+			esac
 		;;
 		y)
 			#echo "-y was triggered, Parameter: $OPTARG" >&2
@@ -64,6 +76,11 @@ then
 else
 	echo "Query number option is required"
 	exit 1
+fi
+
+if [ -n "$USER_BINARY" ]
+then
+	RUN_QUERY_ARGS="$RUN_QUERY_ARGS -b $USER_BINARY"
 fi
 
 if [ -n "$USER_QUERY_PARAMS_FILE" ]

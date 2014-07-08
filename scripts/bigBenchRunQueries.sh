@@ -24,8 +24,20 @@ FIRST_QUERY="1"
 LAST_QUERY="30"
 
 # parse command line arguments
-while getopts ":y:z:p:s:d:" opt; do
+while getopts ":b:y:z:p:s:d:" opt; do
 	case $opt in
+		b)
+			#echo "-b was triggered, Parameter: $OPTARG" >&2
+			case "$OPTARG" in
+				"h" | "hive" | "s" | "shark")
+					USER_BINARY="$OPTARG"
+				;;
+				*)
+					echo "binary must be h/hive or s/shark"
+					exit 1
+				;;
+			esac
+		;;
 		y)
 			#echo "-y was triggered, Parameter: $OPTARG" >&2
 			USER_QUERY_PARAMS_FILE="$OPTARG"
@@ -57,11 +69,16 @@ while getopts ":y:z:p:s:d:" opt; do
 	esac
 done
 
+if [ -n "$USER_BINARY" ]
+then
+	RUN_QUERY_ARGS="-b $USER_BINARY"
+fi
+
 if [ -n "$USER_QUERY_PARAMS_FILE" ]
 then
 	if [ -r "$USER_QUERY_PARAMS_FILE" ]
 	then
-		RUN_QUERY_ARGS="-y $USER_QUERY_PARAMS_FILE"
+		RUN_QUERY_ARGS="$RUN_QUERY_ARGS -y $USER_QUERY_PARAMS_FILE"
 	else
 		echo "User query parameter file $USER_QUERY_PARAMS_FILE can not be read."
 		exit 1
