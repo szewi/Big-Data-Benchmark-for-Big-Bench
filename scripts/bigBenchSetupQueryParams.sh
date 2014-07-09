@@ -21,6 +21,9 @@ then
 	exit 1
 fi
 
+HIVE_BINARY_TYPE="hive"
+SHARK_BINARY_TYPE="shark"
+
 GLOBAL_QUERY_PARAMS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/queryParameters.sql"
 GLOBAL_HIVE_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/hiveSettings.sql"
 GLOBAL_BENCHMARK_PHASE="RUN_QUERY"
@@ -35,11 +38,28 @@ then
 fi
 
 # parse command line arguments
-while getopts ":q:y:z:p:s:d:" opt; do
+while getopts ":q:b:y:z:p:s:d:" opt; do
 	case $opt in
 		q)
 			#echo "-q was triggered, Parameter: $OPTARG" >&2
 			QUERY_NUMBER="$OPTARG"
+		;;
+		b)
+			#echo "-b was triggered, Parameter: $OPTARG" >&2
+			case "$OPTARG" in
+				"$HIVE_BINARY_TYPE")
+					USER_BINARY="$HIVE_BINARY"
+					BINARY_TYPE="$HIVE_BINARY_TYPE"
+				;;
+				"$SHARK_BINARY_TYPE")
+					USER_BINARY="$SHARK_BINARY"
+					BINARY_TYPE="$SHARK_BINARY_TYPE"
+				;;
+				*)
+					echo "binary must be h/hive or s/shark"
+					exit 1
+				;;
+			esac
 		;;
 		y)
 			#echo "-y was triggered, Parameter: $OPTARG" >&2
@@ -161,10 +181,12 @@ else
 
 fi
 
+BINARY="${USER_BINARY:-$HIVE_BINARY}"
+BINARY_TYPE="${BINARY_TYPE:-$HIVE_BINARY_TYPE}"
 BENCHMARK_PHASE="${USER_BENCHMARK_PHASE:-$GLOBAL_BENCHMARK_PHASE}"
 STREAM_NUMBER="${USER_STREAM_NUMBER:-$GLOBAL_STREAM_NUMBER}"
 
-TABLE_PREFIX="${QUERY_NAME}_${BENCHMARK_PHASE}_${STREAM_NUMBER}"
+TABLE_PREFIX="${QUERY_NAME}_${BINARY_TYPE}_${BENCHMARK_PHASE}_${STREAM_NUMBER}"
 
 RESULT_TABLE="${TABLE_PREFIX}_result"
 RESULT_DIR="$BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR/$RESULT_TABLE"
@@ -173,7 +195,12 @@ TEMP_DIR="$BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR/$TEMP_TABLE"
 
 LOG_FILE_NAME="$BIG_BENCH_LOGS_DIR/${TABLE_PREFIX}.log"
 
-HIVE_PARAMS="-hiveconf BENCHMARK_PHASE=$BENCHMARK_PHASE -hiveconf STREAM_NUMBER=$STREAM_NUMBER -hiveconf QUERY_NAME=$QUERY_NAME -hiveconf QUERY_DIR=$QUERY_DIR -hiveconf RESULT_TABLE=$RESULT_TABLE -hiveconf RESULT_DIR=$RESULT_DIR -hiveconf TEMP_TABLE=$TEMP_TABLE -hiveconf TEMP_DIR=$TEMP_DIR -hiveconf TABLE_PREFIX=$TABLE_PREFIX"
+if [ "$BINARY" = "$SHARK_BINARY" ]
+then
+	HIVE_PARAMS="-skipRddReload"
+fi
+
+HIVE_PARAMS="$HIVE_PARAMS -hiveconf BENCHMARK_PHASE=$BENCHMARK_PHASE -hiveconf STREAM_NUMBER=$STREAM_NUMBER -hiveconf QUERY_NAME=$QUERY_NAME -hiveconf QUERY_DIR=$QUERY_DIR -hiveconf RESULT_TABLE=$RESULT_TABLE -hiveconf RESULT_DIR=$RESULT_DIR -hiveconf TEMP_TABLE=$TEMP_TABLE -hiveconf TEMP_DIR=$TEMP_DIR -hiveconf TABLE_PREFIX=$TABLE_PREFIX"
 
 # source run.sh as late as possible to allow run.sh to use all above defined variables
 SCRIPT_FILENAME="$QUERY_DIR/run.sh"

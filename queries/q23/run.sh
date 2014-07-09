@@ -39,31 +39,31 @@ if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 1 ]] ; then
 	echo "========================="
 	echo "$QUERY_NAME Step 1/4: make view"
 	echo "========================="
-	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE1_SCRIPT"
+	"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE1_SCRIPT"
 fi
 
 if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 2 ]] ; then
 	echo "========================="
 	echo "$QUERY_NAME Step 2/4: make result 1"
 	echo "========================="
-	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE2_SCRIPT"
+	"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE2_SCRIPT"
 fi
 
 if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 3 ]] ; then
 	echo "========================="
 	echo "$QUERY_NAME Step 3/4: make result 2"
 	echo "========================="
-	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE3_SCRIPT"
+	"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE3_SCRIPT"
 fi
 
 if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 4 ]] ; then
 	echo "========================="
 	echo "$QUERY_NAME Step 4/4: cleanup"
 	echo "========================="
-	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "${QUERY_DIR}/cleanup.sql"
+	"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "${QUERY_DIR}/cleanup.sql"
 fi
 }
 
 query_run_clean_method () {
-	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -e "DROP VIEW IF EXISTS $TEMP_TABLE; DROP TABLE IF EXISTS $RESULT_TABLE1; DROP TABLE IF EXISTS $RESULT_TABLE2;"
+	"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -e "DROP VIEW IF EXISTS $TEMP_TABLE; DROP TABLE IF EXISTS $RESULT_TABLE1; DROP TABLE IF EXISTS $RESULT_TABLE2;"
 }

@@ -34,7 +34,7 @@ query_run_main_method () {
 		echo "========================="
 
 		# Write input for k-means into temp tables
-		hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE_SCRIPT"
+		"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE_SCRIPT"
 	fi
 
 	SEQ_FILE_1="$TEMP_DIR/Seq1"
@@ -102,7 +102,7 @@ query_run_main_method () {
 		echo "========================="
 		echo "$QUERY_NAME Step 8/8: Clean up"
 		echo "========================="
-		hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "${QUERY_DIR}/cleanup.sql"
+		"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "${QUERY_DIR}/cleanup.sql"
 		hadoop fs -rm -r "$TEMP_DIR"
 	fi
 
@@ -113,5 +113,5 @@ query_run_main_method () {
 }
 
 query_run_clean_method () {
-	hive $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -e "DROP TABLE IF EXISTS $TEMP_TABLE1; DROP TABLE IF EXISTS $TEMP_TABLE2; DROP TABLE IF EXISTS $RESULT_TABLE;"
+	"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -e "DROP TABLE IF EXISTS $TEMP_TABLE1; DROP TABLE IF EXISTS $TEMP_TABLE2; DROP TABLE IF EXISTS $RESULT_TABLE;"
 }
