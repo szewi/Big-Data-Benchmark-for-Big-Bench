@@ -10,6 +10,9 @@ else
 	source "$ENV_SETTINGS"
 fi
 
+echo "drop old log $BIG_BENCH_LOADING_STAGE_LOG"
+rm -rf "$BIG_BENCH_LOADING_STAGE_LOG"
+
 # write environment information into logfile
 logEnvInformation
 
@@ -28,6 +31,8 @@ populateHive () {
 echo "==============================================="
 echo "Adding/Updating generated files to HIVE. (drops old tables)"
 echo "==============================================="
+
+
 
 time (populateHive ; echo "======= Load data into hive time =========") > >(tee -a "$BIG_BENCH_LOADING_STAGE_LOG") 2>&1 
 echo "==========================="
