@@ -15,4 +15,4 @@ logEnvInformation
 
 echo "cleaning HIVE TABLES"
 "$HIVE_BINARY" -f "${BIG_BENCH_HIVE_SCRIPT_DIR}/dropTables.sql"
-rm -rf "$BIG_BENCH_LOADING_STAGE_LOG"
+
