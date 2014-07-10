@@ -60,14 +60,12 @@ parseCmdLine () {
 				case "$OPTARG" in
 					"$HIVE_BINARY_TYPE")
 						USER_BINARY="$HIVE_BINARY"
-						BINARY_TYPE="$HIVE_BINARY_TYPE"
 						;;
 					"$SHARK_BINARY_TYPE")
 						USER_BINARY="$SHARK_BINARY"
-						BINARY_TYPE="$SHARK_BINARY_TYPE"
 					;;
 					*)
-						echo "binary must be h/hive or s/shark"
+						echo "binary must be $HIVE_BINARY_TYPE or $SHARK_BINARY_TYPE"
 						exit 1
 					;;
 				esac
@@ -112,10 +110,18 @@ initHiveEnv () {
 	# global shared variables
 	GLOBAL_QUERY_PARAMS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/queryParameters.sql"
 	GLOBAL_HIVE_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/hiveSettings.sql"
+	GLOBAL_SHARK_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/sharkSettings.sql"
 	COMBINED_PARAMS_FILE="`mktemp`"
 
-	BINARY="${USER_BINARY:-$HIVE_BINARY}"
-	BINARY_TYPE="${BINARY_TYPE:-$HIVE_BINARY_TYPE}"
+	BINARY="${USER_BINARY:-$DEFAULT_BINARY}"
+	if [ "$BINARY" = "$HIVE_BINARY" ]
+	then
+		BINARY_TYPE="$HIVE_BINARY_TYPE"
+		GLOBAL_SETTINGS_FILE="$GLOBAL_HIVE_SETTINGS_FILE"
+	else
+		BINARY_TYPE="$SHARK_BINARY_TYPE"
+		GLOBAL_SETTINGS_FILE="$GLOBAL_SHARK_SETTINGS_FILE"
+	fi
 
 	GLOBAL_BENCHMARK_PHASE="RUN_QUERY"
 	GLOBAL_STREAM_NUMBER="0"
@@ -134,12 +140,12 @@ initHiveEnv () {
 		exit 1
 	fi
 
-	if [ -r "$GLOBAL_HIVE_SETTINGS_FILE" ]
+	if [ -r "$GLOBAL_SETTINGS_FILE" ]
 	then
-		echo "!echo settings from global settings file: $GLOBAL_HIVE_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
-		cat "$GLOBAL_HIVE_SETTINGS_FILE" >> "$COMBINED_PARAMS_FILE"
+		echo "!echo settings from global settings file: $GLOBAL_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
+		cat "$GLOBAL_SETTINGS_FILE" >> "$COMBINED_PARAMS_FILE"
 	else
-		echo "Global hive settings file $GLOBAL_HIVE_SETTINGS_FILE can not be read."
+		echo "Global hive settings file $GLOBAL_SETTINGS_FILE can not be read."
 		rm -rf "$COMBINED_PARAMS_FILE"
 		exit 1
 	fi
@@ -172,7 +178,7 @@ initHiveEnv () {
 		echo "!echo settings file from -z <hive settings file> command line argument: $USER_HIVE_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
 		if [ -r "$USER_HIVE_SETTINGS_FILE" ]
 		then
-			cat "$GLOBAL_HIVE_SETTINGS_FILE" >> "$COMBINED_PARAMS_FILE"
+			cat "$GLOBAL_SETTINGS_FILE" >> "$COMBINED_PARAMS_FILE"
 		else
 			echo "User hive settings file $USER_HIVE_SETTINGS_FILE can not be read."
 			rm -rf "$COMBINED_PARAMS_FILE"

@@ -33,11 +33,6 @@ set hive.auto.convert.sortmerge.join.noconditionaltask;
 set hive.optimize.ppd;
 set hive.optimize.index.filter;
 
--- shark 0.9.1 is based on hive-0.11
--- the orc file format slightly changed in hive-0.12
--- shark 0.9.1 is unable to read this new format, so we force the older 0.11 format here
-set hive.exec.orc.write.format=0.11;
-
 -- Database
 CREATE DATABASE IF NOT EXISTS  ${env:BIG_BENCH_HIVE_DATABASE};
 use ${env:BIG_BENCH_HIVE_DATABASE};
