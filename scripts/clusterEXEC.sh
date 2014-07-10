@@ -20,6 +20,6 @@ do
 #  if [ $SELF != ${IPs[$i]} ]
 #  then
   echo "NODE: ${IPs[$i]}"
-  ssh ${BIG_BENCH_SSH_OPTIONS} -t ${IPs[$i]} $@ 
+  ssh ${BIG_BENCH_SSH_OPTIONS} -t ${IPs[$i]} "$@"
 #  fi
 done

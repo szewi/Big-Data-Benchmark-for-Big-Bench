@@ -11,4 +11,4 @@ fi
 
 logEnvInformation
 
-java -jar "${BIG_BENCH_TOOLS_DIR}/RunBigBench.jar" $@
+java -jar "${BIG_BENCH_TOOLS_DIR}/RunBigBench.jar" "$@"

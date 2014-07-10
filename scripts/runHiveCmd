@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+initrunHiveCmd () {
+	if [ "$BINARY" = "$SHARK_BINARY" ]
+	then
+		HIVE_PARAMS="-skipRddReload $HIVE_PARAMS"
+	fi
+}
+
+execrunHiveCmd () {
+	"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" "$@"
+}
