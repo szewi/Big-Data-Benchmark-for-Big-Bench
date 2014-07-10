@@ -69,7 +69,7 @@ AS
 			FROM customer ct
 			INNER JOIN customer_demographics 	cdt  ON ct.c_current_cdemo_sk = cdt.cd_demo_sk
 			INNER JOIN web_clickstreams 	 	wcst ON (wcst.wcs_user_sk 	= ct.c_customer_sk   
-														 AND wcs_user_sk IS NOT NULL)
+														 AND wcst.wcs_user_sk IS NOT NULL)
 			INNER JOIN item						it   ON wcst.wcs_item_sk 	= it.i_item_sk
 
 		) q05_tmp_cust_clicks
