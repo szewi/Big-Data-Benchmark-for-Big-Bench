@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-initcleanData () {
-}
-
 execcleanData () {
 	echo "cleaning ${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
 	hadoop fs -rm -r -skipTrash "${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"

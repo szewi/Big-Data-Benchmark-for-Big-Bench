@@ -13,22 +13,16 @@ fi
 # write environment information into logfile
 logEnvInformation
 
-importBigBenchModule () {
+runBigBenchModule () {
 	local MODULE_NAME="$1"
+	shift
+
 	local MODULE="$BIG_BENCH_BASH_SCRIPT_DIR/$MODULE_NAME"
 	if [ -f "$MODULE" ]
 	then
 		source "$MODULE"
 	else
 		echo "Module $MODULE not found, aborting script."
-		exit 1
-	fi
-
-	# check if the init method was implemented properly
-	local INIT_METHOD="init$MODULE_NAME"
-	if ! declare -F "$INIT_METHOD" > /dev/null 2>&1
-	then
-		echo "$INIT_METHOD was not implemented, aborting script"
 		exit 1
 	fi
 
@@ -40,8 +34,8 @@ importBigBenchModule () {
 		exit 1
 	fi
 
-	# initialize module
-	"$INIT_METHOD"
+	# run module
+	"$RUN_METHOD" "$@"
 }
 
 parseCmdLine () {
@@ -101,9 +95,7 @@ parseCmdLine () {
 		esac
 	done
 	shift $((OPTIND-1))
-	MODULE="$1"
-	shift
-	FURTHER_ARGS="$@"
+	REMAINING_USER_ARGS="$@"
 }
 
 initHiveEnv () {
@@ -111,7 +103,6 @@ initHiveEnv () {
 	GLOBAL_QUERY_PARAMS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/queryParameters.sql"
 	GLOBAL_HIVE_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/hiveSettings.sql"
 	GLOBAL_SHARK_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/sharkSettings.sql"
-	COMBINED_PARAMS_FILE="`mktemp`"
 
 	BINARY="${USER_BINARY:-$DEFAULT_BINARY}"
 	if [ "$BINARY" = "$HIVE_BINARY" ]
@@ -260,10 +251,9 @@ initQueryEnv () {
 HIVE_BINARY_TYPE="hive"
 SHARK_BINARY_TYPE="shark"
 
+COMBINED_PARAMS_FILE="`mktemp`"
+
 parseCmdLine "$@"
-initHiveEnv
-importBigBenchModule "$MODULE"
-RUN_COMMAND_FUNCTION="exec$MODULE"
-"$RUN_COMMAND_FUNCTION" $FURTHER_ARGS
+runBigBenchModule "$REMAINING_USER_ARGS"
 
 rm -rf "$COMBINED_PARAMS_FILE"

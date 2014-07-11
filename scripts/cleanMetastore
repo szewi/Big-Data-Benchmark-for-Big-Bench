@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+execcleanMetastore () {
+	echo "cleaning HIVE TABLES"
+	runBigBenchModule runHiveCmd -f "${BIG_BENCH_HIVE_SCRIPT_DIR}/dropTables.sql"
+}
