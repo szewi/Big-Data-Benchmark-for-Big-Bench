@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+execcleanQueries () {
+	FIRST_QUERY="1"
+	LAST_QUERY="30"
+
+	echo "==============================================="
+	echo "Cleaning queries $FIRST_QUERY-$LAST_QUERY"
+	echo "==============================================="
+
+	for (( i = $FIRST_QUERY; i <= $LAST_QUERY; i++ ))
+	do
+		QUERY_NUMBER=$i
+		initQueryEnv
+		runBigBenchModule cleanQuery
+	done
+
+	echo "==============================================="
+	echo "All queries cleaned"
+	echo "==============================================="
+}
