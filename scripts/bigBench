@@ -166,7 +166,7 @@ SHARK_BINARY_TYPE="shark"
 COMBINED_PARAMS_FILE="`mktemp`"
 
 # parse command line arguments
-while getopts ":q:b:y:z:p:s:d:" OPT; do
+while getopts ":q:b:y:z:p:s:t:d:" OPT; do
 	case "$OPT" in
 		q)
 			#echo "-q was triggered, Parameter: $OPTARG" >&2
