@@ -58,7 +58,7 @@ ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table}  LOCATION '${hiveconf:RESULT_DIR}' 
 AS
 -- the real query part	
-SELECT c_date, s_date, s.uid
+SELECT DISTINCT c_date, s_date, s.uid
 FROM ${hiveconf:TEMP_TABLE1} c 
 JOIN ${hiveconf:TEMP_TABLE2} s ON c.uid = s.uid
 WHERE c.c_date < s.s_date

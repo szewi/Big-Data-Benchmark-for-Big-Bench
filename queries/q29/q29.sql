@@ -1,4 +1,4 @@
---Perform category afinity analysis for products purchased online together.
+--Perform category affinity analysis for products purchased online together.
 
 
 -- Resources
