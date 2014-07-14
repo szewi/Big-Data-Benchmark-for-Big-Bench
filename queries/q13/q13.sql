@@ -6,12 +6,6 @@
 
 
 
----set hive.exec.dynamic.partition=true;
----set hive.exec.dynamic.partition.mode=nonstrict;
----set hive.enforce.bucketing=true;
----set hive.enforce.sorting=true;
----set mapreduce.reduce.input.limit=-1;
-
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE}(
 	 customer_id            STRING

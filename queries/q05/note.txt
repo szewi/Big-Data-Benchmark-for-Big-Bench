@@ -1,4 +1,0 @@
-UNDER DEVELOPMENT
--unfinished-
-
-log regression (mahout) remaining

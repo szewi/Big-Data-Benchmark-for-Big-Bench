@@ -2,10 +2,8 @@
 
 
 -- Resources
-ADD FILE ${hiveconf:QUERY_DIR}/mapper_q29.py;
+
 ADD FILE ${hiveconf:QUERY_DIR}/reducer_q29.py;
-ADD FILE ${hiveconf:QUERY_DIR}/mapper2_q29.py;
-ADD FILE ${hiveconf:QUERY_DIR}/reducer2_q29.py;
 --ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar; 
 
 -- Resources

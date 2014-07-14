@@ -3,7 +3,7 @@ import logging
 import traceback
 import os
 
-category = ''
+category=sys.argv[1] 
 
 def npath(vals):
 	#vals ((int(c_date), int(c_time),sales_sk, wpt)
@@ -22,7 +22,6 @@ def npath(vals):
 
 if __name__ == "__main__":
 	logging.basicConfig(level=logging.DEBUG, filename='/tmp/q8reducerErr.log')
-	global category=sys.argv[1] 
 	logging.info('category: ' +category )
 	try:
 		current_key = ''
