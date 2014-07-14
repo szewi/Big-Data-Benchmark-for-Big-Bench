@@ -5,6 +5,9 @@
 ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
 CREATE TEMPORARY FUNCTION find_company AS 'de.bankmark.bigbench.queries.q27.CompanyUDF';
 
+
+!echo Extract competitor product names and model names (if any) from online product reviews for a given product: (item_sk: '${hiveconf:q27_pr_item_sk}');
+
 --Result  --------------------------------------------------------------------		
 --keep result human readable
 set hive.exec.compress.output=false;

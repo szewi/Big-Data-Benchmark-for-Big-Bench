@@ -24,7 +24,7 @@ AS
 	SELECT 	  
 		  i.i_item_id 			AS item_id
 		, i.i_item_desc 		AS item_desc
-		, s.s_store_id 		AS store_id
+		, s.s_store_id 			AS store_id
 		, s.s_store_name 		AS store_name
 		, SUM(ss.ss_quantity) 	AS store_sales_quantity
 		, SUM(sr.sr_return_quantity) AS store_returns_quantity 
@@ -32,23 +32,25 @@ AS
 	FROM store_sales ss
 
 	JOIN (SELECT d_date_sk FROM date_dim WHERE d_year=${hiveconf:q21_year} and d_moy=${hiveconf:q21_month}) d1 	
-				ON d1.d_date_sk = ss.ss_sold_date_sk  
+		ON d1.d_date_sk = ss.ss_sold_date_sk  
 
-	JOIN store_returns sr 	ON  sr.sr_customer_sk = ss.ss_customer_sk
-				AND ss.ss_item_sk = sr.sr_item_sk
-				AND ss.ss_ticket_number = sr.sr_ticket_number
+	JOIN store_returns sr 	
+		ON  sr.sr_customer_sk = ss.ss_customer_sk
+		AND ss.ss_item_sk = sr.sr_item_sk
+		AND ss.ss_ticket_number = sr.sr_ticket_number
 
 	JOIN (SELECT d_date_sk FROM date_dim  WHERE d_year = ${hiveconf:q21_year} AND d_moy >= ${hiveconf:q21_month} AND d_moy <= ${hiveconf:q21_month}+3 ) d2 
-				ON  d2.d_date_sk = sr.sr_returned_date_sk 
+		ON  d2.d_date_sk = sr.sr_returned_date_sk 
 
-	JOIN web_sales ws 	ON  sr.sr_item_sk = ws.ws_item_sk
-				AND sr.sr_customer_sk = ws.ws_bill_customer_sk
+	JOIN web_sales ws 	
+		ON  sr.sr_item_sk = ws.ws_item_sk
+		AND sr.sr_customer_sk = ws.ws_bill_customer_sk
 
 	JOIN (SELECT d_date_sk FROM date_dim  WHERE  d_year in (${hiveconf:q21_year} ,${hiveconf:q21_year}+1 ,${hiveconf:q21_year}+2) ) d3 
-				ON d3.d_date_sk  = ws.ws_sold_date_sk 
+		ON d3.d_date_sk  = ws.ws_sold_date_sk 
 
-	JOIN item i 		ON i.i_item_sk = ss.ss_item_sk
-	JOIN store s 		ON s.s_store_sk = ss.ss_store_sk
+	JOIN item i 	ON i.i_item_sk = ss.ss_item_sk
+	JOIN store s 	ON s.s_store_sk = ss.ss_store_sk
 	GROUP BY i.i_item_id, i.i_item_desc, s.s_store_id, s.s_store_name
 	CLUSTER BY item_id, item_desc, store_id, store_name
 ;

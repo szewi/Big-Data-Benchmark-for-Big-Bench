@@ -72,7 +72,7 @@ run_main_method () {
 
 	echo "======= $TABLE_PREFIX result =======" | tee -a "$LOG_FILE_NAME" 2>&1
 	echo "results in: $RESULT_DIR" | tee -a "$LOG_FILE_NAME" 2>&1
-	echo "to display: hadoop fs -ls $RESULT_DIR/*" | tee -a "$LOG_FILE_NAME" 2>&1
+	echo "to display: hadoop fs -cat $RESULT_DIR/*" | tee -a "$LOG_FILE_NAME" 2>&1
 	echo "=========================" | tee -a "$LOG_FILE_NAME" 2>&1
 
 	## append query specifc log to allInOne logfile
