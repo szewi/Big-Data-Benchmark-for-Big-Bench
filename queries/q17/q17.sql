@@ -35,7 +35,7 @@ FROM (
 	  AND s_gmt_offset  = ${hiveconf:q17_gmt_offset}
 	  AND i_category  IN (${hiveconf:q17_i_category_IN})
  	  AND d_year        = ${hiveconf:q17_year}
-       AND d_moy         = ${hiveconf:q17_month}
+	  AND d_moy         = ${hiveconf:q17_month}
 	  AND (p_channel_dmail = 'Y' OR p_channel_email = 'Y' OR p_channel_tv = 'Y')
 	 
 ) promotional_sales
@@ -53,6 +53,7 @@ JOIN (
 	  AND s_gmt_offset  = ${hiveconf:q17_gmt_offset}
 	  AND i_category  IN (${hiveconf:q17_i_category_IN})
  	  AND d_year        = ${hiveconf:q17_year}
-       AND d_moy         = ${hiveconf:q17_month}
+	  AND d_moy         = ${hiveconf:q17_month}
 ) all_sales
+-- we dont need a 'ON' join condition. result is just two numbers.
 CLUSTER BY promotions, total;

@@ -5,8 +5,6 @@
 -- Resources
 
 
-
-
 --Result  --------------------------------------------------------------------		
 --keep result human readable
 set hive.exec.compress.output=false;

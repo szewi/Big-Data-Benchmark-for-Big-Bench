@@ -1,10 +1,7 @@
 --Perform category affinity analysis for products viewed together.
 
 -- Resources
-ADD FILE ${hiveconf:QUERY_DIR}/mapper_q30.py;
 ADD FILE ${hiveconf:QUERY_DIR}/reducer_q30.py;
-ADD FILE ${hiveconf:QUERY_DIR}/mapper2_q30.py;
-ADD FILE ${hiveconf:QUERY_DIR}/reducer2_q30.py;
 --ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar; 
 
 

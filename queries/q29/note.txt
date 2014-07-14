@@ -1,4 +1,0 @@
-UNDER DEVELOPMENT
--works-
-
---USING 'python mapper_q29.py' no-op mapper TODO: we could replace the first map with a SELECT clause

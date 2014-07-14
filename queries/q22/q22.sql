@@ -5,10 +5,6 @@
 
 -- Resources
 
--- Query parameters
-set q22_date=2000-05-08;
-set q22_i_current_price_min=0.98;
-set q22_i_current_price_max=1.5;
 
 --DROP TABLE IF EXISTS q22_coalition_22;
 --CREATE TABLE q22_coalition_22 AS

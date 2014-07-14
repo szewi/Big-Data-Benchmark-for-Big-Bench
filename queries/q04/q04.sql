@@ -3,8 +3,6 @@
 --number of pages they visited during their sessions.
 
 -- Resources
-ADD FILE ${hiveconf:QUERY_DIR}/q4_mapper1.py;
-ADD FILE ${hiveconf:QUERY_DIR}/q4_mapper2.py;
 ADD FILE ${hiveconf:QUERY_DIR}/q4_reducer1.py;
 ADD FILE ${hiveconf:QUERY_DIR}/q4_reducer2.py;
 

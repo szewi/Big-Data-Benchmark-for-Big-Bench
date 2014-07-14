@@ -4,8 +4,6 @@
 --the online reviews for these items to see if there are any major negative reviews.
 
 -- Resources
---ADD FILE ${hiveconf:QUERY_DIR}/mapper_19.py;
---ADD FILE ${hiveconf:QUERY_DIR}/reducer_19.py;
 
 
 

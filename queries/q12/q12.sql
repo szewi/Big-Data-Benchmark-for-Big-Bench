@@ -5,8 +5,6 @@
 -- Resources
 
 
-
-
 --1)
 DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE1};
 CREATE VIEW IF NOT EXISTS ${hiveconf:TEMP_TABLE1} AS
@@ -63,7 +61,8 @@ AS
 SELECT c_date, s_date, s.uid
 FROM ${hiveconf:TEMP_TABLE1} c 
 JOIN ${hiveconf:TEMP_TABLE2} s ON c.uid = s.uid
-WHERE c.c_date < s.s_date;
+WHERE c.c_date < s.s_date
+;
 
 --TODO: have to fix partition
 

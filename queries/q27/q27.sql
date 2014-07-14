@@ -3,11 +3,6 @@
 
 -- Resources
 ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
-
-
-
--- Result file configuration
-
 CREATE TEMPORARY FUNCTION find_company AS 'de.bankmark.bigbench.queries.q27.CompanyUDF';
 
 --Result  --------------------------------------------------------------------		
