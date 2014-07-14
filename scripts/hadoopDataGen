@@ -40,7 +40,8 @@ exechadoopDataGen () {
 	echo "==============================================="
 	echo "Deleting any previously generated data."
 	echo "==============================================="
-	"${BIG_BENCH_BASH_SCRIPT_DIR}/bigBenchCleanData.sh"
+	#"${BIG_BENCH_BASH_SCRIPT_DIR}/bigBenchCleanData.sh"
+	"${BIG_BENCH_BASH_SCRIPT_DIR}/bigBench" cleanData
 	echo "OK"
 	echo "==============================================="
 	echo "make hdfs benchmark data dir: "${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}

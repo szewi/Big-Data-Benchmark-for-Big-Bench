@@ -13,93 +13,12 @@ fi
 # write environment information into logfile
 logEnvInformation
 
-runBigBenchModule () {
-	local MODULE_NAME="$1"
-	shift
-
-	local MODULE="$BIG_BENCH_BASH_SCRIPT_DIR/$MODULE_NAME"
-	if [ -f "$MODULE" ]
+runHiveCmd () {
+	if [ "$BINARY" = "$SHARK_BINARY" ]
 	then
-		source "$MODULE"
-	else
-		echo "Module $MODULE not found, aborting script."
-		exit 1
+		local HIVE_PARAMS="-skipRddReload $HIVE_PARAMS"
 	fi
-
-	# check if the run method was implemented properly
-	local RUN_METHOD="exec$MODULE_NAME"
-	if ! declare -F "$RUN_METHOD" > /dev/null 2>&1
-	then
-		echo "$RUN_METHOD was not implemented, aborting script"
-		exit 1
-	fi
-
-	# run module
-	"$RUN_METHOD" "$@"
-}
-
-parseCmdLine () {
-	local OPT
-	local OPTIND
-
-	# parse command line arguments
-	while getopts ":q:b:y:z:p:s:d:" OPT; do
-		case "$OPT" in
-			q)
-				#echo "-q was triggered, Parameter: $OPTARG" >&2
-				QUERY_NUMBER="$OPTARG"
-			;;
-			b)
-				#echo "-b was triggered, Parameter: $OPTARG" >&2
-				case "$OPTARG" in
-					"$HIVE_BINARY_TYPE")
-						USER_BINARY="$HIVE_BINARY"
-						;;
-					"$SHARK_BINARY_TYPE")
-						USER_BINARY="$SHARK_BINARY"
-					;;
-					*)
-						echo "binary must be $HIVE_BINARY_TYPE or $SHARK_BINARY_TYPE"
-						exit 1
-					;;
-				esac
-			;;
-			y)
-				#echo "-y was triggered, Parameter: $OPTARG" >&2
-				USER_QUERY_PARAMS_FILE="$OPTARG"
-			;;
-			z)
-				#echo "-z was triggered, Parameter: $OPTARG" >&2
-				USER_HIVE_SETTINGS_FILE="$OPTARG"
-			;;
-			p)
-				#echo "-p was triggered, Parameter: $OPTARG" >&2
-				USER_BENCHMARK_PHASE="$OPTARG"
-			;;
-			s)
-				#echo "-s was triggered, Parameter: $OPTARG" >&2
-				USER_STREAM_NUMBER="$OPTARG"
-			;;
-			#t)
-				#echo "-t was triggered, Parameter: $OPTARG" >&2
-				#USER_NUMBER_OF_PARALLEL_STREAMS="$OPTARG"
-			#;;
-			d)
-				#echo "-d was triggered, Parameter: $OPTARG" >&2
-				DEBUG_QUERY_PART="$OPTARG"
-			;;
-			\?)
-				echo "Invalid option: -$OPTARG" >&2
-				exit 1
-			;;
-			:)
-				echo "Option -$OPTARG requires an argument." >&2
-				exit 1
-			;;
-		esac
-	done
-	shift $((OPTIND-1))
-	REMAINING_USER_ARGS="$@"
+	"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" "$@"
 }
 
 buildCombinedParamsFile () {
@@ -202,6 +121,16 @@ initQueryEnv () {
 
 	LOG_FILE_NAME="$BIG_BENCH_LOGS_DIR/${TABLE_PREFIX}.log"
 
+	#echo "set BENCHMARK_PHASE=\"$BENCHMARK_PHASE\";" >> "$COMBINED_PARAMS_FILE"
+	#echo "set STREAM_NUMBER=\"$STREAM_NUMBER\";" >> "$COMBINED_PARAMS_FILE"
+	#echo "set QUERY_NAME=\"$QUERY_NAME\";" >> "$COMBINED_PARAMS_FILE"
+	#echo "set QUERY_DIR=\"$QUERY_DIR\";" >> "$COMBINED_PARAMS_FILE"
+	#echo "set RESULT_TABLE=\"$RESULT_TABLE\";" >> "$COMBINED_PARAMS_FILE"
+	#echo "set RESULT_DIR=\"$RESULT_DIR\";" >> "$COMBINED_PARAMS_FILE"
+	#echo "set TEMP_TABLE=\"$TEMP_TABLE\";" >> "$COMBINED_PARAMS_FILE"
+	#echo "set TEMP_DIR=\"$TEMP_DIR\";" >> "$COMBINED_PARAMS_FILE"
+	#echo "set TABLE_PREFIX=\"$TABLE_PREFIX\";" >> "$COMBINED_PARAMS_FILE"
+
 	HIVE_PARAMS="$HIVE_PARAMS -hiveconf BENCHMARK_PHASE=$BENCHMARK_PHASE -hiveconf STREAM_NUMBER=$STREAM_NUMBER -hiveconf QUERY_NAME=$QUERY_NAME -hiveconf QUERY_DIR=$QUERY_DIR -hiveconf RESULT_TABLE=$RESULT_TABLE -hiveconf RESULT_DIR=$RESULT_DIR -hiveconf TEMP_TABLE=$TEMP_TABLE -hiveconf TEMP_DIR=$TEMP_DIR -hiveconf TABLE_PREFIX=$TABLE_PREFIX"
 
 	# source run.sh as late as possible to allow run.sh to use all above defined variables
@@ -231,13 +160,71 @@ initQueryEnv () {
 	fi
 }
 
-# parseCmdLine uses them, so define them before calling the function
 HIVE_BINARY_TYPE="hive"
 SHARK_BINARY_TYPE="shark"
 
 COMBINED_PARAMS_FILE="`mktemp`"
 
-parseCmdLine "$@"
+# parse command line arguments
+while getopts ":q:b:y:z:p:s:d:" OPT; do
+	case "$OPT" in
+		q)
+			#echo "-q was triggered, Parameter: $OPTARG" >&2
+			QUERY_NUMBER="$OPTARG"
+		;;
+		b)
+			#echo "-b was triggered, Parameter: $OPTARG" >&2
+			case "$OPTARG" in
+				"$HIVE_BINARY_TYPE")
+					USER_BINARY="$HIVE_BINARY"
+					;;
+				"$SHARK_BINARY_TYPE")
+					USER_BINARY="$SHARK_BINARY"
+				;;
+				*)
+					echo "binary must be $HIVE_BINARY_TYPE or $SHARK_BINARY_TYPE"
+					exit 1
+				;;
+			esac
+		;;
+		y)
+			#echo "-y was triggered, Parameter: $OPTARG" >&2
+			USER_QUERY_PARAMS_FILE="$OPTARG"
+		;;
+		z)
+			#echo "-z was triggered, Parameter: $OPTARG" >&2
+			USER_HIVE_SETTINGS_FILE="$OPTARG"
+		;;
+		p)
+			#echo "-p was triggered, Parameter: $OPTARG" >&2
+			USER_BENCHMARK_PHASE="$OPTARG"
+		;;
+		s)
+			#echo "-s was triggered, Parameter: $OPTARG" >&2
+			USER_STREAM_NUMBER="$OPTARG"
+		;;
+		t)
+			#echo "-t was triggered, Parameter: $OPTARG" >&2
+			USER_NUMBER_OF_PARALLEL_STREAMS="$OPTARG"
+		;;
+		d)
+			#echo "-d was triggered, Parameter: $OPTARG" >&2
+			DEBUG_QUERY_PART="$OPTARG"
+		;;
+		\?)
+			echo "Invalid option: -$OPTARG" >&2
+			exit 1
+		;;
+		:)
+			echo "Option -$OPTARG requires an argument." >&2
+			exit 1
+	;;
+	esac
+	LIST_OF_USER_OPTIONS="$LIST_OF_USER_OPTIONS -$OPT $OPTARG"
+done
+shift $((OPTIND-1))
+MODULE_NAME="$1"
+shift
 
 # global shared variables
 GLOBAL_QUERY_PARAMS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/queryParameters.sql"
@@ -245,7 +232,7 @@ GLOBAL_HIVE_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/hiveSettings.sql"
 GLOBAL_SHARK_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/sharkSettings.sql"
 GLOBAL_BENCHMARK_PHASE="RUN_QUERY"
 GLOBAL_STREAM_NUMBER="0"
-#GLOBAL_NUMBER_OF_PARALLEL_STREAMS="1"
+GLOBAL_NUMBER_OF_PARALLEL_STREAMS="1"
 
 BINARY="${USER_BINARY:-$DEFAULT_BINARY}"
 if [ "$BINARY" = "$HIVE_BINARY" ]
@@ -259,10 +246,28 @@ fi
 
 BENCHMARK_PHASE="${USER_BENCHMARK_PHASE:-$GLOBAL_BENCHMARK_PHASE}"
 STREAM_NUMBER="${USER_STREAM_NUMBER:-$GLOBAL_STREAM_NUMBER}"
-#NUMBER_OF_PARALLEL_STREAMS="${USER_NUMBER_OF_PARALLEL_STREAMS:-$GLOBAL_NUMBER_OF_PARALLEL_STREAMS}"
+NUMBER_OF_PARALLEL_STREAMS="${USER_NUMBER_OF_PARALLEL_STREAMS:-$GLOBAL_NUMBER_OF_PARALLEL_STREAMS}"
 
 buildCombinedParamsFile
 
-runBigBenchModule "$REMAINING_USER_ARGS"
+MODULE="$BIG_BENCH_BASH_SCRIPT_DIR/$MODULE_NAME"
+if [ -f "$MODULE" ]
+then
+	source "$MODULE"
+else
+	echo "Module $MODULE not found, aborting script."
+	exit 1
+fi
+
+# check if the run method was implemented properly
+RUN_METHOD="exec$MODULE_NAME"
+if ! declare -F "$RUN_METHOD" > /dev/null 2>&1
+then
+	echo "$RUN_METHOD was not implemented, aborting script"
+	exit 1
+fi
+
+# run module
+"$RUN_METHOD" "$@"
 
 rm -rf "$COMBINED_PARAMS_FILE"

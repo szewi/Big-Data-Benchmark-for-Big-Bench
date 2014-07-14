@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+execrunQueryInParallel () {
+	if [ -n "$USER_STREAM_NUMBER" ]
+	then
+		echo "The stream number must not be set by the user."
+		exit 1
+	fi
+
+	for (( i = 0; i < $NUMBER_OF_PARALLEL_STREAMS; i++ ))
+	do
+		"$BIG_BENCH_BASH_SCRIPT_DIR/bigBench" $LIST_OF_USER_OPTIONS -s $i runQuery &
+	done
+	wait
+}

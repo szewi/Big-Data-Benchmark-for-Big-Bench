@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-execrunHiveCmd () {
-	if [ "$BINARY" = "$SHARK_BINARY" ]
-	then
-		local SHARK_PARAMS="-skipRddReload"
-	fi
-	"$BINARY" $SHARK_PARAMS $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" "$@"
-}
