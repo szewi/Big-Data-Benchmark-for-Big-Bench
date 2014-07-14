@@ -4,8 +4,6 @@
 
 -- Resources
 
--- Query parameters 
-set q23_month=1;
 
 --- RESULT PART 1--------------------------------------
 --keep result human readable
