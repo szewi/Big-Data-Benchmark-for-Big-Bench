@@ -166,12 +166,8 @@ SHARK_BINARY_TYPE="shark"
 COMBINED_PARAMS_FILE="`mktemp`"
 
 # parse command line arguments
-while getopts ":q:b:y:z:p:s:t:d:" OPT; do
+while getopts ":b:d:f:m:p:q:s:t:y:z:" OPT; do
 	case "$OPT" in
-		q)
-			#echo "-q was triggered, Parameter: $OPTARG" >&2
-			QUERY_NUMBER="$OPTARG"
-		;;
 		b)
 			#echo "-b was triggered, Parameter: $OPTARG" >&2
 			case "$OPTARG" in
@@ -187,17 +183,25 @@ while getopts ":q:b:y:z:p:s:t:d:" OPT; do
 				;;
 			esac
 		;;
-		y)
-			#echo "-y was triggered, Parameter: $OPTARG" >&2
-			USER_QUERY_PARAMS_FILE="$OPTARG"
+		d)
+			#echo "-d was triggered, Parameter: $OPTARG" >&2
+			DEBUG_QUERY_PART="$OPTARG"
 		;;
-		z)
-			#echo "-z was triggered, Parameter: $OPTARG" >&2
-			USER_HIVE_SETTINGS_FILE="$OPTARG"
+		f)
+			#echo "-f was triggered, Parameter: $OPTARG" >&2
+			SCALE_FACTOR="$OPTARG"
+		;;
+		m)
+			#echo "-m was triggered, Parameter: $OPTARG" >&2
+			MAP_TASKS="$OPTARG"
 		;;
 		p)
 			#echo "-p was triggered, Parameter: $OPTARG" >&2
 			USER_BENCHMARK_PHASE="$OPTARG"
+		;;
+		q)
+			#echo "-q was triggered, Parameter: $OPTARG" >&2
+			QUERY_NUMBER="$OPTARG"
 		;;
 		s)
 			#echo "-t was triggered, Parameter: $OPTARG" >&2
@@ -207,9 +211,13 @@ while getopts ":q:b:y:z:p:s:t:d:" OPT; do
 			#echo "-s was triggered, Parameter: $OPTARG" >&2
 			USER_STREAM_NUMBER="$OPTARG"
 		;;
-		d)
-			#echo "-d was triggered, Parameter: $OPTARG" >&2
-			DEBUG_QUERY_PART="$OPTARG"
+		y)
+			#echo "-y was triggered, Parameter: $OPTARG" >&2
+			USER_QUERY_PARAMS_FILE="$OPTARG"
+		;;
+		z)
+			#echo "-z was triggered, Parameter: $OPTARG" >&2
+			USER_HIVE_SETTINGS_FILE="$OPTARG"
 		;;
 		\?)
 			echo "Invalid option: -$OPTARG" >&2

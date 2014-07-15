@@ -2,23 +2,27 @@
 
 exechadoopDataGen () {
 	# extract options and their arguments into variables.
-	echo "USAGE: -mapTasks <number> -sf <number>  (SF: scalingFactor 1==1GB, 10==10GB, .. , 1000=1TB, etc. Location of generated data can be set in /setEnvVars configuration file  with the BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR property)"
-		case "$1" in
-			-mapTasks)
-				case "$2" in
-					"") echo "Error parsing args. Expected a number after -mapTasks" ; exit 1 ;;
-					-*) echo "Error parsing args. Expected a number after -mapTasks" ; exit 1 ;;
-					*) HadoopClusterExecOptions="-mapTasks $2" ; shift 2 ;;
-				esac ;;
-			*) echo "Error parsing args. Expected '-mapTasks <number>' as first argument " ; exit 1 ;;
-		esac
+	#echo "USAGE: -mapTasks <number> -sf <number>  (SF: scalingFactor 1==1GB, 10==10GB, .. , 1000=1TB, etc. Location of generated data can be set in /setEnvVars configuration file  with the BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR property)"
 
-	echo "PDGFOptions: $@"
+	if [ -z "$MAP_TASKS" ]
+	then
+		echo "The number of map tasks is a required option"
+		exit 1
+	fi
+
+	local HadoopClusterExecOptions="-mapTasks $MAP_TASKS"
+
+	if [ -n "$SCALE_FACTOR" ]
+	then
+		local PDGF_OPTIONS="-sf $SCALE_FACTOR"
+	fi
+
+	echo "PDGFOptions: $PDGF_OPTIONS $@"
 	echo "HadoopClusterExecOptions: $HadoopClusterExecOptions"
 
-	PDGF_ARCHIVE_NAME="pdgfEnvironment.tar"
-	PDGF_DISTRIBUTED_NODE_DIR="$PDGF_ARCHIVE_NAME/data-generator/"
-	PDGF_ARCHIVE_PATH="$BIG_BENCH_HOME/$PDGF_ARCHIVE_NAME"
+	local PDGF_ARCHIVE_NAME="pdgfEnvironment.tar"
+	local PDGF_DISTRIBUTED_NODE_DIR="$PDGF_ARCHIVE_NAME/data-generator/"
+	local PDGF_ARCHIVE_PATH="$BIG_BENCH_HOME/$PDGF_ARCHIVE_NAME"
 
 	if grep -q "IS_EULA_ACCEPTED=true" "$BIG_BENCH_DATA_GENERATOR_DIR/Constants.properties"; then
 		echo "EULA is accepted"
@@ -80,18 +84,18 @@ exechadoopDataGen () {
 	echo "Temporary result data in hdfs: ${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR} (you can change the data generation target folder in  the /setEnvVars configuration file with the BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR property)"
 	echo "logs: ${BIG_BENCH_DATAGEN_STAGE_LOG}"
 	echo "==============================================="
-	HADOOP_CP=`hadoop classpath`
+	local HADOOP_CP=`hadoop classpath`
 	echo "HADOOP CLASSPATH: "$HADOOP_CP
 
-	PDGF_CLUSTER_CONF="-Dpdgf.log.folder=/tmp/pdgfLog/HadoopClusterExec.taskNumber -Dcore-site.xml=${BIG_BENCH_DATAGEN_CORE_SITE} -Dhdfs-site.xml=${BIG_BENCH_DATAGEN_HDFS_SITE} -Djava.library.path=${BIG_BENCH_HADOOP_LIBS_NATIVE} -DFileChannelProvider=pdgf.util.caching.fileWriter.HDFSChannelProvider -Ddfs.replication.override=${BIG_BENCH_DATAGEN_DFS_REPLICATION} "
+	local PDGF_CLUSTER_CONF="-Dpdgf.log.folder=/tmp/pdgfLog/HadoopClusterExec.taskNumber -Dcore-site.xml=${BIG_BENCH_DATAGEN_CORE_SITE} -Dhdfs-site.xml=${BIG_BENCH_DATAGEN_HDFS_SITE} -Djava.library.path=${BIG_BENCH_HADOOP_LIBS_NATIVE} -DFileChannelProvider=pdgf.util.caching.fileWriter.HDFSChannelProvider -Ddfs.replication.override=${BIG_BENCH_DATAGEN_DFS_REPLICATION} "
 	echo "PDGF_CLUSTER_CONF: $PDGF_CLUSTER_CONF"
 
 	echo "create $BIG_BENCH_LOGS_DIR folder"
 	mkdir -p "$BIG_BENCH_LOGS_DIR"
 
-	echo hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" -archives  "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec java ${BIG_BENCH_HADOOP_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks  -nn HadoopClusterExec.taskNumber -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIGBENCH_TABLES} "$@" 
+	echo hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" -archives  "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec java ${BIG_BENCH_HADOOP_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks  -nn HadoopClusterExec.taskNumber -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIGBENCH_TABLES} ${PDGF_OPTIONS} "$@"
 
-	time (hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" -archives  "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec java ${BIG_BENCH_HADOOP_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks  -nn HadoopClusterExec.taskNumber -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIGBENCH_TABLES} "$@"  ; echo  "======= Generating data time =========") > >(tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG") 2>&1 
+	time (hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" -archives  "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec java ${BIG_BENCH_HADOOP_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks  -nn HadoopClusterExec.taskNumber -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIGBENCH_TABLES} ${PDGF_OPTIONS} "$@" ; echo  "======= Generating data time =========") > >(tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG") 2>&1
 	rc=$?
 	if [[ $rc != 0 ]] ; then
 		echo "Error executing data generation job"
@@ -105,7 +109,5 @@ exechadoopDataGen () {
 	echo "Hadoop data generation job finished. "
 	echo "logs: ${BIG_BENCH_DATAGEN_STAGE_LOG}"
 	echo "View generated files: hadoop fs -ls ${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
-	echo "You may start loading the generated tables into HIVE using the script:"
-	echo " bigBenchPopulateHive.sh"
 	echo "==============================================="
 }
