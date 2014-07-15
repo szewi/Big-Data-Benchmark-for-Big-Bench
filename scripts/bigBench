@@ -200,12 +200,12 @@ while getopts ":q:b:y:z:p:s:t:d:" OPT; do
 			USER_BENCHMARK_PHASE="$OPTARG"
 		;;
 		s)
-			#echo "-s was triggered, Parameter: $OPTARG" >&2
-			USER_STREAM_NUMBER="$OPTARG"
-		;;
-		t)
 			#echo "-t was triggered, Parameter: $OPTARG" >&2
 			USER_NUMBER_OF_PARALLEL_STREAMS="$OPTARG"
+		;;
+		t)
+			#echo "-s was triggered, Parameter: $OPTARG" >&2
+			USER_STREAM_NUMBER="$OPTARG"
 		;;
 		d)
 			#echo "-d was triggered, Parameter: $OPTARG" >&2
