@@ -51,7 +51,7 @@ BIG_BENCH_DATAGEN_JVM_ENV          -Xmx750m is sufficient for Nodes with 2 CPU c
 
 The BigBench driver is started with a script. To show all available options, you can call the help first:
 ```
-"$INSTALL_DIR/scripts/bigBenchRunBenchmark.sh -h
+"$INSTALL_DIR/scripts/bigBench runBenchmark -h
 ```
 
 The driver needs some additional arguments, depending on which tasks should be done:
@@ -61,7 +61,7 @@ The driver needs some additional arguments, depending on which tasks should be d
 
 So a complete benchmark run with all stages can be done by running (e.g., 4 map tasks, scale factor 100, 2 streams):
 ```
-"$INSTALL_DIR/scripts/bigBenchRunBenchmark.sh -mt 4 -sf 100 -s 2
+"$INSTALL_DIR/scripts/bigBench runBenchmark -m 4 -f 100 -s 2
 ```
 
 The driver can skip certain stages of the benchmark (see -h help option for details), but if any part of the benchmarked tests (load, power, throughtput) is skipped, no result can be computed.
@@ -212,7 +212,7 @@ PDGF:> q
 ```
 ### Hadoop based Data generation is now available, unless you have specific need to use shared folder approach, We prefer you to use Hadoop jobs to generate data. 
 
-$/Big-Bench/scripts/bigBenchHadoopDataGen.sh -mapTasks 500 -sf 500 ## We have considered the number of containers on the cluster to decide how many map tasks. -sf 500=500GB of data, for 1TB provide sf will be 1000
+$/Big-Bench/scripts/bigBench -m 500 -f 500 hadoopDataGen ## We have considered the number of containers on the cluster to decide how many map tasks. -sf 500=500GB of data, for 1TB provide sf will be 1000
 
 ## If you decide to generate data non-hadoop way, follow below instructions.
 
@@ -236,9 +236,9 @@ PDGF:> q
 ### Distributed generation
 To generate data on the cluster nodes, run this command:
 
-`$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchClusterDataGen.sh`
+`$BIG_BENCH_BASH_SCRIPT_DIR/bigBench clusterDataGen`
 
-**Important:** default settings assume 2 cores per compute node! (small amazon ec2 instance). If you start the bigBenchClusterDataGen on bigger machiens you will run into a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error. To Avoid this, please adapt setEnvVars -> BIG_BENCH_DATAGEN_JVM_ENV if you have compute nodes with more CPU cores. In this case remove the argument: `-Xmx750m` 
+**Important:** default settings assume 2 cores per compute node! (small amazon ec2 instance). If you start the bigBench clusterDataGen on bigger machines you will run into a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error. To Avoid this, please adapt setEnvVars -> BIG_BENCH_DATAGEN_JVM_ENV if you have compute nodes with more CPU cores. In this case remove the argument: `-Xmx750m` 
 
 The data are being generated directly into HDFS (into the benchmarks/bigbench/data/ directory, absolute HDFS path is /user/ec2-user/benchmarks/bigbench/data/).
 
@@ -247,24 +247,24 @@ Default HDFS replication count is 1 (data is onyl stored on the generating node)
 
 ### Hive Population 
 Hive must create its own metadata to be able to access the generated data. 
-Hive population is done after the data generation with `bigBenchPopulateHive.sh`:
+Hive population is done after the data generation with `bigBench populateMetastore`:
 
-`$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchPopulateHive.sh`
+`$BIG_BENCH_BASH_SCRIPT_DIR/bigBench populateMetastore`
 
 In case you want/must renew the hive tables, simply run the command again.
 
 ## Run Queries
 Run all queries sequentially:
 
-`$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchRunQueries.sh`
+`$BIG_BENCH_BASH_SCRIPT_DIR/bigBench runQueries`
 
 Run one specific query with this command:
 
-`$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchRunQuery.sh <querNum>`
+`$BIG_BENCH_BASH_SCRIPT_DIR/bigBench -q <query number> runQuery`
 
 e.g:
 
-`$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchRunQuery.sh 1`
+`$BIG_BENCH_BASH_SCRIPT_DIR/bigBench -q 1 runQuery`
 
 ## Some Helpers
 **during setup of setEnvVars**
@@ -301,7 +301,7 @@ How to mount hdfs? execute or take a look at:
 
 **during query execution**
 
-suspect something went wrong? the bigBenchRunQuery.sh and bigBenchRunQueries.sh scripts write logs to:
+suspect something went wrong? the scripts write logs to:
 
 `$BIG_BENCH_LOGS_DIR`
 

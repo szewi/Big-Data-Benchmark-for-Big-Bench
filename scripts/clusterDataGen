@@ -31,7 +31,6 @@ execclusterDataGen () {
 	echo "==============================================="
 	echo "Deleting any previously generated data, results and logs."
 	echo "==============================================="
-	#"${BIG_BENCH_BASH_SCRIPT_DIR}/bigBenchCleanData.sh"
 	"${BIG_BENCH_BASH_SCRIPT_DIR}/bigBench" cleanData
 	echo "OK"
 	echo "==============================================="
