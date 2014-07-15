@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 execshowErrors () {
-	if [-z "$QUERY_NAME" ]
+	if [ -z "$QUERY_NAME" ]
 	then
 		ERRLOG_FILE_NAME="$BIG_BENCH_LOGS_DIR/queryErrors.log"
 
