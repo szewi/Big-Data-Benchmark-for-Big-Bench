@@ -165,26 +165,11 @@ initQueryEnv () {
 	return 0
 }
 
-HIVE_BINARY_TYPE="hive"
-SHARK_BINARY_TYPE="shark"
-
 # parse command line arguments
 while getopts ":b:d:f:hm:p:q:s:t:y:z:" OPT; do
 	case "$OPT" in
 		b)
-			#echo "-b was triggered, Parameter: $OPTARG" >&2
-			case "$OPTARG" in
-				"$HIVE_BINARY_TYPE")
-					USER_BINARY="$HIVE_BINARY"
-					;;
-				"$SHARK_BINARY_TYPE")
-					USER_BINARY="$SHARK_BINARY"
-				;;
-				*)
-					echo "binary must be $HIVE_BINARY_TYPE or $SHARK_BINARY_TYPE"
-					exit 1
-				;;
-			esac
+			USER_BINARY_TYPE="$OPTARG"
 		;;
 		d)
 			#echo "-d was triggered, Parameter: $OPTARG" >&2
@@ -268,21 +253,34 @@ shift
 
 # global shared variables
 GLOBAL_QUERY_PARAMS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/queryParameters.sql"
-GLOBAL_HIVE_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/hiveSettings.sql"
-GLOBAL_SHARK_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/sharkSettings.sql"
 GLOBAL_BENCHMARK_PHASE="RUN_QUERY"
 GLOBAL_STREAM_NUMBER="0"
 GLOBAL_NUMBER_OF_PARALLEL_STREAMS="1"
 
-BINARY="${USER_BINARY:-$DEFAULT_BINARY}"
-if [ "$BINARY" = "$HIVE_BINARY" ]
-then
-	BINARY_TYPE="$HIVE_BINARY_TYPE"
-	GLOBAL_SETTINGS_FILE="$GLOBAL_HIVE_SETTINGS_FILE"
-else
-	BINARY_TYPE="$SHARK_BINARY_TYPE"
-	GLOBAL_SETTINGS_FILE="$GLOBAL_SHARK_SETTINGS_FILE"
-fi
+# set the binary to use according to the user input
+case "$USER_BINARY_TYPE" in
+	"hive")
+		BINARY="$HIVE_BINARY"
+	;;
+	"shark")
+		BINARY="$SHARK_BINARY"
+	;;
+	"")
+		BINARY="$DEFAULT_BINARY"
+	;;
+esac
+
+# set other variables for the chosen binary
+case "$BINARY" in
+	"$HIVE_BINARY")
+		GLOBAL_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/hiveSettings.sql"
+		GLOBAL_POPULATE_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/hiveCreateLoadORC.sql"
+	;;
+	"$SHARK_BINARY")
+		GLOBAL_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/sharkSettings.sql"
+		GLOBAL_POPULATE_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/hiveCreateLoadPARQUET.sql"
+	;;
+esac
 
 BENCHMARK_PHASE="${USER_BENCHMARK_PHASE:-$GLOBAL_BENCHMARK_PHASE}"
 STREAM_NUMBER="${USER_STREAM_NUMBER:-$GLOBAL_STREAM_NUMBER}"

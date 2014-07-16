@@ -2,7 +2,7 @@
 
 populateMetastore () {
 	#"$BIG_BENCH_BASH_SCRIPT_DIR/bigBench" $LIST_OF_USER_OPTIONS cleanMetastore
-	runHiveCmd -f "${BIG_BENCH_HIVE_SCRIPT_DIR}/hiveCreateLoadORC.sql"
+	runHiveCmd -f "$GLOBAL_POPULATE_FILE"
 
 	hadoop fs -mkdir -p "$BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR" &
 	hadoop fs -mkdir -p "$BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR" &

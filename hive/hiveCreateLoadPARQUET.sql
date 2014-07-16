@@ -30,7 +30,34 @@ set marketPricesTableName=item_marketprices;
 set clickstreamsTableName=web_clickstreams;
 set reviewsTableName=product_reviews;
 
- CREATE EXTERNAL TABLE ${hiveconf:customerDemographicsTableName}
+!echo drop temp tables;
+DROP TABLE IF EXISTS ${hiveconf:customerTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:customerAddressTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:customerDemographicsTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:dateTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:householdDemographicsTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:incomeTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:itemTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:promotionTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:reasonTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:shipModeTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:storeTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:timeTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:warehouseTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:webSiteTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:webPageTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:inventoryTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:storeSalesTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:storeReturnsTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:webSalesTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:webReturnsTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:marketPricesTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:clickstreamsTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:reviewsTableName}_textFormat;
+
+
+!echo Create table: ${hiveconf:customerDemographicsTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:customerDemographicsTableName}_textFormat
   ( cd_demo_sk                bigint                ----not null
   , cd_gender                 string
   , cd_marital_status         string
@@ -41,14 +68,14 @@ set reviewsTableName=product_reviews;
   , cd_dep_employed_count     int
   , cd_dep_college_count      int
 
-  ----, primary key (cd_demo_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:customerDemographicsTableName}'
- --distribute by replication;
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:dateTableName}
+
+!echo Create table: ${hiveconf:dateTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:dateTableName}_textFormat
   ( d_date_sk                 bigint              --not null
   , d_date_id                 string              --not null
   , d_date                    string
@@ -77,15 +104,14 @@ set reviewsTableName=product_reviews;
   , d_current_month           string
   , d_current_quarter         string
   , d_current_year            string
-
-  --, primary key (d_date_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:dateTableName}'
- --distribute by replication;
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:warehouseTableName}
+
+!echo Create table: ${hiveconf:warehouseTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:warehouseTableName}_textFormat
   ( w_warehouse_sk            bigint              --not null
   , w_warehouse_id            string              --not null
   , w_warehouse_name          string
@@ -100,15 +126,14 @@ set reviewsTableName=product_reviews;
   , w_zip                     string
   , w_country                 string
   , w_gmt_offset              double
-
-  --, primary key (w_warehouse_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:warehouseTableName}'
- --distribute by replication;
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:shipModeTableName}
+
+!echo Create table: ${hiveconf:shipModeTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:shipModeTableName}_textFormat
   ( sm_ship_mode_sk           bigint              --not null
   , sm_ship_mode_id           string              --not null
   , sm_type                   string
@@ -116,14 +141,14 @@ set reviewsTableName=product_reviews;
   , sm_carrier                string
   , sm_contract               string
 
-  --, primary key (sm_ship_mode_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:shipModeTableName}'
- --distribute by replication;
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:timeTableName}
+
+!echo Create table: ${hiveconf:timeTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:timeTableName}_textFormat
   ( t_time_sk                 bigint              --not null
   , t_time_id                 string              --not null
   , t_time                    int
@@ -134,39 +159,34 @@ set reviewsTableName=product_reviews;
   , t_shift                   string
   , t_sub_shift               string
   , t_meal_time               string
-
-  --, primary key (t_time_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:timeTableName}'
- --distribute by replication;
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:reasonTableName}
+
+!echo Create table: ${hiveconf:reasonTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:reasonTableName}_textFormat
   ( r_reason_sk               bigint              --not null
   , r_reason_id               string              --not null
   , r_reason_desc             string
-
-  --, primary key (r_reason_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:reasonTableName}'
- --distribute by replication;
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:incomeTableName}
+!echo Create table: ${hiveconf:incomeTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:incomeTableName}_textFormat
   ( ib_income_band_sk         bigint              --not null
   , ib_lower_bound            int
   , ib_upper_bound            int
-
-  --, primary key (ib_income_band_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:incomeTableName}'
- --distribute by replication;
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:storeTableName}
+!echo Create table: ${hiveconf:storeTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:storeTableName}_textFormat
   ( s_store_sk                bigint              --not null
   , s_store_id                string              --not null
   , s_rec_start_date          string
@@ -196,15 +216,13 @@ set reviewsTableName=product_reviews;
   , s_country                 string
   , s_gmt_offset              double
   , s_tax_precentage          double
-
-  --, primary key (s_store_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:storeTableName}'
- --distribute by replication;
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:webSiteTableName}
+!echo Create table: ${hiveconf:webSiteTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:webSiteTableName}_textFormat
   ( web_site_sk               bigint              --not null
   , web_site_id               string              --not null
   , web_rec_start_date        string
@@ -231,29 +249,27 @@ set reviewsTableName=product_reviews;
   , web_country               string
   , web_gmt_offset            double
   , web_tax_percentage        double
-
-  --, primary key (web_site_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:webSiteTableName}'
- --distribute by replication;
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:householdDemographicsTableName}
+
+!echo Create table: ${hiveconf:householdDemographicsTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:householdDemographicsTableName}_textFormat
   ( hd_demo_sk                bigint                --not null
   , hd_income_band_sk         bigint
   , hd_buy_potential          string
   , hd_dep_count              int
   , hd_vehicle_count          int
-
-  --, primary key (hd_demo_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:householdDemographicsTableName}'
- --distribute by replication;
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:webPageTableName}
+
+!echo Create table: ${hiveconf:webPageTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:webPageTableName}_textFormat
   ( wp_web_page_sk            bigint              --not null
   , wp_web_page_id            string              --not null
   , wp_rec_start_date         string
@@ -268,15 +284,14 @@ set reviewsTableName=product_reviews;
   , wp_link_count             int
   , wp_image_count            int
   , wp_max_ad_count           int
-
-  --, primary key (wp_web_page_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:webPageTableName}'
- --distribute by replication;
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:promotionTableName}
+
+!echo Create table: ${hiveconf:promotionTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:promotionTableName}_textFormat
   ( p_promo_sk                bigint              --not null
   , p_promo_id                string              --not null
   , p_start_date_sk           bigint
@@ -296,15 +311,14 @@ set reviewsTableName=product_reviews;
   , p_channel_details         string
   , p_purpose                 string
   , p_discount_active         string
-
-  --, primary key (p_promo_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:promotionTableName}'
- --distribute by replication;
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:customerTableName}
+
+!echo Create table: ${hiveconf:customerTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:customerTableName}_textFormat
   ( c_customer_sk             bigint              --not null
   , c_customer_id             string              --not null
   , c_current_cdemo_sk        bigint
@@ -323,15 +337,14 @@ set reviewsTableName=product_reviews;
   , c_login                   string
   , c_email_address           string
   , c_last_review_date        string
-
-  --, primary key (c_customer_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:customerTableName}'
-  ----distribute by hash (c_customer_sk)
   ;
 
- CREATE EXTERNAL TABLE ${hiveconf:customerAddressTableName}
+
+!echo Create table: ${hiveconf:customerAddressTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:customerAddressTableName}_textFormat
   ( ca_address_sk             bigint              --not null
   , ca_address_id             string              --not null
   , ca_street_number          string
@@ -345,15 +358,14 @@ set reviewsTableName=product_reviews;
   , ca_country                string
   , ca_gmt_offset             double
   , ca_location_type          string
-
-  --, primary key (ca_address_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:customerAddressTableName}'
-  --distribute by hash (ca_address_sk)
   ;
 
- CREATE EXTERNAL TABLE ${hiveconf:inventoryTableName}
+
+!echo Create table: ${hiveconf:inventoryTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:inventoryTableName}_textFormat
   ( inv_date_sk               bigint                --not null
   , inv_item_sk               bigint                --not null
   , inv_warehouse_sk          bigint                --not null
@@ -361,10 +373,11 @@ set reviewsTableName=product_reviews;
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:inventoryTableName}'
-  --distribute by hash (inv_item_sk);
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:itemTableName}
+
+!echo Create table: ${hiveconf:itemTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:itemTableName}_textFormat
   ( i_item_sk                 bigint              --not null
   , i_item_id                 string              --not null
   , i_rec_start_date          string
@@ -387,15 +400,14 @@ set reviewsTableName=product_reviews;
   , i_container               string
   , i_manager_id              int
   , i_product_name            string
-
-  --, primary key (i_item_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:itemTableName}'
-  --distribute by hash (i_item_sk)
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:storeSalesTableName}
+
+!echo Create table: ${hiveconf:storeSalesTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:storeSalesTableName}_textFormat
   ( ss_sold_date_sk           bigint
   , ss_sold_time_sk           bigint
   , ss_item_sk                bigint                --not null
@@ -422,10 +434,11 @@ set reviewsTableName=product_reviews;
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:storeSalesTableName}'
-  --distribute by hash (ss_item_sk)
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:storeReturnsTableName}
+
+!echo Create table: ${hiveconf:storeReturnsTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:storeReturnsTableName}_textFormat
   ( sr_returned_date_sk       bigint
   , sr_return_time_sk         bigint
   , sr_item_sk                bigint                --not null
@@ -449,10 +462,11 @@ set reviewsTableName=product_reviews;
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:storeReturnsTableName}'
-  --distribute by hash (sr_item_sk)
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:webSalesTableName}
+
+!echo Create table: ${hiveconf:webSalesTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:webSalesTableName}_textFormat
   ( ws_sold_date_sk           bigint
   , ws_sold_time_sk           bigint
   , ws_ship_date_sk           bigint
@@ -490,10 +504,11 @@ set reviewsTableName=product_reviews;
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:webSalesTableName}'
-  --distribute by hash (ws_sk)
 ;
 
- CREATE EXTERNAL TABLE ${hiveconf:webReturnsTableName}
+
+!echo Create table: ${hiveconf:webReturnsTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:webReturnsTableName}_textFormat
   ( wr_returned_date_sk       bigint 
   , wr_returned_time_sk       bigint
   , wr_item_sk                bigint                --not null
@@ -521,14 +536,11 @@ set reviewsTableName=product_reviews;
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:webReturnsTableName}'
-  --distribute by hash (wr_item_sk)
 ;
 
-DROP TABLE IF EXISTS ${hiveconf:marketPricesTableName};
-DROP TABLE IF EXISTS ${hiveconf:clickstreamsTableName};
-DROP TABLE IF EXISTS ${hiveconf:reviewsTableName};
 
- CREATE EXTERNAL TABLE ${hiveconf:marketPricesTableName}
+!echo Create table: ${hiveconf:marketPricesTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:marketPricesTableName}_textFormat
   ( imp_sk                  bigint                --not null
   , imp_item_sk             bigint                --not null
   , imp_competitor          string
@@ -536,14 +548,14 @@ DROP TABLE IF EXISTS ${hiveconf:reviewsTableName};
   , imp_start_date          bigint
   , imp_end_date            bigint
 
-  --, primary key (imp_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:marketPricesTableName}'
-  --distribute by hash (imp_sk)
   ;
 
- CREATE EXTERNAL TABLE ${hiveconf:clickstreamsTableName}
+
+!echo Create table: ${hiveconf:clickstreamsTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:clickstreamsTableName}_textFormat
 (   wcs_click_date_sk       bigint
   , wcs_click_time_sk       bigint
   , wcs_sales_sk            bigint
@@ -551,14 +563,14 @@ DROP TABLE IF EXISTS ${hiveconf:reviewsTableName};
   , wcs_web_page_sk         bigint
   , wcs_user_sk             bigint
 
-  --, primary key (wcs_click_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:clickstreamsTableName}'
-  --distribute by hash (wcs_click_sk)
   ;
 
- CREATE EXTERNAL TABLE ${hiveconf:reviewsTableName}
+
+!echo Create table: ${hiveconf:reviewsTableName}_textFormat;
+CREATE EXTERNAL TABLE ${hiveconf:reviewsTableName}_textFormat
 (   pr_review_sk            bigint              --not null
   , pr_review_date          string
   , pr_review_time          string 
@@ -567,10 +579,221 @@ DROP TABLE IF EXISTS ${hiveconf:reviewsTableName};
   , pr_user_sk              bigint
   , pr_order_sk             bigint
   , pr_review_content       string --not null
-
-  --, primary key (pr_review_sk)
   )
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '${hiveconf:fieldDelimiter}'
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:reviewsTableName}'
-  --distribute by hash (pr_review_sk)
   ;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:customerDemographicsTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:customerDemographicsTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:customerDemographicsTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:dateTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:dateTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:dateTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:warehouseTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:warehouseTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:warehouseTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:shipModeTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:shipModeTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:shipModeTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:timeTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:timeTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:timeTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:reasonTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:reasonTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:reasonTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:incomeTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:incomeTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:incomeTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:storeTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:storeTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:storeTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:webSiteTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:webSiteTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:webSiteTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:householdDemographicsTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:householdDemographicsTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:householdDemographicsTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:webPageTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:webPageTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:webPageTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:promotionTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:promotionTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:promotionTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:customerTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:customerTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:customerTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:customerAddressTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:customerAddressTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:customerAddressTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:inventoryTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:inventoryTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:inventoryTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:itemTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:itemTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:itemTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:storeSalesTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:storeSalesTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:storeSalesTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:storeReturnsTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:storeReturnsTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:storeReturnsTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:webSalesTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:webSalesTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:webSalesTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:webReturnsTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:webReturnsTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:webReturnsTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:marketPricesTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:marketPricesTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:marketPricesTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:clickstreamsTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:clickstreamsTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:clickstreamsTableName}_textFormat
+;
+
+
+!echo Load text data into PARQUET table: ${hiveconf:reviewsTableName};
+CREATE TABLE IF NOT EXISTS ${hiveconf:reviewsTableName}
+STORED AS PARQUET
+AS
+SELECT * FROM ${hiveconf:reviewsTableName}_textFormat
+;
+
+
+--- Cleanup 
+!echo Dropping all temporary *_textFormat tables;
+
+DROP TABLE IF EXISTS ${hiveconf:customerTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:customerAddressTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:customerDemographicsTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:dateTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:householdDemographicsTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:incomeTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:itemTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:promotionTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:reasonTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:shipModeTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:storeTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:timeTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:warehouseTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:webSiteTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:webPageTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:inventoryTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:storeSalesTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:storeReturnsTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:webSalesTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:webReturnsTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:marketPricesTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:clickstreamsTableName}_textFormat;
+DROP TABLE IF EXISTS ${hiveconf:reviewsTableName}_textFormat;
+
+!echo Dropping all temporary *_textFormat tables: DONE;
