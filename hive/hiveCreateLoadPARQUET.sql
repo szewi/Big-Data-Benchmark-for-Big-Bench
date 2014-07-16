@@ -1,7 +1,3 @@
--- Database
-CREATE DATABASE IF NOT EXISTS  ${env:BIG_BENCH_HIVE_DATABASE};
-use ${env:BIG_BENCH_HIVE_DATABASE};
-
 set hdfsDataPath=${env:BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR};
 set fieldDelimiter=|;
 

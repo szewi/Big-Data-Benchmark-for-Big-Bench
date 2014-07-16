@@ -110,6 +110,7 @@ set hive.optimize.skewjoin.compiletime;
 set hive.groupby.skewindata;
 
 -- Database
+CREATE DATABASE IF NOT EXISTS ${env:BIG_BENCH_HIVE_DATABASE};
 use ${env:BIG_BENCH_HIVE_DATABASE};
 
 --!echo ============================;
