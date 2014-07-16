@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
 execcleanQuery () {
-	initQueryEnv
+	if ! initQueryEnv
+	then
+		return 1
+	fi
 
 	echo "==============================================="
 	echo "Cleaning query  : $QUERY_NAME"

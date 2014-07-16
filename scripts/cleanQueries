@@ -11,7 +11,7 @@ execcleanQueries () {
 	if [ -n "$QUERY_NUMBER" ]
 	then
 		echo "The query number must not be set by the user."
-		exit 1
+		return 1
 	fi
 
 	for (( i = $FIRST_QUERY; i <= $LAST_QUERY; i++ ))

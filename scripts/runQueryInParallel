@@ -4,7 +4,7 @@ execrunQueryInParallel () {
 	if [ -n "$USER_STREAM_NUMBER" ]
 	then
 		echo "The stream number must not be set by the user."
-		exit 1
+		return 1
 	fi
 
 	for (( i = 0; i < $NUMBER_OF_PARALLEL_STREAMS; i++ ))

@@ -13,7 +13,7 @@ execclusterDataGen () {
 			echo "OK"
 		else
 			echo "ERROR! data generation tool EULA is not accepted. Cannot procced"
-			exit 1 
+			return 1 
 		fi
 	fi
 
@@ -40,14 +40,14 @@ execclusterDataGen () {
 	rc=$?
 	if [[ $rc != 0 ]] ; then
     	echo "Error creating hdfs dir: ${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
-    	exit $rc
+    	return $rc
 	fi
 
 	hadoop fs -chmod -R 777 "${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
 	rc=$?
 	if [[ $rc != 0 ]] ; then
     	echo "Error setting permission for hdfs dir: ${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"
-    	exit $rc
+    	return $rc
 	fi
 
 	hadoop fs -ls "${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}"

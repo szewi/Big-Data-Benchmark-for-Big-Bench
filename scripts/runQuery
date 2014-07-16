@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
 execrunQuery () {
-	initQueryEnv
+	if ! initQueryEnv
+	then
+		return 1
+	fi
 
 	echo "==============================================="
 	echo "Running query  : $QUERY_NAME"
@@ -30,7 +33,7 @@ execrunQuery () {
 
 	if [ ! -w "$LOG_FILE_NAME" ] ; then
     	echo "ERROR: cannot write to: $LOG_FILE_NAME, no permission"
-    	exit 1
+    	return 1
 	fi
 
 	echo "creating folders and setting permissions"

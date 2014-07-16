@@ -13,14 +13,14 @@ execrunQueries () {
 	if [ ! -d "$BIG_BENCH_LOGS_DIR" ]; then
 		if ! mkdir -p "$BIG_BENCH_LOGS_DIR" ; then
 			echo "ERROR: cannot write to: $BIG_BENCH_LOGS_DIR, no permission"
-			exit 1
+			return 1
 		fi
 	fi
 
 	if [ -n "$QUERY_NUMBER" ]
 	then
 		echo "The query number must not be set by the user."
-		exit 1
+		return 1
 	fi
 
 	echo "==============================================="
