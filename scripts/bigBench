@@ -277,10 +277,12 @@ esac
 # set other variables for the chosen binary
 case "$BINARY" in
 	"$HIVE_BINARY")
+		BINARY_TYPE="hive"
 		GLOBAL_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/hiveSettings.sql"
 		GLOBAL_POPULATE_FILE="${USER_POPULATE_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveCreateLoadORC.sql"}"
 	;;
 	"$SHARK_BINARY")
+		BINARY_TYPE="shark"
 		GLOBAL_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/sharkSettings.sql"
 		GLOBAL_POPULATE_FILE="${USER_POPULATE_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveCreateLoadORC.sql"}"
 	;;
