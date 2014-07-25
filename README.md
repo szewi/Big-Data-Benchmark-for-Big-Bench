@@ -79,7 +79,7 @@ The BigBench driver is started with a script. To show all available options, you
 
 ### Quick start
 
-If a complete benchmark run should be performed and no data were generated previously, this is the command which should be executed to do a BigBench run:
+If a complete benchmark run should be performed and no data were generated previously, this is the command which should be executed:
 
 ```
 "$INSTALL_DIR/scripts/bigBench runBenchmark -m <number of map tasks for data generation> -f <scale factor of dataset> -s <number of parallel streams in the throughput test>
