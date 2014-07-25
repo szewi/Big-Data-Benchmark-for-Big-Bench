@@ -195,9 +195,9 @@ All available options as well as all found modules can be listed by calling the 
 "$INSTALL_DIR/scripts/bigBench [-p <benchmark phase>] -q <query number> [-t <stream number] [-z <hive settings>] runQuery
 ```
 
-* runQueryInParallel: runs one query on multiple parallel streams. This module is a wrapper for runQuery. Needs the query number to be set and the stream number to be unset.
+* runQueryInParallel: runs one query on multiple parallel streams. This module is a wrapper for runQuery. Needs the query number ("-q") and total number of streams ("-s") to be set and the stream number ("-t") to be unset.
 ```
-"$INSTALL_DIR/scripts/bigBench [-p <benchmark phase>] -q <query number> [-z <hive settings>] runQueryInParallel
+"$INSTALL_DIR/scripts/bigBench [-p <benchmark phase>] -q <query number> -s <number of parallel streams> [-z <hive settings>] runQueryInParallel
 ```
 
 * showErrors: parses query errors in the log files after query runs.
@@ -210,7 +210,7 @@ All available options as well as all found modules can be listed by calling the 
 "$INSTALL_DIR/scripts/bigBench showTimes
 ```
 
-* zipQueryLogs: generates a zip file of all logs in the logs directory. Is run by the driver after each complete benchmark run. Subsequent runs override the old log files. A zip archive is created to save them before being overwritten.
+* zipQueryLogs: generates a zip file of all logs in the logs directory. It is run by the driver after each complete benchmark run. Subsequent runs override the old log files. A zip archive is created to save them before being overwritten.
 ```
 "$INSTALL_DIR/scripts/bigBench zipQueryLogs
 ```
