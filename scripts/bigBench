@@ -250,7 +250,8 @@ then
 	echo "Module options are specific to the used module and are therefore implemented there"
 	echo
 	echo "List of available modules:"
-	find "$MODULES_DIR" -type f -exec basename {} \;
+	ls -1 "$MODULES_DIR"
+	#find "$MODULES_DIR" -type f -exec basename {} \;
 	exit 0
 fi
 
