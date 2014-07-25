@@ -117,7 +117,7 @@ The throughput test is the last benchmark phase. All queries run in parallel str
 
 ## Using the bigBench bash script
 
-The driver internally calls the $BIG_BENCH_BASH_SCRIPT_DIR/bigBench bash script along with a certain module. So every step the driver performs (apart from the more complicated "query mixing" and multi-stream execution logic) can be run manually by executing this script with the proper options.
+The driver internally calls the $BIG_BENCH_BASH_SCRIPT_DIR/bigBench bash script along with a module name. So every step the driver performs (apart from the more complicated "query mixing" and multi-stream execution logic) can be run manually by executing this script with the proper options.
 
 ### Overview
 
