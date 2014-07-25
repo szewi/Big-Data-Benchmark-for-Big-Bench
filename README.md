@@ -185,7 +185,7 @@ All available options as well as all found modules can be listed by calling the 
 "$INSTALL_DIR/scripts/bigBench runBenchmark [driver options]
 ```
 
-* runQueries: Runs all 30 queries sequentially. This module works as a wrapper for runQuery and does not work if "-q" is set as option.
+* runQueries: runs all 30 queries sequentially. This module works as a wrapper for runQuery and does not work if "-q" is set as option.
 ```
 "$INSTALL_DIR/scripts/bigBench [-p <benchmark phase>] [-t <stream number] [-z <hive settings>] runQueries
 ```
