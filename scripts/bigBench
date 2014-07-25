@@ -227,6 +227,8 @@ while getopts ":b:d:f:hm:p:q:s:t:x:y:z:" OPT; do
 	LIST_OF_USER_OPTIONS="$LIST_OF_USER_OPTIONS -$OPT $OPTARG"
 done
 
+MODULES_DIR="$BIG_BENCH_BASH_SCRIPT_DIR/modules"
+
 # show help if no arguments or '-h' present
 if [[ $# -eq 0 || "$SHOW_HELP" = "true" ]]
 then
@@ -246,6 +248,9 @@ then
 	echo -e "-z\tfile with user defined hive settings"
 	echo
 	echo "Module options are specific to the used module and are therefore implemented there"
+	echo
+	echo "List of available modules:"
+	find "$MODULES_DIR" -type f -exec basename {} \;
 	exit 0
 fi
 
@@ -310,7 +315,7 @@ BENCHMARK_PHASE="${USER_BENCHMARK_PHASE:-$GLOBAL_BENCHMARK_PHASE}"
 STREAM_NUMBER="${USER_STREAM_NUMBER:-$GLOBAL_STREAM_NUMBER}"
 NUMBER_OF_PARALLEL_STREAMS="${USER_NUMBER_OF_PARALLEL_STREAMS:-$GLOBAL_NUMBER_OF_PARALLEL_STREAMS}"
 
-MODULE="$BIG_BENCH_BASH_SCRIPT_DIR/$MODULE_NAME"
+MODULE="$MODULES_DIR/$MODULE_NAME"
 if [ -f "$MODULE" ]
 then
 	source "$MODULE"
