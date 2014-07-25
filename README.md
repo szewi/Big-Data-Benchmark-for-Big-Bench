@@ -4,7 +4,7 @@ UNDER DEVELOPMENT -- contact bhaskar.gowda@intel.com for help in running the wor
 
 This document is a development version and describes the BigBench installation and execution on our AWS machines.
 
-# Using the BigBench driver
+# Preparation
 
 ## Cluster Environment
 
@@ -27,10 +27,9 @@ cd $INSTALL_DIR
 git clone https://<username>@github.com/intel-hadoop/Big-Bench.git
 ```
 
+## Configuration
 
-### Configuration
-
-Check, if the hadoop related variables are correctly set in the environment file:
+Check if the hadoop related variables are correctly set in the environment file:
 
 `vi "$INSTALL_DIR/Big-Bench/setEnvVars"`
 
@@ -46,27 +45,13 @@ BIG_BENCH_USER
 BIG_BENCH_DATAGEN_DFS_REPLICATION  replication count used during generation of the big bench table
 BIG_BENCH_DATAGEN_JVM_ENV          -Xmx750m is sufficient for Nodes with 2 CPU cores, remove or increase if your Nodes have more cores
 ```
+# Run the workload
 
-## BigBench run
+There are two different methods for running the workload: use the driver to simply perform a complete benchmark run or use the bash scripts to do partial tests. As the driver calls the bash scripts internally, both methods yield the same results.
 
-The BigBench driver is started with a script. To show all available options, you can call the help first:
-```
-"$INSTALL_DIR/scripts/bigBench runBenchmark -h
-```
+## Common hints
 
-The driver needs some additional arguments, depending on which tasks should be done:
-
-* if the data generation is not skipped (with the -sd option), you have to specify the number of map tasks PDGF should use when running as yarn job (with -mt) as well as the scale factor for the dataset (with -sf)
-* if the throughput test is not skipped (with -st), you have to specify the number of streams (with -s)
-
-So a complete benchmark run with all stages can be done by running (e.g., 4 map tasks, scale factor 100, 2 streams):
-```
-"$INSTALL_DIR/scripts/bigBench runBenchmark -m 4 -f 100 -s 2
-```
-
-The driver can skip certain stages of the benchmark (see -h help option for details), but if any part of the benchmarked tests (load, power, throughtput) is skipped, no result can be computed.
-
-After the benchmark finished, two log files are written: BigBenchResult.txt (which contains the benchmark's sysout messages) as well as BigBenchTimes.csv (which contains all measured timestamps/durations). The log directory can be specified with the -l option, it defaults to the user's home ($HOME).
+The following paragraphs are important for both methods.
 
 ### Accept license
 
@@ -79,239 +64,153 @@ If you have read and agree to these terms of use, please type (uppercase!): YES 
 YES
 ```
 
-### Other
+### PDGF
+The data are being generated directly into HDFS (into the $BIG_BENCH_HDFS_RELATIVE_DATA_DIR directory, absolute HDFS path is $BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR).
 
-#### PDGF
-The data are being generated directly into HDFS (into the benchmarks/bigbench/data/ directory, absolute HDFS path is /user/ec2-user/benchmarks/bigbench/data/).
+Default HDFS replication count is 1 (data is only stored on the generating node). You can change this in the $BIG_BENCH_HOME/setEnvVars file by changing the variable
+`BIG_BENCH_DATAGEN_DFS_REPLICATION=<Replication count>'.
 
-Default HDFS replication count is 1 (data is onyl stored on the generating node). You can change this in the $BIG_BENCH_HOME/setEnvVars file by changing the variable
-`BIG_BENCH_DATAGEN_DFS_REPLICATION=<Replication count>' as described in: [Configuration](#Configuration)
+## Using the BigBench driver
 
-
-# Old instructions (DEPRECATED)
-
-##### Table of Contents
-[Cluster Environment](#cluster-environment)
-
-[Installation](#installation)
-
-[Data Generation](#data-generation)
-
-[Run Queries](#run-queries)
-
-[Some Helpers](#some-helpers)
-
-## Cluster Environment
-
-**SSH**
-
-make sure passwordless SSH is working between all nodes for you current user.
-
-**Java**
-
-Java 1.7 is required. 64 bit is recommended
-
-**Hadoop**
-
-* Hive
-* Mahout
-
-
-## Installation
-
-
-On the AWS installation, the github repository is cloned into a folder "nfs": ## This is an example Installation only. 
-
+The BigBench driver is started with a script. To show all available options, you can call the help first:
 ```
-cd
-mkdir -p nfs
-cd nfs
-git clone https://<username>@github.com/intel-hadoop/Big-Bench.git
+"$INSTALL_DIR/scripts/bigBench runBenchmark -h
 ```
 
-Edit .bashrc:
+### Quick start
+
+If a complete benchmark run should be performed and no data were generated previously, this is the command which should be executed to do a BigBench run:
 
 ```
-cd
-vi .bashrc
+"$INSTALL_DIR/scripts/bigBench runBenchmark -m <number of map tasks for data generation> -f <scale factor of dataset> -s <number of parallel streams in the throughput test>
 ```
 
-and add these lines to source the environment setup file:
+This command will generate data, run the load-, power- and throughput-test and calculate the BigBench result.
 
+So a complete benchmark run with all stages can be done by running (e.g., 4 map tasks, scale factor 100, 2 streams):
 ```
-if [ -f ~/nfs/Big-Bench/setEnvVars ]; then
-        . ~/nfs/Big-Bench/setEnvVars
-fi
-```
-
-Either logout/login or source the environment script manually to set the required variables:
-
-`source ~/nfs/Big-Bench/setEnvVars`
-
-### Configuration 
-
-Check, if the hadoop related variables are correctly set in the environment file:
-
-`vi ~/nfs/Big-Bench/setEnvVars`
-
-**Important:**
-
-If you changed something you must either logout/login or source the setEnvVars script manually to make you changes visible to the environment. e.g:
-`source ~/nfs/Big-Bench/setEnvVars`
-
-
-Major settings, Specify your cluster environment:
-
-```
-BIG_BENCH_HIVE_LIBS           most important: the hive-contrib.jar
-BIG_BENCH_HADOOP_LIBS         most important: hadoop-hdfs.jar commons-logging.jar log4j.jar as well as several  other hadoop-* and commons-* jars
-BIG_BENCH_HADOOP_LIBS_NATIVE  (optional but speeds up hdfs access)
-BIG_BENCH_HADOOP_CONF         most important: core-site.xml and hdfs-site.xml
-BIG_BENCH_HDFS_MOUNT_POINT    
-BIG_BENCH_HDFS_NAMENODE
-```
-Minor settings:
-```
-BIG_BENCH_USER
-BIG_BENCH_DATAGEN_DFS_REPLICATION  replication count used during generation of the big bench table
-BIG_BENCH_DATAGEN_JVM_ENV          -Xmx750m is sufficient for Nodes with 2 CPU cores, remove or increase if your Nodes have more cores
+"$INSTALL_DIR/scripts/bigBench runBenchmark -m 4 -f 100 -s 2
 ```
 
+After the benchmark finished, two log files are written: BigBenchResult.txt (which contains the driver's sysout messages) as well as BigBenchTimes.csv (which contains all measured timestamps/durations). The log directory can be specified with the -l option, it defaults to the BigBench's log dir ($BIG_BENCH_LOGS_DIR).
 
-Add the nodes on which PDGF should generate data into the nodes.txt file: ## Not requried for Hadoop Data Generation
+### More detailed explanation
 
-`vi $BIG_BENCH_BASH_SCRIPT_DIR/nodes.txt`
+There are four phases the driver traverses (only three are benchmarked though): data generation, load test, power test and throughput test. The driver has a clean option (-c) which does not run the benchmark but rather cleans the environment from previous runs (if for some reason all generated data should be cleaned).
 
-In this file, list all hosts, one per line:
+#### Data generation
 
+The data generation phase is not benchmarked by BigBench. The driver can skip this phase by setting "-sd". Skipping this phase is a good idea if data were already generated previously and the complete benchmark should be repeated with the same dataset size. In that case, generting data is not necessary as PDGF would generate the exact same data as in the previous run. If data generation is not skipped, two other options must be provided to the driver: "-m" sets the number of map tasks for PDGF's data generation, "-f" sets the scale factor determining the dataset size (1 scale factor equals 1 GiB). If "-c" is set and "-sd" is not set, the dataset directory in HDFS will be deleted.
+
+#### Load test
+
+Population of the hive metastore is the first phase that is benchmarked by BigBench. This phase can be skipped by providing "-sl" as an option. Re-populating the metastore is technically only necessary if the dataset has changed. Nevertheless, metastore population is part of the benchmark, so if this phase is skipped then no BigBench result can be computed. If "-c" is set and "-sl" is not set, the tables of the dataset in the metastore will be dropped (however it does not influence the query results from later tests).
+
+
+#### Power test
+
+This is the second phase that is benchmarked by BigBench. All queries run sequentially in one stream. The phase can be skipped with the option "-sp". Setting "-c" (and not "-sp") cleans previous power-test's results in the hive metastore tables and HDFS directories.
+
+#### Throughput test
+
+The throughput test is the last benchmark phase. All queries run in parallel streams in different order. The phase can be skipped with "-st". If this phase is not skipped, "-s" is a required option because that sets the number of parallel streams used in this phase. As in the other phases, setting "-c" (and not "-st") cleans the thoughput-test's results in the hive metastore and the HDFS directories.
+
+## Using the bigBench bash script
+
+The driver internally calls the $BIG_BENCH_BASH_SCRIPT_DIR/bigBench bash script along with a certain module. So every step the driver performs (apart from the more complicated "query mixing" and multi-stream execution logic) can be run manually by executing this script with the proper options.
+
+### Overview
+
+The general syntax for the bigBench script is:
 ```
-bb-aws2
-bb-aws3
-bb-aws4
-```
-
-
-
-
-
-## Data Generation
-### First run
-Before the first PDGF run, the end user license must be accepted once. Therefore, PDGF must be started:
-
-`java -jar $BIG_BENCH_DATA_GENERATOR_DIR/pdgf.jar `
-
-Pressing ENTER shows the license. The license must be accepted by entering 'y'. After that, the PDGF shell can be exited by pressing 'q':
-
-```
-By using this software you must first agree to our terms of use. press [ENTER] to show
-...
-Do you agree to this terms of use [Y/N]?
-y
-
-PDGF:> q
-```
-### Hadoop based Data generation is now available, unless you have specific need to use shared folder approach, We prefer you to use Hadoop jobs to generate data. 
-
-$/Big-Bench/scripts/bigBench -m 500 -f 500 hadoopDataGen ## We have considered the number of containers on the cluster to decide how many map tasks. -sf 500=500GB of data, for 1TB provide sf will be 1000
-
-## If you decide to generate data non-hadoop way, follow below instructions.
-
-The directory structure must be replicated onto all nodes. So either repeat the "git clone" on every node (make sure that the directory structure is the same) or export the ~/nfs folder as a nfs share and mount it on all nodes in the ec2-user's ~/nfs directory (this is what we did on the AWS nodes). As a shared medium eases the following steps significantly, that approach is strongly recommended. 
-Before the first PDGF run, the end user license must be accepted once. Therefore, PDGF must be started:
-
-`java -jar $BIG_BENCH_DATA_GENERATOR_DIR/pdgf.jar `
-
-Pressing ENTER shows the license. The license must be accepted by entering 'y'. After that, the PDGF shell can be exited by pressing 'q':
-
-```
-By using this software you must first agree to our terms of use. press [ENTER] to show
-...
-Do you agree to this terms of use [Y/N]?
-y
-
-PDGF:> q
-
-**Important:** The license must be accepted in every PDGF location. So if no shared medium is used, the license must be accepted in every PDGF copy on all nodes, or accepted prior to distribution onto the nodes.
-
-### Distributed generation
-To generate data on the cluster nodes, run this command:
-
-`$BIG_BENCH_BASH_SCRIPT_DIR/bigBench clusterDataGen`
-
-**Important:** default settings assume 2 cores per compute node! (small amazon ec2 instance). If you start the bigBench clusterDataGen on bigger machines you will run into a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error. To Avoid this, please adapt setEnvVars -> BIG_BENCH_DATAGEN_JVM_ENV if you have compute nodes with more CPU cores. In this case remove the argument: `-Xmx750m` 
-
-The data are being generated directly into HDFS (into the benchmarks/bigbench/data/ directory, absolute HDFS path is /user/ec2-user/benchmarks/bigbench/data/).
-
-Default HDFS replication count is 1 (data is onyl stored on the generating node). You can change this in the $BIG_BENCH_HOME/setEnvVars file by changing the variable
-`BIG_BENCH_DATAGEN_DFS_REPLICATION=<Replication count>' as described in: [Configuration](#Configuration) 
-
-### Hive Population 
-Hive must create its own metadata to be able to access the generated data. 
-Hive population is done after the data generation with `bigBench populateMetastore`:
-
-`$BIG_BENCH_BASH_SCRIPT_DIR/bigBench populateMetastore`
-
-In case you want/must renew the hive tables, simply run the command again.
-
-## Run Queries
-Run all queries sequentially:
-
-`$BIG_BENCH_BASH_SCRIPT_DIR/bigBench runQueries`
-
-Run one specific query with this command:
-
-`$BIG_BENCH_BASH_SCRIPT_DIR/bigBench -q <query number> runQuery`
-
-e.g:
-
-`$BIG_BENCH_BASH_SCRIPT_DIR/bigBench -q 1 runQuery`
-
-## Some Helpers
-**during setup of setEnvVars**
-
-Where is my hive libs folders for BIG_BENCH_HIVE_LIBS?
-
-`find / -name "hive-contrib.jar" 2> /dev/null`
-
-Where is my hadoop libs folder for BIG_BENCH_HADOOP_LIBS?
-
-`find / -name "hadoop-hdfs.jar" 2> /dev/null`
-
-Where is my hdfs native libs folder for BIG_BENCH_HADOOP_LIBS_NATIVE?
-
-`find / -name "libhadoop.so" 2> /dev/null`
-
-Where is my core-site.xml/hdfs-site.xml  for BIG_BENCH_HADOOP_CONF (usually the one in /etc/hadoop/...):
-
-`find / -name "hdfs-site.xml" 2> /dev/null`
-
-What is my name node address for BIG_BENCH_HDFS_NAMENODE? 
-
-Take a look into hdfs-site.xml and locate this property value:
-``` 
-<property>
-    <name>dfs.namenode.servicerpc-address</name>
-    <value>host.domain:8022</value>
-</property>
+"$INSTALL_DIR/scripts/bigBench [global options] moduleName [module options]
 ```
 
-How to mount hdfs? execute or take a look at:
+At the moment there is only one module which processes module options itself, namely runBenchmark. All other modules currently do NO option processing. They rely on bigBench for option processing. Therefore when not running the runBenchmark module, global options must be specified.
 
-`$BIG_BENCH_BASH_SCRIPT_DIR/mounthdfs.sh`
+All available options as well as all found modules can be listed by calling the script help:
+```
+"$INSTALL_DIR/scripts/bigBench -h
+```
 
-**during query execution**
+### Available options
+* -b: This option chooses which binary will be used for the benchmark. WARNING: support for choosing other binaries than "hive" is implemented, but hive is the only tested binary. In fact, no other binary works so far. DO NOT USE THAT OPTION
+* -d: Some more complex queries are split into multiple internal parts. This option chooses which internal query part will be executed. This is a developer only option. ONLY USE IF YOU KNOW WHAT YOU ARE DOING
+* -f: The scale factor for PDGF. It is used by the clusterDataGen and hadoopDataGen modules
+* -h: Show help
+* -m: The map tasks used for data generation. It is used by the clusterDataGen and hadoopDataGen modules
+* -p: The benchmark phase to use. It is necessary if subsequent query runs should not overwrite results of previous queries. The driver internally uses POWER_TEST_IN_PROGRESS, THROUGHPUT_TEST_FIRST_QUERY_RUN_IN_PROGRESS and THROUGHPUT_TEST_SECOND_QUERY_RUN_IN_PROGRESS. The default value when not providing this option is RUN_QUERY
+* -q: Defines the query number to be executed
+* -s: This option defines the number of parallel streams to use. It is only of any use with the runQueryInParallel module
+* -t: Sets the stream number of the current query. This option is important so that one query can run multiple times in parallel without interfering with other instances
+* -y: Use the provided file for custom query parameters
+* -z: Use the provided file for custom hive settings
 
-suspect something went wrong? the scripts write logs to:
+### Modules usage examples
 
-`$BIG_BENCH_LOGS_DIR`
+* cleanData: cleans the dataset directory in HDFS. This module is automatically run by the data generator module to remove the dataset from the HDFS.
+```
+"$INSTALL_DIR/scripts/bigBench cleanData
+```
 
-`$BIG_BENCH_BASH_SCRIPT_DIR/showQueryErrors.sh`
-(searches in all logs/q??.log files for error strings)
+* cleanMetastore: cleans the metastore dataset tables.
+```
+"$INSTALL_DIR/scripts/bigBench [-z <hive settings>] cleanMetastore
+```
 
-`$BIG_BENCH_BASH_SCRIPT_DIR/showQueryErrors.sh <query num>` 
-(searches only in query specific log file for error strings)
+* cleanQueries: cleans all metastore tables and result directories in HDFS for all 30 queries. This module works as a wrapper for cleanQuery and does not work if "-q" is set as option.
+```
+"$INSTALL_DIR/scripts/bigBench [-p <benchmark phase>] [-t <stream number] [-z <hive settings>] cleanQueries
+```
 
-something went terrible wrong? want to abort all jobs?
+* cleanQuery: cleans metastore tables and result directories in HDFS for one query. Needs the query number to be set.
+```
+"$INSTALL_DIR/scripts/bigBench [-p <benchmark phase>] -q <query number> [-t <stream number] [-z <hive settings>] cleanQuery
+```
 
-`$BIG_BENCH_BASH_SCRIPT_DIR/killAllHadoopJobs.sh`
+* clusterDataGen: generates data using ssh on all defined nodes. This module is deprecated. Do not use it.
 
+* hadoopDataGen: generates data using a hadoop job. Needs the map tasks and scale factor options.
+```
+"$INSTALL_DIR/scripts/bigBench -m <map tasks> -f <scale factor> hadoopDataGen
+```
+
+* populateMetastore: populates the metastore with the dataset tables.
+```
+"$INSTALL_DIR/scripts/bigBench [-z <hive settings>] populateMetastore
+```
+
+* runBenchmark: runs the driver. This module parses its options itself. For details look at the driver usage section above.
+```
+"$INSTALL_DIR/scripts/bigBench runBenchmark [driver options]
+```
+
+* runQueries: Runs all 30 queries sequentially. This module works as a wrapper for runQuery and does not work if "-q" is set as option.
+```
+"$INSTALL_DIR/scripts/bigBench [-p <benchmark phase>] [-t <stream number] [-z <hive settings>] runQueries
+```
+
+* runQuery: runs one query. Needs the query number to be set.
+```
+"$INSTALL_DIR/scripts/bigBench [-p <benchmark phase>] -q <query number> [-t <stream number] [-z <hive settings>] runQuery
+```
+
+* runQueryInParallel: runs one query on multiple parallel streams. This module is a wrapper for runQuery. Needs the query number to be set and the stream number to be unset.
+```
+"$INSTALL_DIR/scripts/bigBench [-p <benchmark phase>] -q <query number> [-z <hive settings>] runQueryInParallel
+```
+
+* showErrors: parses query errors in the log files after query runs.
+```
+"$INSTALL_DIR/scripts/bigBench showErrors
+```
+
+* showTimes: parses execution times in the log files after query runs.
+```
+"$INSTALL_DIR/scripts/bigBench showTimes
+```
+
+* zipQueryLogs: generates a zip file of all logs in the logs directory. Is run by the driver after each complete benchmark run. Subsequent runs override the old log files. A zip archive is created to save them before being overwritten.
+```
+"$INSTALL_DIR/scripts/bigBench zipQueryLogs
+```
