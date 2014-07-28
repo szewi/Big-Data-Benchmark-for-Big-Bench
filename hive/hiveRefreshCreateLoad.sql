@@ -54,7 +54,7 @@ CREATE EXTERNAL TABLE ${hiveconf:customerTableName}${hiveconf:temporaryTableSuff
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:customerTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:customerTableName};
+!echo Load text data into table: ${hiveconf:customerTableName};
 INSERT INTO TABLE ${hiveconf:customerTableName}
 SELECT * FROM ${hiveconf:customerTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -84,7 +84,7 @@ CREATE EXTERNAL TABLE ${hiveconf:customerAddressTableName}${hiveconf:temporaryTa
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:customerAddressTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:customerAddressTableName};
+!echo Load text data into table: ${hiveconf:customerAddressTableName};
 INSERT INTO TABLE ${hiveconf:customerAddressTableName}
 SELECT * FROM ${hiveconf:customerAddressTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -111,7 +111,7 @@ CREATE EXTERNAL TABLE ${hiveconf:customerDemographicsTableName}${hiveconf:tempor
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:customerDemographicsTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:customerDemographicsTableName};
+!echo Load text data into table: ${hiveconf:customerDemographicsTableName};
 INSERT INTO TABLE ${hiveconf:customerDemographicsTableName}
 SELECT * FROM ${hiveconf:customerDemographicsTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -156,7 +156,7 @@ CREATE EXTERNAL TABLE ${hiveconf:dateTableName}${hiveconf:temporaryTableSuffix}
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:dateTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:dateTableName};
+!echo Load text data into table: ${hiveconf:dateTableName};
 INSERT INTO TABLE ${hiveconf:dateTableName}
 SELECT * FROM ${hiveconf:dateTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -178,7 +178,7 @@ CREATE EXTERNAL TABLE ${hiveconf:householdDemographicsTableName}${hiveconf:tempo
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:householdDemographicsTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:householdDemographicsTableName};
+!echo Load text data into table: ${hiveconf:householdDemographicsTableName};
 INSERT INTO TABLE ${hiveconf:householdDemographicsTableName}
 SELECT * FROM ${hiveconf:householdDemographicsTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -198,7 +198,7 @@ CREATE EXTERNAL TABLE ${hiveconf:incomeTableName}${hiveconf:temporaryTableSuffix
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:incomeTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:incomeTableName};
+!echo Load text data into table: ${hiveconf:incomeTableName};
 INSERT INTO TABLE ${hiveconf:incomeTableName}
 SELECT * FROM ${hiveconf:incomeTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -237,7 +237,7 @@ CREATE EXTERNAL TABLE ${hiveconf:itemTableName}${hiveconf:temporaryTableSuffix}
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:itemTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:itemTableName};
+!echo Load text data into table: ${hiveconf:itemTableName};
 INSERT INTO TABLE ${hiveconf:itemTableName}
 SELECT * FROM ${hiveconf:itemTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -273,7 +273,7 @@ CREATE EXTERNAL TABLE ${hiveconf:promotionTableName}${hiveconf:temporaryTableSuf
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:promotionTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:promotionTableName};
+!echo Load text data into table: ${hiveconf:promotionTableName};
 INSERT INTO TABLE ${hiveconf:promotionTableName}
 SELECT * FROM ${hiveconf:promotionTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -293,7 +293,7 @@ CREATE EXTERNAL TABLE ${hiveconf:reasonTableName}${hiveconf:temporaryTableSuffix
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:reasonTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:reasonTableName};
+!echo Load text data into table: ${hiveconf:reasonTableName};
 INSERT INTO TABLE ${hiveconf:reasonTableName}
 SELECT * FROM ${hiveconf:reasonTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -316,7 +316,7 @@ CREATE EXTERNAL TABLE ${hiveconf:shipModeTableName}${hiveconf:temporaryTableSuff
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:shipModeTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:shipModeTableName};
+!echo Load text data into table: ${hiveconf:shipModeTableName};
 INSERT INTO TABLE ${hiveconf:shipModeTableName}
 SELECT * FROM ${hiveconf:shipModeTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -362,7 +362,7 @@ CREATE EXTERNAL TABLE ${hiveconf:storeTableName}${hiveconf:temporaryTableSuffix}
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:storeTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:storeTableName};
+!echo Load text data into table: ${hiveconf:storeTableName};
 INSERT INTO TABLE ${hiveconf:storeTableName}
 SELECT * FROM ${hiveconf:storeTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -389,7 +389,7 @@ CREATE EXTERNAL TABLE ${hiveconf:timeTableName}${hiveconf:temporaryTableSuffix}
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:timeTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:timeTableName};
+!echo Load text data into table: ${hiveconf:timeTableName};
 INSERT INTO TABLE ${hiveconf:timeTableName}
 SELECT * FROM ${hiveconf:timeTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -420,7 +420,7 @@ CREATE EXTERNAL TABLE ${hiveconf:warehouseTableName}${hiveconf:temporaryTableSuf
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:warehouseTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:warehouseTableName};
+!echo Load text data into table: ${hiveconf:warehouseTableName};
 INSERT INTO TABLE ${hiveconf:warehouseTableName}
 SELECT * FROM ${hiveconf:warehouseTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -463,7 +463,7 @@ CREATE EXTERNAL TABLE ${hiveconf:webSiteTableName}${hiveconf:temporaryTableSuffi
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:webSiteTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:webSiteTableName};
+!echo Load text data into table: ${hiveconf:webSiteTableName};
 INSERT INTO TABLE ${hiveconf:webSiteTableName}
 SELECT * FROM ${hiveconf:webSiteTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -494,7 +494,7 @@ CREATE EXTERNAL TABLE ${hiveconf:webPageTableName}${hiveconf:temporaryTableSuffi
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:webPageTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:webPageTableName};
+!echo Load text data into table: ${hiveconf:webPageTableName};
 INSERT INTO TABLE ${hiveconf:webPageTableName}
 SELECT * FROM ${hiveconf:webPageTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -515,7 +515,7 @@ CREATE EXTERNAL TABLE ${hiveconf:inventoryTableName}${hiveconf:temporaryTableSuf
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:inventoryTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:inventoryTableName};
+!echo Load text data into table: ${hiveconf:inventoryTableName};
 INSERT INTO TABLE ${hiveconf:inventoryTableName}
 SELECT * FROM ${hiveconf:inventoryTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -555,7 +555,7 @@ CREATE EXTERNAL TABLE ${hiveconf:storeSalesTableName}${hiveconf:temporaryTableSu
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:storeSalesTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:storeSalesTableName};
+!echo Load text data into table: ${hiveconf:storeSalesTableName};
 INSERT INTO TABLE ${hiveconf:storeSalesTableName}
 SELECT * FROM ${hiveconf:storeSalesTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -592,7 +592,7 @@ CREATE EXTERNAL TABLE ${hiveconf:storeReturnsTableName}${hiveconf:temporaryTable
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:storeReturnsTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:storeReturnsTableName};
+!echo Load text data into table: ${hiveconf:storeReturnsTableName};
 INSERT INTO TABLE ${hiveconf:storeReturnsTableName}
 SELECT * FROM ${hiveconf:storeReturnsTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -643,7 +643,7 @@ CREATE EXTERNAL TABLE ${hiveconf:webSalesTableName}${hiveconf:temporaryTableSuff
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:webSalesTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:webSalesTableName};
+!echo Load text data into table: ${hiveconf:webSalesTableName};
 INSERT INTO TABLE ${hiveconf:webSalesTableName}
 SELECT * FROM ${hiveconf:webSalesTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -684,7 +684,7 @@ CREATE EXTERNAL TABLE ${hiveconf:webReturnsTableName}${hiveconf:temporaryTableSu
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:webReturnsTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:webReturnsTableName};
+!echo Load text data into table: ${hiveconf:webReturnsTableName};
 INSERT INTO TABLE ${hiveconf:webReturnsTableName}
 SELECT * FROM ${hiveconf:webReturnsTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -708,7 +708,7 @@ CREATE EXTERNAL TABLE ${hiveconf:marketPricesTableName}${hiveconf:temporaryTable
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:marketPricesTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:marketPricesTableName};
+!echo Load text data into table: ${hiveconf:marketPricesTableName};
 INSERT INTO TABLE ${hiveconf:marketPricesTableName}
 SELECT * FROM ${hiveconf:marketPricesTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -731,7 +731,7 @@ CREATE EXTERNAL TABLE ${hiveconf:clickstreamsTableName}${hiveconf:temporaryTable
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:clickstreamsTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:clickstreamsTableName};
+!echo Load text data into table: ${hiveconf:clickstreamsTableName};
 INSERT INTO TABLE ${hiveconf:clickstreamsTableName}
 SELECT * FROM ${hiveconf:clickstreamsTableName}${hiveconf:temporaryTableSuffix}
 ;
@@ -756,7 +756,7 @@ CREATE EXTERNAL TABLE ${hiveconf:reviewsTableName}${hiveconf:temporaryTableSuffi
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:reviewsTableName}'
 ;
 
-!echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:reviewsTableName};
+!echo Load text data into table: ${hiveconf:reviewsTableName};
 INSERT INTO TABLE ${hiveconf:reviewsTableName}
 SELECT * FROM ${hiveconf:reviewsTableName}${hiveconf:temporaryTableSuffix}
 ;

@@ -17,7 +17,7 @@ execrefreshMetastore () {
 	echo "Adding/Updating generated files to hive metastore"
 	echo "==============================================="
 
-	time (populateMetastore ; echo "======= Load data into hive time =========") > >(tee -a "$BIG_BENCH_LOADING_STAGE_LOG") 2>&1 
+	time (refreshMetastore ; echo "======= Load data into hive time =========") > >(tee -a "$BIG_BENCH_LOADING_STAGE_LOG") 2>&1 
 	echo "==========================="
 
 	echo "==============================================="
