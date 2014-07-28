@@ -65,7 +65,7 @@ YES
 ```
 
 ### PDGF
-The data are being generated directly into HDFS (into the $BIG_BENCH_HDFS_RELATIVE_DATA_DIR directory, absolute HDFS path is $BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR).
+The data are being generated directly into HDFS (into the $BIG_BENCH_HDFS_RELATIVE_INIT_DATA_DIR directory, absolute HDFS path is $BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR).
 
 Default HDFS replication count is 1 (data is only stored on the generating node). You can change this in the $BIG_BENCH_HOME/setEnvVars file by changing the variable
 `BIG_BENCH_DATAGEN_DFS_REPLICATION=<Replication count>'.

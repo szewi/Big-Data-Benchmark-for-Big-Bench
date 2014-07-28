@@ -2,8 +2,9 @@ THIRDPARTY COMPONENT FILE                           LICENSE
 //-----------------------------------------------------------------------------
 extlib/log4j-1.2.15.jar                             Apache-2.0
 extlib/javassist.jar                                Apache-2.0
-extlib/lucene-core-3.6.0.jar 						Apache-2.0
-extlib/lucene-spellchecker-3.6.0.jar 				Apache-2.0
+extlib/lucene-core-4.9.0.jar 						Apache-2.0
+extlib/lucene-analyzers-common-4.9.0.jar			Apache-2.0
+extlib/lucene-suggest-4.9.0.jar 					Apache-2.0
 extlib/commons.lang3.time.jar						Apache-2.0
 extlib/commons-net-3.3.jar							Apache-2.0
 

@@ -166,7 +166,7 @@ initQueryEnv () {
 }
 
 # parse command line arguments
-while getopts ":b:d:f:hm:p:q:s:t:x:y:z:" OPT; do
+while getopts ":b:d:f:hm:p:q:s:t:v:w:y:z:" OPT; do
 	case "$OPT" in
 		b)
 			USER_BINARY_TYPE="$OPTARG"
@@ -203,9 +203,13 @@ while getopts ":b:d:f:hm:p:q:s:t:x:y:z:" OPT; do
 			#echo "-s was triggered, Parameter: $OPTARG" >&2
 			USER_STREAM_NUMBER="$OPTARG"
 		;;
-		x)
-			#echo "-x was triggered, Parameter: $OPTARG" >&2
+		v)
+			#echo "-v was triggered, Parameter: $OPTARG" >&2
 			USER_POPULATE_FILE="$OPTARG"
+		;;
+		w)
+			#echo "-w was triggered, Parameter: $OPTARG" >&2
+			USER_REFRESH_FILE="$OPTARG"
 		;;
 		y)
 			#echo "-y was triggered, Parameter: $OPTARG" >&2
@@ -244,6 +248,8 @@ then
 	echo -e "-q\tquery number to run"
 	echo -e "-s\tnumber of parallel streams (only used when supported by module)"
 	echo -e "-t\tstream number for query run"
+	echo -e "-v\tsql script for metastore population"
+	echo -e "-w\tsql script for metastore refresh"
 	echo -e "-y\tfile with user defined query parameters"
 	echo -e "-z\tfile with user defined hive settings"
 	echo
@@ -286,11 +292,13 @@ case "$BINARY" in
 		BINARY_TYPE="hive"
 		GLOBAL_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/hiveSettings.sql"
 		GLOBAL_POPULATE_FILE="${USER_POPULATE_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveCreateLoadORC.sql"}"
+		GLOBAL_REFRESH_FILE="${USER_REFRESH_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveRefreshCreateLoadORC.sql"}"
 	;;
 	"$SHARK_BINARY")
 		BINARY_TYPE="shark"
 		GLOBAL_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/sharkSettings.sql"
 		GLOBAL_POPULATE_FILE="${USER_POPULATE_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveCreateLoadORC.sql"}"
+		GLOBAL_REFRESH_FILE="${USER_REFRESH_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveRefreshCreateLoadORC.sql"}"
 	;;
 esac
 

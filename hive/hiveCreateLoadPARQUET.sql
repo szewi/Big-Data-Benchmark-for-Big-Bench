@@ -1,4 +1,4 @@
-set hdfsDataPath=${env:BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR};
+set hdfsDataPath=${env:BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR};
 set fieldDelimiter=|;
 
 set customerTableName=customer;

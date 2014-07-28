@@ -31,10 +31,12 @@ export BIG_BENCH_HDFS_NAMENODE="bb-aws1.us-west-2.compute.internal:8022"
 export BIG_BENCH_USER="$USER"
 export BIG_BENCH_HDFS_ABSOLUTE_PATH="/user/$BIG_BENCH_USER"		 ##working dir of benchmark. 
 export BIG_BENCH_HDFS_REAL_BASE_DIR="$BIG_BENCH_HDFS_MOUNT_POINT$BIG_BENCH_HDFS_ABSOLUTE_PATH"
-export BIG_BENCH_HDFS_RELATIVE_DATA_DIR="benchmarks/bigbench/data"
+export BIG_BENCH_HDFS_RELATIVE_INIT_DATA_DIR="benchmarks/bigbench/data"
+export BIG_BENCH_HDFS_RELATIVE_REFRESH_DATA_DIR="benchmarks/bigbench/data_refresh"
 export BIG_BENCH_HDFS_RELATIVE_QUERY_RESULT_DIR="benchmarks/bigbench/queryResults"
 export BIG_BENCH_HDFS_RELATIVE_TEMP_DIR="benchmarks/bigbench/temp"
-export BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$BIG_BENCH_HDFS_RELATIVE_DATA_DIR"
+export BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$BIG_BENCH_HDFS_RELATIVE_INIT_DATA_DIR"
+export BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$BIG_BENCH_HDFS_RELATIVE_REFRESH_DATA_DIR"
 export BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$BIG_BENCH_HDFS_RELATIVE_QUERY_RESULT_DIR"
 export BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$BIG_BENCH_HDFS_RELATIVE_TEMP_DIR"
 
@@ -76,7 +78,7 @@ export BIG_BENCH_DATAGEN_STAGE_LOG="$BIG_BENCH_LOGS_DIR/dataGeneration.log"
 ## Data generation options
 ## ===================================================
 
-#(recommended:1) replication count for files written by the datagenerator to HDFS into dir:  BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR
+#(recommended:1) replication count for files written by the datagenerator to HDFS into dir: BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR and BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR
 export BIG_BENCH_DATAGEN_DFS_REPLICATION="1" 			
 
 # if empty, generate all tables. 

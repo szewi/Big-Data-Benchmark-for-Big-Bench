@@ -61,7 +61,7 @@
 
 	<appender name="file" class="org.apache.log4j.RollingFileAppender">
 		<param name="File" value="${pdgf.log.folder}/${pdgf.log.file}" />
-			<param name="Threshold" value="INFO" />
+			<param name="Threshold" value="DEBUG" />
 		<param name="Append" value="false" />
 		<param name="MaxFileSize" value="500KB" />
 		<param name="MaxBackupIndex" value="10" />

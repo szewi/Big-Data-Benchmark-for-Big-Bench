@@ -2,6 +2,14 @@
 <schema name="bigbench">
  <seed>12456789</seed>
  <rng name="PdgfDefaultRandom"></rng>
+ 
+ <!-- Refresh system -->
+ <property name="${REFRESH_PHASE}" type="double">0</property><!-- 0==rows[0,REFRESH_PERCENTAGE*Table.Size]; 1==rows[REFRESH_PERCENTAGE*Table.Size+1, Table.Size] .Has effect only if  ${REFRESH_SYSTEM_ENABLED}==1. -->
+ <property name="${REFRESH_SYSTEM_ENABLED}" type="double">1</property>
+ <property name="${REFRESH_PERCENTAGE}" type="double">1.0d - 0.01d</property><!-- default  1%==0.01-->
+ <property name="${DEBUG_REFRESH}" type="double">1</property>
+
+<!-- Table scaling -->
  <property name="${SF}" type="double">1</property>
  <property name="${SF_log_1.5}" type="double">Math.log(${SF}) / Math.log(1.5d) + 1.0d</property>
  <property name="${SF_log_5}" type="double">(Math.log(${SF}) / Math.log(5.0d) + 1.0d)</property>
@@ -375,345 +383,9 @@
  <!--<property name="${web_clickstreams_size}" type="double">(${web_sales_size} * (${pages_per_item} + (${pages_to_buy} / ${items_per_cart}))) + (${web_sales_size} * ${buy_ratio} * ${pages_per_item}) * ${SF}</property>-->
  <property name="${web_clickstreams_size}" type="long">${clickstreams_chunksize} * ${web_sales_size}</property>
 
- <!-- Each row in this dimension table represents a customer -->
- <table name="customer">
-  <size>${customer_size}</size>
-  
-  <!-- used by Q5, Q6, Q7, Q13, Q17 -->
-  <field name="c_customer_sk" size="19" type="BIGINT" primary="true">
-   <gen_IdGenerator />
-  </field>
-  
-  <!-- used by Q6, Q13 -->
-  <field name="c_customer_id" size="16" type="CHAR" primary="false">
-   <gen_ConvertNumberToStringGenerator>
-    <gen_IdGenerator/>
-    <size>16.0</size>
-    <characters>ABCDEFGHIJKLMNOPQRSTUVWXYZ</characters>
-   </gen_ConvertNumberToStringGenerator>
-  </field>
-  
-  <!-- used by Q5 -->
-  <!-- FK cd_demo_sk -->
-  <field name="c_current_cdemo_sk" size="19" type="BIGINT" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="customer_demographics" field="cd_demo_sk" />
-    </gen_ReferenceGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- FK hd_demo_sk -->
-  <field name="c_current_hdemo_sk" size="19" type="BIGINT" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="household_demographics" field="hd_demo_sk" />
-    </gen_ReferenceGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- used by Q7, Q17 -->
-  <!-- FK ca_address_sk -->
-  <field name="c_current_addr_sk" size="19" type="BIGINT" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="customer_address" field="ca_address_sk" />
-    </gen_ReferenceGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- FK d_date_sk -->
-  <field name="c_first_shipto_date_sk" size="19" type="BIGINT" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="date_dim" field="d_date_sk" />
-    </gen_ReferenceGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- FK d_date_sk -->
-  <field name="c_first_sales_date_sk" size="19" type="BIGINT" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="date_dim" field="d_date_sk" />
-    </gen_ReferenceGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="c_salutation" size="10" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>10.0</max>
-    </gen_RandomAString>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- used by Q6, Q13 -->
-  <field name="c_first_name" size="20" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="first_names" valueColumn="name" weightColumn="unified" />
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- used by Q6, Q13 -->
-  <field name="c_last_name" size="30" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="last_names" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- used by Q6 -->
-  <field name="c_preferred_cust_flag" size="1" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_ProbabilityGenerator>
-     <probability value="${preferred_cust_likelihood}">
-      <gen_StaticValueGenerator>
-       <value>Y</value>
-      </gen_StaticValueGenerator>
-     </probability>
-     <probability value="1 - ${preferred_cust_likelihood}">
-      <gen_StaticValueGenerator>
-       <value>N</value>
-      </gen_StaticValueGenerator>
-     </probability>
-    </gen_ProbabilityGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="c_birth_day" size="10" type="INTEGER" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_LongGenerator>
-     <min>1.0</min>
-     <max>31.0</max>
-    </gen_LongGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="c_birth_month" size="10" type="INTEGER" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_LongGenerator>
-     <min>1.0</min>
-     <max>12.0</max>
-    </gen_LongGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="c_birth_year" size="10" type="INTEGER" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_LongGenerator>
-     <min>1924.0</min>
-     <max>1992.0</max>
-    </gen_LongGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- used by Q6 -->
-  <field name="c_birth_country" size="20" type="VARCHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="countries" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- used by Q6 -->
-  <field name="c_login" size="13" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>13.0</max>
-    </gen_RandomAString>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- used by Q6 -->
-  <field name="c_email_address" size="50" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_EmailGenerator>
-     <file>dicts/mail_provider.dict</file>
-     <reference id="lastname" field="c_last_name"/>
-     <reference id="firstname" field="c_first_name"/>
-    </gen_EmailGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="c_last_review_date" size="19" type="BIGINT" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>10.0</max>
-    </gen_RandomAString>
-   </gen_NullGenerator>
-  </field>
- </table>
- 
- 
- <!-- Each row in this table represents a unique customer address (each customer can have more than one address) -->
- <table name="customer_address">
-  <size>${customer_address_size}</size>
-  
-  <!-- used by Q7, Q9, Q17 -->
-  <field name="ca_address_sk" size="19" type="BIGINT" primary="true">
-   <gen_IdGenerator />
-  </field>
-  
-  <field name="ca_address_id" size="16" type="CHAR" primary="false">
-   <gen_ConvertNumberToStringGenerator>
-    <gen_IdGenerator/>
-    <size>16.0</size>
-    <characters>ABCDEFGHIJKLMNOPQRSTUVWXYZ</characters>
-   </gen_ConvertNumberToStringGenerator>
-  </field>
-  
-  <field name="ca_street_number" size="10" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_LongGenerator>
-     <min>1.0</min>
-     <max>999.0</max>
-    </gen_LongGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="ca_street_name" size="60" type="VARCHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="street_names" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="ca_street_type" size="15" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="street_type" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="ca_suite_number" size="10" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>10.0</max>
-    </gen_RandomAString>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="ca_city" size="60" type="VARCHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="cities" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- used by Q9 -->
-  <field name="ca_county" size="30" type="VARCHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator id="countyChooser" filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="county" weightColumn="uniform" />
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- used by Q7, Q9 -->
-  <field name="ca_state" size="2" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="st" weightColumn="uniform">
-     <sameChoiceAs field="ca_county" generatorByID="countyChooser"/>
-    </gen_WeightedListGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="ca_zip" size="10" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_LongGenerator>
-     <min>10000.0</min>
-     <max>99999.0</max>
-    </gen_LongGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="ca_country" size="20" type="VARCHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_StaticValueGenerator>
-     <value>United States</value>
-    </gen_StaticValueGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- used by Q17 -->
-  <!-- decimalSize="5,2"-->
-  <field name="ca_gmt_offset" size="5" type="NUMERIC" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="gmt" weightColumn="uniform">
-     <sameChoiceAs field="ca_county" generatorByID="countyChooser"/>
-    </gen_WeightedListGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="ca_location_type" size="20" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="location_type" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
- </table>
- 
- 
- <!-- The customer demographics table contains one row for each unique combination of customer demographic information -->
- <table name="customer_demographics">
-  <size>${customer_demographics_size}</size>
-  
-  <!-- used by Q5, Q8, Q9 -->
-  <field name="cd_demo_sk" size="19" type="BIGINT" primary="true">
-   <gen_IdGenerator />
-  </field>
-  
-  <!-- used by Q5 -->
-  <field name="cd_gender" size="1" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="gender" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- used by Q9 -->
-  <field name="cd_marital_status" size="1" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="marital_status" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- used by Q5, Q9 -->
-  <field name="cd_education_status" size="20" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="education" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="cd_purchase_estimate" size="10" type="INTEGER" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="purchase_band" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="cd_credit_rating" size="10" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="credit_rating" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="cd_dep_count" size="10" type="INTEGER" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="dependent_count" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="cd_dep_employed_count" size="10" type="INTEGER" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-   <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="dependent_count" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="cd_dep_college_count" size="10" type="INTEGER" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-   <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="dependent_count" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
- </table>
- 
- 
- <!-- Each row in this table represents one calendar day. The surrogate key (d_date_sk) for a given row is derived from the julian date being described bay the row -->
+
+
+<!-- Each row in this table represents one calendar day. The surrogate key (d_date_sk) for a given row is derived from the julian date being described bay the row -->
  <table name="date_dim">
   <size>${date_dim_size}</size>
   
@@ -977,6 +649,162 @@
    </gen_NullGenerator>
   </field>
  </table>
+
+
+<!-- Each row in this table represents one second -->
+ <table name="time_dim">
+  <size>${time_dim_size}</size>
+  
+  <!-- used by Q4, Q14 -->
+  <field name="t_time_sk" size="19" type="BIGINT" primary="true">
+   <gen_IdGenerator />
+  </field>
+  
+  <field name="t_time_id" size="16" type="CHAR" primary="false">
+   <gen_ConvertNumberToStringGenerator>
+    <gen_IdGenerator/>
+    <size>16.0</size>
+    <characters>ABCDEFGHIJKLMNOPQRSTUVWXYZ</characters>
+   </gen_ConvertNumberToStringGenerator>
+  </field>
+  
+  <!-- used by Q4 -->
+  <field name="t_time" size="10" type="INTEGER" primary="false">
+   <gen_IdGenerator />
+  </field>
+  
+  <!-- used by Q14 -->
+  <field name="t_hour" size="10" type="INTEGER" primary="false">
+   <gen_DateTimeGenerator>
+    <disableRng>true</disableRng>
+    <useFixedStepSize>true</useFixedStepSize>
+    <startDate>2000-01-01 00:00:00</startDate>
+    <endDate>2000-01-02 00:00:00</endDate>
+    <outputFormat>H</outputFormat>
+   </gen_DateTimeGenerator>
+  </field>
+  
+  <field name="t_minute" size="10" type="INTEGER" primary="false">
+   <gen_DateTimeGenerator>
+    <disableRng>true</disableRng>
+    <useFixedStepSize>true</useFixedStepSize>
+    <startDate>2000-01-01 00:00:00</startDate>
+    <endDate>2000-01-02 00:00:00</endDate>
+    <outputFormat>m</outputFormat>
+   </gen_DateTimeGenerator>
+  </field>
+  
+  <field name="t_second" size="10" type="INTEGER" primary="false">
+   <gen_DateTimeGenerator>
+    <disableRng>true</disableRng>
+    <useFixedStepSize>true</useFixedStepSize>
+    <startDate>2000-01-01 00:00:00</startDate>
+    <endDate>2000-01-02 00:00:00</endDate>
+    <outputFormat>s</outputFormat>
+   </gen_DateTimeGenerator>
+  </field>
+  
+  <field name="t_am_pm" size="2" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_RandomAString>
+     <min>1.0</min>
+     <max>2.0</max>
+    </gen_RandomAString>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="t_shift" size="20" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_RandomAString>
+     <min>1.0</min>
+     <max>20.0</max>
+    </gen_RandomAString>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="t_sub_shift" size="20" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_RandomAString>
+     <min>1.0</min>
+     <max>20.0</max>
+    </gen_RandomAString>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="t_meal_time" size="20" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_RandomAString>
+     <min>1.0</min>
+     <max>20.0</max>
+    </gen_RandomAString>
+   </gen_NullGenerator>
+  </field>
+ </table>
+
+
+ <!-- The customer demographics table contains one row for each unique combination of customer demographic information -->
+ <table name="customer_demographics">
+  <size>${customer_demographics_size}</size>
+  
+  <!-- used by Q5, Q8, Q9 -->
+  <field name="cd_demo_sk" size="19" type="BIGINT" primary="true">
+   <gen_IdGenerator />
+  </field>
+  
+  <!-- used by Q5 -->
+  <field name="cd_gender" size="1" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="gender" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- used by Q9 -->
+  <field name="cd_marital_status" size="1" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="marital_status" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- used by Q5, Q9 -->
+  <field name="cd_education_status" size="20" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="education" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="cd_purchase_estimate" size="10" type="INTEGER" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="purchase_band" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="cd_credit_rating" size="10" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="credit_rating" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="cd_dep_count" size="10" type="INTEGER" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="dependent_count" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="cd_dep_employed_count" size="10" type="INTEGER" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+   <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="dependent_count" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="cd_dep_college_count" size="10" type="INTEGER" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+   <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="dependent_count" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+ </table>
+ 
+ 
+ 
  
  
  <!-- Each row of this table defines a household demographic profile -->
@@ -992,7 +820,7 @@
   <field name="hd_income_band_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="income_band" field="ib_income_band_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="income_band" field="ib_income_band_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -1023,33 +851,302 @@
   </field>
  </table>
  
- 
- <!-- currently not touched by queries -->
- <!-- Each row in this table represents details of an income range -->
- <table name="income_band">
-  <size>${income_band_size}</size>
+
+
+
+ <!-- Each row in this dimension table represents a customer -->
+ <table name="customer">
+  <size>${customer_size}</size>
   
-  <field name="ib_income_band_sk" size="19" type="BIGINT" primary="true">
+  <!-- used by Q5, Q6, Q7, Q13, Q17 -->
+  <field name="c_customer_sk" size="19" type="BIGINT" primary="true">
    <gen_IdGenerator />
   </field>
   
-  <field name="ib_lower_bound" size="10" type="INTEGER" primary="false">
+  <!-- used by Q6, Q13 -->
+  <field name="c_customer_id" size="16" type="CHAR" primary="false">
+   <gen_ConvertNumberToStringGenerator>
+    <gen_IdGenerator/>
+    <size>16.0</size>
+    <characters>ABCDEFGHIJKLMNOPQRSTUVWXYZ</characters>
+   </gen_ConvertNumberToStringGenerator>
+  </field>
+  
+  <!-- used by Q5 -->
+  <!-- FK cd_demo_sk -->
+  <field name="c_current_cdemo_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_FormulaGenerator>
-     <formula>gc.getID() * ${income_band_stepsize} + 1</formula>
-    </gen_FormulaGenerator>
+    <gen_ReferenceGenerator choose="random" from="historical">
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer_demographics" field="cd_demo_sk" >
+     <!-- 
+     <maxID>0;
+     	pdgf.core.dbSchema.Table refTable=((pdgf.core.dbSchema.Reference)getParent()).getRefTable();
+		pdgf.core.dataGenerator.beans.WorkUnit wu= refTable.getScheduler().getPartitioner().getPrePartition(getParentProject(), refTable);
+		long maxID=wu.rowStop;
+		result=maxID;
+		
+		if(${DEBUG_REFRESH}>0){
+	     	System.out.println("##################\nReference: "+getParent() );
+			System.out.println("refTable size :" + refTable.getSize());
+			System.out.println("maxID: " + maxID);
+			System.out.println("################");
+		} 
+ 	</maxID>
+ 	-->
+     </reference>
+    </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
   
-  <field name="ib_upper_bound" size="10" type="INTEGER" primary="false">
+  <!-- FK hd_demo_sk -->
+  <field name="c_current_hdemo_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_FormulaGenerator>
-     <formula>(gc.getID() + 1) * ${income_band_stepsize}</formula>
-    </gen_FormulaGenerator>
+    <gen_ReferenceGenerator choose="random" from="historical">
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="household_demographics" field="hd_demo_sk" />
+    </gen_ReferenceGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- used by Q7, Q17 -->
+  <!-- FK ca_address_sk -->
+  <field name="c_current_addr_sk" size="19" type="BIGINT" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_ReferenceGenerator choose="random" from="historical">
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer_address" field="ca_address_sk" />
+    </gen_ReferenceGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- FK d_date_sk -->
+  <field name="c_first_shipto_date_sk" size="19" type="BIGINT" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_ReferenceGenerator choose="random" from="historical">
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="date_dim" field="d_date_sk" />
+    </gen_ReferenceGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- FK d_date_sk -->
+  <field name="c_first_sales_date_sk" size="19" type="BIGINT" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_ReferenceGenerator choose="random" from="historical">
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="date_dim" field="d_date_sk" />
+    </gen_ReferenceGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="c_salutation" size="10" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_RandomAString>
+     <min>1.0</min>
+     <max>10.0</max>
+    </gen_RandomAString>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- used by Q6, Q13 -->
+  <field name="c_first_name" size="20" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="first_names" valueColumn="name" weightColumn="unified" />
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- used by Q6, Q13 -->
+  <field name="c_last_name" size="30" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="last_names" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- used by Q6 -->
+  <field name="c_preferred_cust_flag" size="1" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_ProbabilityGenerator>
+     <probability value="${preferred_cust_likelihood}">
+      <gen_StaticValueGenerator>
+       <value>Y</value>
+      </gen_StaticValueGenerator>
+     </probability>
+     <probability value="1 - ${preferred_cust_likelihood}">
+      <gen_StaticValueGenerator>
+       <value>N</value>
+      </gen_StaticValueGenerator>
+     </probability>
+    </gen_ProbabilityGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="c_birth_day" size="10" type="INTEGER" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_LongGenerator>
+     <min>1.0</min>
+     <max>31.0</max>
+    </gen_LongGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="c_birth_month" size="10" type="INTEGER" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_LongGenerator>
+     <min>1.0</min>
+     <max>12.0</max>
+    </gen_LongGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="c_birth_year" size="10" type="INTEGER" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_LongGenerator>
+     <min>1924.0</min>
+     <max>1992.0</max>
+    </gen_LongGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- used by Q6 -->
+  <field name="c_birth_country" size="20" type="VARCHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="countries" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- used by Q6 -->
+  <field name="c_login" size="13" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_RandomAString>
+     <min>1.0</min>
+     <max>13.0</max>
+    </gen_RandomAString>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- used by Q6 -->
+  <field name="c_email_address" size="50" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_EmailGenerator>
+     <file>dicts/mail_provider.dict</file>
+     <reference id="lastname" field="c_last_name"/>
+     <reference id="firstname" field="c_first_name"/>
+    </gen_EmailGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="c_last_review_date" size="19" type="BIGINT" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_RandomAString>
+     <min>1.0</min>
+     <max>10.0</max>
+    </gen_RandomAString>
    </gen_NullGenerator>
   </field>
  </table>
  
+ 
+ <!-- Each row in this table represents a unique customer address (each customer can have more than one address) -->
+ <table name="customer_address">
+  <size>${customer_address_size}</size>
+  
+  <!-- used by Q7, Q9, Q17 -->
+  <field name="ca_address_sk" size="19" type="BIGINT" primary="true">
+   <gen_IdGenerator />
+  </field>
+  
+  <field name="ca_address_id" size="16" type="CHAR" primary="false">
+   <gen_ConvertNumberToStringGenerator>
+    <gen_IdGenerator/>
+    <size>16.0</size>
+    <characters>ABCDEFGHIJKLMNOPQRSTUVWXYZ</characters>
+   </gen_ConvertNumberToStringGenerator>
+  </field>
+  
+  <field name="ca_street_number" size="10" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_LongGenerator>
+     <min>1.0</min>
+     <max>999.0</max>
+    </gen_LongGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="ca_street_name" size="60" type="VARCHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="street_names" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="ca_street_type" size="15" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="street_type" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="ca_suite_number" size="10" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_RandomAString>
+     <min>1.0</min>
+     <max>10.0</max>
+    </gen_RandomAString>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="ca_city" size="60" type="VARCHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="cities" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- used by Q9 -->
+  <field name="ca_county" size="30" type="VARCHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator id="countyChooser" filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="county" weightColumn="uniform" />
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- used by Q7, Q9 -->
+  <field name="ca_state" size="2" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="st" weightColumn="uniform">
+     <sameChoiceAs field="ca_county" generatorByID="countyChooser"/>
+    </gen_WeightedListGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="ca_zip" size="10" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_LongGenerator>
+     <min>10000.0</min>
+     <max>99999.0</max>
+    </gen_LongGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="ca_country" size="20" type="VARCHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_StaticValueGenerator>
+     <value>United States</value>
+    </gen_StaticValueGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- used by Q17 -->
+  <!-- decimalSize="5,2"-->
+  <field name="ca_gmt_offset" size="5" type="NUMERIC" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="gmt" weightColumn="uniform">
+     <sameChoiceAs field="ca_county" generatorByID="countyChooser"/>
+    </gen_WeightedListGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="ca_location_type" size="20" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="location_type" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+ </table>
+ 
+ 
+
  
  <!-- Each row in this table represents the quantity of a particular item on-hand at a given warehouse during a specific week -->
  <table name="inventory">
@@ -1064,7 +1161,7 @@
    </gen_FormulaGenerator>
    <!--
    <gen_ReferenceGenerator choose="random" from="historical">
-    <reference table="date_dim" field="d_date_sk" />
+    <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="date_dim" field="d_date_sk" />
    </gen_ReferenceGenerator>
    -->
   </field>
@@ -1078,7 +1175,7 @@
    </gen_FormulaGenerator>
    <!--
    <gen_ReferenceGenerator choose="random" from="historical">
-    <reference table="item" field="i_item_sk" />
+    <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="item" field="i_item_sk" />
    </gen_ReferenceGenerator>
    -->
   </field>
@@ -1092,7 +1189,7 @@
    </gen_FormulaGenerator>
    <!--
    <gen_ReferenceGenerator choose="random" from="historical">
-    <reference table="warehouse" field="w_warehouse_sk" />
+    <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="warehouse" field="w_warehouse_sk" />
    </gen_ReferenceGenerator>
    -->
   </field>
@@ -1313,7 +1410,7 @@
   <!-- FK i_item_sk -->
   <field name="imp_item_sk" size="19" type="BIGINT" primary="false">
    <gen_ReferenceGenerator id="itemChooser" choose="random" from="historical">
-    <reference table="item" field="i_item_sk" />
+    <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="item" field="i_item_sk" />
    </gen_ReferenceGenerator>
   </field>
   
@@ -1342,7 +1439,7 @@
   <field name="imp_start_date_sk" size="19" type="BIGINT" primary="false">
    <!--<gen_NullGenerator probability="${NULL_CHANCE}">-->
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="date_dim" field="d_date_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="date_dim" field="d_date_sk" />
     </gen_ReferenceGenerator>
    <!--</gen_NullGenerator>-->
   </field>
@@ -1408,7 +1505,7 @@
   <!-- FK i_item_sk -->
   <field name="pr_item_sk" size="19" type="BIGINT" primary="false">
    <gen_ReferenceGenerator id="itemChooser" choose="random" from="historical">
-    <reference table="item" field="i_item_sk" />
+    <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="item" field="i_item_sk" />
    </gen_ReferenceGenerator>
   </field>
   
@@ -1441,7 +1538,7 @@
     
     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
      <sameChoiceAs field="pr_item_sk" generatorByID="itemChooser"/>
-     <reference table="item" field="i_category" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="item" field="i_category" />
     </gen_ReferenceGenerator>
     
  	<!-- Fallback generator  -->   
@@ -1475,7 +1572,7 @@
   <field name="p_start_date_sk" size="19" type="BIGINT" primary="false">
    <!--<gen_NullGenerator probability="${NULL_CHANCE}">-->
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="date_dim" field="d_date_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="date_dim" field="d_date_sk" />
     </gen_ReferenceGenerator>
    <!--</gen_NullGenerator>-->
   </field>
@@ -1497,7 +1594,7 @@
   <field name="p_item_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="item" field="i_item_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="item" field="i_item_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -1703,85 +1800,7 @@
  </table>
  
  
- <!-- currently not touched by queries -->
- <!-- Each row in this table represents a reason why an item was returned -->
- <table name="reason">
-  <size>${reason_size}</size>
-  
-  <field name="r_reason_sk" size="19" type="BIGINT" primary="true">
-   <gen_IdGenerator />
-  </field>
-  
-  <field name="r_reason_id" size="16" type="CHAR" primary="false">
-   <gen_RandomAString>
-    <min>1.0</min>
-    <max>16.0</max>
-   </gen_RandomAString>
-  </field>
-  
-  <field name="r_reason_desc" size="100" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>100.0</max>
-    </gen_RandomAString>
-   </gen_NullGenerator>
-  </field>
- </table>
- 
- 
- <!-- currently not touched by queries -->
- <!-- Each row in this table represents a shipping mode -->
- <table name="ship_mode">
-  <size>${ship_mode_size}</size>
-  
-  <field name="sm_ship_mode_sk" size="19" type="BIGINT" primary="true">
-   <gen_IdGenerator />
-  </field>
-  
-  <field name="sm_ship_mode_id" size="16" type="CHAR" primary="false">
-   <gen_RandomAString>
-    <min>1.0</min>
-    <max>16.0</max>
-   </gen_RandomAString>
-  </field>
-  
-  <field name="sm_type" size="30" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>30.0</max>
-    </gen_RandomAString>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="sm_code" size="10" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>10.0</max>
-    </gen_RandomAString>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="sm_carrier" size="20" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>20.0</max>
-    </gen_RandomAString>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="sm_contract" size="20" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>20.0</max>
-    </gen_RandomAString>
-   </gen_NullGenerator>
-  </field>
- </table>
+
  
  <!-- Each row in this dimension table represents detals of a store -->
  <table name="store">
@@ -1850,7 +1869,7 @@
   <field name="s_closed_date_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="date_dim" field="d_date_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="date_dim" field="d_date_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -2055,6 +2074,119 @@
   </field>
  </table>
  
+ <!-- Each row in this dimension table represents a warehouse where items are stocked -->
+ <table name="warehouse">
+  <size>${warehouse_size}</size>
+  
+  <!-- used by Q16, Q23 -->
+  <field name="w_warehouse_sk" size="19" type="BIGINT" primary="true">
+   <gen_IdGenerator />
+  </field>
+  
+  <field name="w_warehouse_id" size="16" type="CHAR" primary="false">
+   <gen_ConvertNumberToStringGenerator>
+    <gen_IdGenerator/>
+    <size>16.0</size>
+    <characters>ABCDEFGHIJKLMNOPQRSTUVWXYZ</characters>
+   </gen_ConvertNumberToStringGenerator>
+  </field>
+  
+  <!-- used by Q22, Q23 -->
+  <field name="w_warehouse_name" size="20" type="VARCHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_DictList>
+     <file>dicts/Family-Names.dict</file>
+    </gen_DictList>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="w_warehouse_sq_ft" size="10" type="INTEGER" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_LongGenerator>
+     <min>138504.0</min>
+     <max>977787.0</max>
+    </gen_LongGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="w_street_number" size="10" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_LongGenerator>
+     <min>368</min>
+     <max>651</max>
+    </gen_LongGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="w_street_name" size="60" type="VARCHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="street_names" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="w_street_type" size="15" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="street_type" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="w_suite_number" size="10" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_RandomAString>
+     <min>1.0</min>
+     <max>10.0</max>
+    </gen_RandomAString>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="w_city" size="60" type="VARCHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="cities" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="w_county" size="30" type="VARCHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator id="countyChooser" filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="county" weightColumn="uniform" />
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- used by Q16 -->
+  <field name="w_state" size="2" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="st" weightColumn="uniform">
+     <sameChoiceAs field="w_county" generatorByID="countyChooser"/>
+    </gen_WeightedListGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="w_zip" size="10" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_LongGenerator>
+     <min>10000.0</min>
+     <max>99999.0</max>
+    </gen_LongGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="w_country" size="20" type="VARCHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_StaticValueGenerator>
+     <value>United States</value>
+    </gen_StaticValueGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- decimalSize="5,2"-->
+  <field name="w_gmt_offset" size="5" type="NUMERIC" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="gmt" weightColumn="uniform">
+     <sameChoiceAs field="w_county" generatorByID="countyChooser"/>
+    </gen_WeightedListGenerator>
+   </gen_NullGenerator>
+  </field>
+ </table>
+ 
  
  <!-- Each row in this table represents a single lineitem for the return of an item sold through the store channel and recorded in the store_returns fact table -->
  <table name="store_returns">
@@ -2069,7 +2201,7 @@
      <decimalPlaces>0</decimalPlaces>
      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
       <sameChoiceAs field="sr_ticket_number" generatorByID="orderChooser"/>
-      <reference table="store_sales" field="ss_sold_date_sk" />
+      <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="store_sales" field="ss_sold_date_sk" />
      </gen_ReferenceGenerator>
     </gen_FormulaGenerator>
    </gen_NullGenerator>
@@ -2082,7 +2214,7 @@
     <do>
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="time_dim" field="t_time_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="time_dim" field="t_time_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </do>
@@ -2095,7 +2227,7 @@
    <gen_RandomListItemsGenerator id="listIndexChooser">
     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
      <sameChoiceAs field="sr_ticket_number" generatorByID="orderChooser"/>
-     <reference table="store_sales" field="ss_item_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="store_sales" field="ss_item_sk" />
     </gen_ReferenceGenerator>
    </gen_RandomListItemsGenerator>
   </field>
@@ -2107,7 +2239,7 @@
     <probability value="1 - ${SR_SAME_CUSTOMER}">
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="customer" field="c_customer_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_customer_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </probability>
@@ -2115,7 +2247,7 @@
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="sameChoiceAs" from="">
        <sameChoiceAs field="sr_ticket_number" generatorByID="orderChooser"/>
-       <reference table="store_sales" field="ss_customer_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="store_sales" field="ss_customer_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </probability>
@@ -2129,7 +2261,7 @@
     <probability value="1 - ${SR_SAME_CUSTOMER}">
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="customer_demographics" field="cd_demo_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer_demographics" field="cd_demo_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </probability>
@@ -2137,7 +2269,7 @@
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="sameChoiceAs" from="">
        <sameChoiceAs field="sr_ticket_number" generatorByID="orderChooser"/>
-       <reference table="store_sales" field="ss_cdemo_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="store_sales" field="ss_cdemo_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </probability>
@@ -2151,7 +2283,7 @@
     <probability value="1 - ${SR_SAME_CUSTOMER}">
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="household_demographics" field="hd_demo_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="household_demographics" field="hd_demo_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </probability>
@@ -2159,7 +2291,7 @@
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="sameChoiceAs" from="">
        <sameChoiceAs field="sr_ticket_number" generatorByID="orderChooser"/>
-       <reference table="store_sales" field="ss_hdemo_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="store_sales" field="ss_hdemo_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </probability>
@@ -2173,7 +2305,7 @@
     <probability value="1 - ${SR_SAME_CUSTOMER}">
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="customer_address" field="ca_address_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer_address" field="ca_address_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </probability>
@@ -2181,7 +2313,7 @@
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="sameChoiceAs" from="">
        <sameChoiceAs field="sr_ticket_number" generatorByID="orderChooser"/>
-       <reference table="store_sales" field="ss_addr_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="store_sales" field="ss_addr_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </probability>
@@ -2193,7 +2325,7 @@
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
      <sameChoiceAs field="sr_ticket_number" generatorByID="orderChooser"/>
-     <reference table="store_sales" field="ss_store_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="store_sales" field="ss_store_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -2205,7 +2337,7 @@
     <do>
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="reason" field="r_reason_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="reason" field="r_reason_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </do>
@@ -2216,7 +2348,7 @@
   <!-- FK ss_ticket_number -->
   <field name="sr_ticket_number" size="19" type="BIGINT" primary="false">
    <gen_PermutationReferenceGenerator id="orderChooser">
-    <reference table="store_sales" field="ss_ticket_number" />
+    <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="store_sales" field="ss_ticket_number" />
    </gen_PermutationReferenceGenerator>
   </field>
   
@@ -2229,7 +2361,7 @@
      <sameChoiceAs field="sr_item_sk" generatorByID="listIndexChooser" />
      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
       <sameChoiceAs field="sr_ticket_number" generatorByID="orderChooser"/>
-      <reference table="store_sales" field="ss_quantity" />
+      <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="store_sales" field="ss_quantity" />
      </gen_ReferenceGenerator>
     </gen_RandomListItemsGenerator>
    </gen_ExtendedFormulaGenerator>
@@ -2332,7 +2464,7 @@
      <sameChoiceAs field="sr_item_sk" generatorByID="listIndexChooser" />
      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
       <sameChoiceAs field="sr_ticket_number" generatorByID="orderChooser"/>
-      <reference table="store_sales" field="ss_list_price" />
+      <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="store_sales" field="ss_list_price" />
      </gen_ReferenceGenerator>
     </gen_RandomListItemsGenerator>
     <gen_OtherFieldValueGenerator>
@@ -2355,7 +2487,7 @@
      <sameChoiceAs field="sr_item_sk" generatorByID="listIndexChooser" />
      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
       <sameChoiceAs field="sr_ticket_number" generatorByID="orderChooser"/>
-      <reference table="store_sales" field="ss_list_price" />
+      <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="store_sales" field="ss_list_price" />
      </gen_ReferenceGenerator>
     </gen_RandomListItemsGenerator>
     <gen_OtherFieldValueGenerator>
@@ -2376,7 +2508,7 @@
      <sameChoiceAs field="sr_item_sk" generatorByID="listIndexChooser" />
      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
       <sameChoiceAs field="sr_ticket_number" generatorByID="orderChooser"/>
-      <reference table="store_sales" field="ss_list_price" />
+      <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="store_sales" field="ss_list_price" />
      </gen_ReferenceGenerator>
     </gen_RandomListItemsGenerator>
     <gen_OtherFieldValueGenerator>
@@ -2403,7 +2535,9 @@
   </field>
  </table>
  
- <!-- Each row in this table represents a single lineitem for a sale made through the store channel and recorded in the store_sales fact table -->
+
+ 
+  <!-- Each row in this table represents a single lineitem for a sale made through the store channel and recorded in the store_sales fact table -->
  <table name="store_sales">
   <size>${store_sales_size}</size>
   
@@ -2419,7 +2553,7 @@
   <field name="ss_sold_date_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="date_dim" field="d_date_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="date_dim" field="d_date_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -2430,7 +2564,7 @@
   <field name="ss_sold_time_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="time_dim" field="t_time_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="time_dim" field="t_time_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -2447,7 +2581,7 @@
     </i>
     <do>
      <gen_ReferenceGenerator id="itemChooser" choose="random" from="historical">
-      <reference table="item" field="i_item_sk" />
+      <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="item" field="i_item_sk" />
      </gen_ReferenceGenerator>
     </do>
    </gen_ForGenerator>
@@ -2458,7 +2592,7 @@
   <field name="ss_customer_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="customer" field="c_customer_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_customer_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -2468,7 +2602,7 @@
   <field name="ss_cdemo_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="customer_demographics" field="cd_demo_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer_demographics" field="cd_demo_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -2477,7 +2611,7 @@
   <field name="ss_hdemo_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="household_demographics" field="hd_demo_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="household_demographics" field="hd_demo_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -2487,7 +2621,7 @@
   <field name="ss_addr_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="customer_address" field="ca_address_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer_address" field="ca_address_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -2497,7 +2631,7 @@
   <field name="ss_store_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="store" field="s_store_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="store" field="s_store_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -2510,7 +2644,7 @@
     <do>
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="promotion" field="p_promo_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="promotion" field="p_promo_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </do>
@@ -2785,949 +2919,8 @@
  </table>
  
  
- <!-- Each row in this table represents one second -->
- <table name="time_dim">
-  <size>${time_dim_size}</size>
-  
-  <!-- used by Q4, Q14 -->
-  <field name="t_time_sk" size="19" type="BIGINT" primary="true">
-   <gen_IdGenerator />
-  </field>
-  
-  <field name="t_time_id" size="16" type="CHAR" primary="false">
-   <gen_ConvertNumberToStringGenerator>
-    <gen_IdGenerator/>
-    <size>16.0</size>
-    <characters>ABCDEFGHIJKLMNOPQRSTUVWXYZ</characters>
-   </gen_ConvertNumberToStringGenerator>
-  </field>
-  
-  <!-- used by Q4 -->
-  <field name="t_time" size="10" type="INTEGER" primary="false">
-   <gen_IdGenerator />
-  </field>
-  
-  <!-- used by Q14 -->
-  <field name="t_hour" size="10" type="INTEGER" primary="false">
-   <gen_DateTimeGenerator>
-    <disableRng>true</disableRng>
-    <useFixedStepSize>true</useFixedStepSize>
-    <startDate>2000-01-01 00:00:00</startDate>
-    <endDate>2000-01-02 00:00:00</endDate>
-    <outputFormat>H</outputFormat>
-   </gen_DateTimeGenerator>
-  </field>
-  
-  <field name="t_minute" size="10" type="INTEGER" primary="false">
-   <gen_DateTimeGenerator>
-    <disableRng>true</disableRng>
-    <useFixedStepSize>true</useFixedStepSize>
-    <startDate>2000-01-01 00:00:00</startDate>
-    <endDate>2000-01-02 00:00:00</endDate>
-    <outputFormat>m</outputFormat>
-   </gen_DateTimeGenerator>
-  </field>
-  
-  <field name="t_second" size="10" type="INTEGER" primary="false">
-   <gen_DateTimeGenerator>
-    <disableRng>true</disableRng>
-    <useFixedStepSize>true</useFixedStepSize>
-    <startDate>2000-01-01 00:00:00</startDate>
-    <endDate>2000-01-02 00:00:00</endDate>
-    <outputFormat>s</outputFormat>
-   </gen_DateTimeGenerator>
-  </field>
-  
-  <field name="t_am_pm" size="2" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>2.0</max>
-    </gen_RandomAString>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="t_shift" size="20" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>20.0</max>
-    </gen_RandomAString>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="t_sub_shift" size="20" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>20.0</max>
-    </gen_RandomAString>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="t_meal_time" size="20" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>20.0</max>
-    </gen_RandomAString>
-   </gen_NullGenerator>
-  </field>
- </table>
  
- 
- <!-- Each row in this dimension table represents a warehouse where items are stocked -->
- <table name="warehouse">
-  <size>${warehouse_size}</size>
-  
-  <!-- used by Q16, Q23 -->
-  <field name="w_warehouse_sk" size="19" type="BIGINT" primary="true">
-   <gen_IdGenerator />
-  </field>
-  
-  <field name="w_warehouse_id" size="16" type="CHAR" primary="false">
-   <gen_ConvertNumberToStringGenerator>
-    <gen_IdGenerator/>
-    <size>16.0</size>
-    <characters>ABCDEFGHIJKLMNOPQRSTUVWXYZ</characters>
-   </gen_ConvertNumberToStringGenerator>
-  </field>
-  
-  <!-- used by Q22, Q23 -->
-  <field name="w_warehouse_name" size="20" type="VARCHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_DictList>
-     <file>dicts/Family-Names.dict</file>
-    </gen_DictList>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="w_warehouse_sq_ft" size="10" type="INTEGER" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_LongGenerator>
-     <min>138504.0</min>
-     <max>977787.0</max>
-    </gen_LongGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="w_street_number" size="10" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_LongGenerator>
-     <min>368</min>
-     <max>651</max>
-    </gen_LongGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="w_street_name" size="60" type="VARCHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="street_names" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="w_street_type" size="15" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="street_type" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="w_suite_number" size="10" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>10.0</max>
-    </gen_RandomAString>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="w_city" size="60" type="VARCHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="cities" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="w_county" size="30" type="VARCHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator id="countyChooser" filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="county" weightColumn="uniform" />
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- used by Q16 -->
-  <field name="w_state" size="2" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="st" weightColumn="uniform">
-     <sameChoiceAs field="w_county" generatorByID="countyChooser"/>
-    </gen_WeightedListGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="w_zip" size="10" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_LongGenerator>
-     <min>10000.0</min>
-     <max>99999.0</max>
-    </gen_LongGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="w_country" size="20" type="VARCHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_StaticValueGenerator>
-     <value>United States</value>
-    </gen_StaticValueGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- decimalSize="5,2"-->
-  <field name="w_gmt_offset" size="5" type="NUMERIC" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="gmt" weightColumn="uniform">
-     <sameChoiceAs field="w_county" generatorByID="countyChooser"/>
-    </gen_WeightedListGenerator>
-   </gen_NullGenerator>
-  </field>
- </table>
- 
- 
- <table name="web_clickstreams">
-  <size>${web_clickstreams_size}</size>
-  
-  <!-- Removed in accordance with Tilmann (conference call 2014-04-15) -->
-  <!--
-  <field name="wcs_click_sk" size="19" type="BIGINT" primary="true">
-   <gen_IdGenerator />
-  </field>
-  -->
-   
- <!-- used by Q3, Q4, Q8, Q12 -->
-  <field name="wcs_click_date_sk" size="19" type="BIGINT" primary="false">
-   <gen_ProbabilityGenerator id="buyChooser">
-    <disableRng>true</disableRng>
-    <chunkSize>${clickstreams_chunksize}</chunkSize>
-    <probability value="${visitor_likelihood}">
-     <gen_ForGenerator id="numberOfVisitorClicksChooser">
-      <i>
-       <gen_LongGenerator>
-        <min>${mean_clicks_per_visitor} - 5</min>
-        <max>${mean_clicks_per_visitor} + 5</max>
-       </gen_LongGenerator>
-      </i>
-      <do>
-       <gen_NullGenerator probability="${NULL_CHANCE}">
-        <gen_FormulaGenerator>
-         <formula>${web_sales_days_since_date_begin_date} + Math.floor(gc.getID() * ((${web_sales_days_within} - 1) / ${web_clickstreams_size}))</formula>
-         <decimalPlaces>0</decimalPlaces>
-        </gen_FormulaGenerator>
-       </gen_NullGenerator>
-      </do>
-     </gen_ForGenerator>
-    </probability>
-    <probability value="1 - ${visitor_likelihood}">
-     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-      <sameChoiceAs field="wcs_sales_sk" generatorByID="orderChooser"/>
-      <reference table="web_sales" field="ws_sold_date_sk" />
-     </gen_ReferenceGenerator>
-    </probability>
-   </gen_ProbabilityGenerator>
-  </field>
-  
-  <!-- used by Q3, Q4, Q8, Q12 -->
-  <field name="wcs_click_time_sk" size="19" type="BIGINT" primary="false">
-   <gen_ProbabilityGenerator>
-    <sameChoiceAs field="wcs_click_date_sk" generatorByID="buyChooser"/>
-    <probability value="${visitor_likelihood}">
-     <gen_ForGenerator>
-      <sameChoiceAs field="wcs_click_date_sk" generatorByID="numberOfVisitorClicksChooser"/>
-      <do>
-       <gen_NullGenerator probability="${NULL_CHANCE}">
-        <gen_ReferenceGenerator choose="random" from="historical">
-         <reference table="time_dim" field="t_time_sk" />
-        </gen_ReferenceGenerator>
-       </gen_NullGenerator>
-      </do>
-     </gen_ForGenerator>
-    </probability>
-    <probability value="1 - ${visitor_likelihood}">
-     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-      <sameChoiceAs field="wcs_sales_sk" generatorByID="orderChooser"/>
-      <reference table="web_sales" field="ws_sold_time_sk" />
-     </gen_ReferenceGenerator>
-    </probability>
-   </gen_ProbabilityGenerator>
-  </field>
-  
-  <!-- used by Q3, Q8 -->
-  <field name="wcs_sales_sk" size="19" type="BIGINT" primary="false">
-   <gen_ProbabilityGenerator>
-    <sameChoiceAs field="wcs_click_date_sk" generatorByID="buyChooser"/>
-    <probability value="${visitor_likelihood}">
-     <gen_StaticValueGenerator>
-      <value></value>
-     </gen_StaticValueGenerator>
-    </probability>
-    <probability value="1 - ${visitor_likelihood}">
-     <!--
-     <gen_NullGenerator probability="${NULL_CHANCE}">
-      <gen_ReferenceGenerator id="orderChooser" choose="random" from="historical">
-       <reference table="web_sales" field="ws_order_number" />
-      </gen_ReferenceGenerator>
-     </gen_NullGenerator>
-     -->
-     <gen_RelativeGenerator id="orderChooser" correctionFactor="1 / ${clickstreams_chunksize}">
-      <gen_IdGenerator />
-     </gen_RelativeGenerator>
-    </probability>
-   </gen_ProbabilityGenerator>
-  </field>
-  
-  <!-- used by Q2, Q3, Q4, Q5, Q8, Q12, Q30 -->
-  <field name="wcs_item_sk" size="19" type="BIGINT" primary="false">
-   <gen_ProbabilityGenerator>
-    <sameChoiceAs field="wcs_click_date_sk" generatorByID="buyChooser"/>
-    <probability value="${visitor_likelihood}">
-     <gen_ForGenerator>
-      <sameChoiceAs field="wcs_click_date_sk" generatorByID="numberOfVisitorClicksChooser"/>
-      <do>
-       <gen_ReferenceGenerator choose="random" from="historical">
-        <reference table="item" field="i_item_sk" />
-       </gen_ReferenceGenerator>
-      </do>
-     </gen_ForGenerator>
-    </probability>
-    <probability value="1 - ${visitor_likelihood}">
-     <gen_BuildListGenerator>
-      <gen_ForGenerator id="additionalBuyerClicksChooser">
-       <i>
-        <gen_LongGenerator>
-         <min>${mean_clicks_per_buyer} - 1</min>
-         <max>${mean_clicks_per_buyer} + 2</max>
-        </gen_LongGenerator>
-       </i>
-       <do>
-        <gen_ReferenceGenerator choose="random" from="historical">
-         <reference table="item" field="i_item_sk" />
-        </gen_ReferenceGenerator>
-       </do>
-      </gen_ForGenerator>
-      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-       <sameChoiceAs field="wcs_sales_sk" generatorByID="orderChooser"/>
-       <reference table="web_sales" field="ws_item_sk" />
-      </gen_ReferenceGenerator>
-     </gen_BuildListGenerator>
-    </probability>
-   </gen_ProbabilityGenerator>
-  </field>
-  
-  <!-- used by Q8 -->
-  <field name="wcs_web_page_sk" size="19" type="BIGINT" primary="false">
-   <gen_ProbabilityGenerator>
-    <sameChoiceAs field="wcs_click_date_sk" generatorByID="buyChooser"/>
-    <probability value="${visitor_likelihood}">
-     <gen_ForGenerator>
-      <sameChoiceAs field="wcs_click_date_sk" generatorByID="numberOfVisitorClicksChooser"/>
-      <do>
-       <gen_NullGenerator probability="${NULL_CHANCE}">
-        <gen_ReferenceGenerator choose="random" from="historical">
-         <reference table="web_page" field="wp_web_page_sk" />
-        </gen_ReferenceGenerator>
-       </gen_NullGenerator>
-      </do>
-     </gen_ForGenerator>
-    </probability>
-    <probability value="1 - ${visitor_likelihood}">
-     <gen_NullGenerator probability="${NULL_CHANCE}">
-      <gen_BuildListGenerator>
-       <gen_ForGenerator>
-        <sameChoiceAs field="wcs_item_sk" generatorByID="additionalBuyerClicksChooser"/>
-        <do>
-         <gen_ReferenceGenerator choose="random" from="historical">
-          <reference table="web_page" field="wp_web_page_sk" />
-         </gen_ReferenceGenerator>
-        </do>
-       </gen_ForGenerator>
-       <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-        <sameChoiceAs field="wcs_sales_sk" generatorByID="orderChooser"/>
-        <reference table="web_sales" field="ws_web_page_sk" />
-       </gen_ReferenceGenerator>
-      </gen_BuildListGenerator>
-     </gen_NullGenerator>
-    </probability>
-   </gen_ProbabilityGenerator>
-  </field>
-  
-  <!-- used by Q2, Q3, Q4, Q5, Q8, Q12, Q30 -->
-  <field name="wcs_user_sk" size="19" type="BIGINT" primary="false">
-   <gen_ProbabilityGenerator>
-    <sameChoiceAs field="wcs_click_date_sk" generatorByID="buyChooser"/>
-    <probability value="${visitor_likelihood}">
-     <gen_ProbabilityGenerator>
-      <probability value="${visitor_known_likelihood}">
-       <gen_ReferenceGenerator choose="random" from="historical">
-        <reference table="customer" field="c_customer_sk" />
-       </gen_ReferenceGenerator>
-      </probability>
-      <probability value="1 - ${visitor_known_likelihood}">
-       <gen_StaticValueGenerator>
-        <value></value>
-       </gen_StaticValueGenerator>
-      </probability>
-     </gen_ProbabilityGenerator>
-    </probability>
-    <probability value="1 - ${visitor_likelihood}">
-     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-      <sameChoiceAs field="wcs_sales_sk" generatorByID="orderChooser"/>
-      <reference table="web_sales" field="ws_bill_customer_sk" />
-     </gen_ReferenceGenerator>
-    </probability>
-   </gen_ProbabilityGenerator>
-  </field>
- </table>
- 
- 
- <!-- Each row in this table represents details of a web page within a web site -->
- <table name="web_page">
-  <size>${web_page_size}</size>
-  
-  <!-- used by Q4, Q8, Q14 -->
-  <field name="wp_web_page_sk" size="19" type="BIGINT" primary="true">
-   <gen_IdGenerator />
-  </field>
-  
-  <field name="wp_web_page_id" size="16" type="CHAR" primary="false">
-   <gen_ConvertNumberToStringGenerator>
-    <gen_IdGenerator/>
-    <size>16.0</size>
-    <characters>ABCDEFGHIJKLMNOPQRSTUVWXYZ</characters>
-   </gen_ConvertNumberToStringGenerator>
-  </field>
-  
-  <field name="wp_rec_start_date" size="13" type="DATE" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_DateTimeGenerator>
-     <useFixedStepSize>true</useFixedStepSize>
-     <startDate>${web_page_begin_date}</startDate>
-     <endDate>${web_sales_begin_date}</endDate>
-     <outputFormat>yyyy-MM-dd</outputFormat>
-    </gen_DateTimeGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="wp_rec_end_date" size="13" type="DATE" primary="false">
-   <!-- all pages are active for the moment => NULL -->
-   <gen_StaticValueGenerator>
-    <value></value>
-   </gen_StaticValueGenerator>
-   <!--
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_IFGenerator>
-     <if>generator[0] == null</if>
-     <gen_OtherFieldValueGenerator>
-      <reference field="wp_rec_start_date" />
-     </gen_OtherFieldValueGenerator>
-     <then>
-      <gen_DateTimeGenerator>
-       <useFixedStepSize>true</useFixedStepSize>
-       <inputFormat>yyyy-MM-dd</inputFormat>
-       <startDate>1999-09-03</startDate>
-       <endDate>2001-09-02</endDate>
-       <outputFormat>yyyy-MM-dd</outputFormat>
-      </gen_DateTimeGenerator>
-     </then>
-     <else>
-      <gen_AddRandomSecondsGenerator>
-       <reference field="wp_rec_start_date" />
-       <outputFormat>yyyy-MM-dd</outputFormat>
-       <min>2.0 * 365 * ${one_day_in_milliseconds} / 1000</min>
-       <max>4.0 * 365 * ${one_day_in_milliseconds} / 1000</max>
-      </gen_AddRandomSecondsGenerator>
-     </else>
-    </gen_IFGenerator>
-   </gen_NullGenerator>
-   -->
-  </field>
-  
-  <!-- FK d_date_sk -->
-  <field name="wp_creation_date_sk" size="19" type="BIGINT" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="date_dim" field="d_date_sk" />
-    </gen_ReferenceGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- FK d_date_sk -->
-  <field name="wp_access_date_sk" size="19" type="BIGINT" primary="false"><!-- TODO access date after creation -->
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="date_dim" field="d_date_sk" />
-    </gen_ReferenceGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="wp_autogen_flag" size="1" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomAString>
-     <min>1.0</min>
-     <max>1.0</max>
-    </gen_RandomAString>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- FK c_customer_sk -->
-  <field name="wp_customer_sk" size="19" type="BIGINT" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="customer" field="c_customer_sk" />
-    </gen_ReferenceGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="wp_url" size="100" type="VARCHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_TemplateGenerator>
-     <getValue>fvdto.setBothValues("http://www." + generator[0] + ".com");</getValue>
-     <gen_RandomAString>
-      <min>4.0</min>
-      <max>85.0</max>
-     </gen_RandomAString>
-    </gen_TemplateGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- used by Q4, Q8 -->
-  <field name="wp_type" size="50" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="web_page_use" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- used by Q14 -->
-  <field name="wp_char_count" size="10" type="INTEGER" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_LongGenerator>
-     <min>701.0</min>
-     <max>7046.0</max>
-    </gen_LongGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="wp_link_count" size="10" type="INTEGER" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_LongGenerator>
-     <min>2.0</min>
-     <max>25.0</max>
-    </gen_LongGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="wp_image_count" size="10" type="INTEGER" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_LongGenerator>
-     <min>1.0</min>
-     <max>7.0</max>
-    </gen_LongGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <field name="wp_max_ad_count" size="10" type="INTEGER" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_LongGenerator>
-     <min>0.0</min>
-     <max>4.0</max>
-    </gen_LongGenerator>
-   </gen_NullGenerator>
-  </field>
- </table>
- 
- 
- <!-- Each row in this table represents a single lineitem for the return of an item sold through the web sales channel and recorded in the web_returns table -->
- <table name="web_returns">
-  <size>${web_returns_size}</size>
-  
-  <!-- used by Q19 -->
-  <!-- FK d_date_sk -->
-  <field name="wr_returned_date_sk" size="19" type="BIGINT" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_ExtendedFormulaGenerator>
-     <formula>generator[0] + parent.getRandomSample(0l, (long) (${date_dim_size} - generator[0]), random)</formula>
-     <decimalPlaces>0</decimalPlaces>
-     <gen_RandomListItemsGenerator>
-      <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
-      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-       <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
-       <reference table="web_sales" field="ws_ship_date_sk" />
-      </gen_ReferenceGenerator>
-     </gen_RandomListItemsGenerator>
-    </gen_ExtendedFormulaGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- FK t_time_sk -->
-  <field name="wr_returned_time_sk" size="19" type="BIGINT" primary="false">
-   <gen_ForGenerator>
-    <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
-    <do>
-     <gen_NullGenerator probability="${NULL_CHANCE}">
-      <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="time_dim" field="t_time_sk" />
-      </gen_ReferenceGenerator>
-     </gen_NullGenerator>
-    </do>
-   </gen_ForGenerator>
-  </field>
-  
-  <!-- used by Q16, Q19 -->
-  <!-- FK i_item_sk,ws_item_sk -->
-  <field name="wr_item_sk" size="19" type="BIGINT" primary="true">
-   <gen_RandomListItemsGenerator id="listIndexChooser">
-    <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-     <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
-     <reference table="web_sales" field="ws_item_sk" />
-    </gen_ReferenceGenerator>
-   </gen_RandomListItemsGenerator>
-  </field>
-  
-  <!-- FK c_customer_sk -->
-  <field name="wr_refunded_customer_sk" size="19" type="BIGINT" primary="false">
-   <gen_ProbabilityGenerator id="isGiftChooser">
-    <probability value="${WS_GIFT_PCT}">
-     <gen_NullGenerator probability="${NULL_CHANCE}">
-      <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="customer" field="c_customer_sk" />
-      </gen_ReferenceGenerator>
-     </gen_NullGenerator>
-    </probability>
-    <probability value="1 - ${WS_GIFT_PCT}">
-     <gen_NullGenerator probability="${NULL_CHANCE}">
-      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-       <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
-       <reference table="web_sales" field="ws_ship_customer_sk" />
-      </gen_ReferenceGenerator>
-     </gen_NullGenerator>
-    </probability>
-   </gen_ProbabilityGenerator>
-  </field>
-  
-  <!-- FK cd_demo_sk -->
-  <field name="wr_refunded_cdemo_sk" size="19" type="BIGINT" primary="false">
-   <gen_ProbabilityGenerator>
-    <sameChoiceAs field="wr_refunded_customer_sk" generatorByID="isGiftChooser"/>
-    <probability value="${WS_GIFT_PCT}">
-     <gen_NullGenerator probability="${NULL_CHANCE}">
-      <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="customer_demographics" field="cd_demo_sk" />
-      </gen_ReferenceGenerator>
-     </gen_NullGenerator>
-    </probability>
-    <probability value="1 - ${WS_GIFT_PCT}">
-     <gen_NullGenerator probability="${NULL_CHANCE}">
-      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-       <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
-       <reference table="web_sales" field="ws_ship_cdemo_sk" />
-      </gen_ReferenceGenerator>
-     </gen_NullGenerator>
-    </probability>
-   </gen_ProbabilityGenerator>
-  </field>
-  
-  <!-- FK hd_demo_sk -->
-  <field name="wr_refunded_hdemo_sk" size="19" type="BIGINT" primary="false">
-   <gen_ProbabilityGenerator>
-    <sameChoiceAs field="wr_refunded_customer_sk" generatorByID="isGiftChooser"/>
-    <probability value="${WS_GIFT_PCT}">
-     <gen_NullGenerator probability="${NULL_CHANCE}">
-      <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="household_demographics" field="hd_demo_sk" />
-      </gen_ReferenceGenerator>
-     </gen_NullGenerator>
-    </probability>
-    <probability value="1 - ${WS_GIFT_PCT}">
-     <gen_NullGenerator probability="${NULL_CHANCE}">
-      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-       <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
-       <reference table="web_sales" field="ws_ship_hdemo_sk" />
-      </gen_ReferenceGenerator>
-     </gen_NullGenerator>
-    </probability>
-   </gen_ProbabilityGenerator>
-  </field>
-  
-  <!-- FK ca_address_sk -->
-  <field name="wr_refunded_addr_sk" size="19" type="BIGINT" primary="false">
-   <gen_ProbabilityGenerator>
-    <sameChoiceAs field="wr_refunded_customer_sk" generatorByID="isGiftChooser"/>
-    <probability value="${WS_GIFT_PCT}">
-     <gen_NullGenerator probability="${NULL_CHANCE}">
-      <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="customer_address" field="ca_address_sk" />
-      </gen_ReferenceGenerator>
-     </gen_NullGenerator>
-    </probability>
-    <probability value="1 - ${WS_GIFT_PCT}">
-     <gen_NullGenerator probability="${NULL_CHANCE}">
-      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-       <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
-       <reference table="web_sales" field="ws_ship_addr_sk" />
-      </gen_ReferenceGenerator>
-     </gen_NullGenerator>
-    </probability>
-   </gen_ProbabilityGenerator>
-  </field>
-  
-  <!-- FK c_customer_sk -->
-  <field name="wr_returning_customer_sk" size="19" type="BIGINT" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_OtherFieldValueGenerator>
-     <reference field="wr_refunded_customer_sk" />
-    </gen_OtherFieldValueGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- FK cd_demo_sk -->
-  <field name="wr_returning_cdemo_sk" size="19" type="BIGINT" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_OtherFieldValueGenerator>
-     <reference field="wr_refunded_cdemo_sk" />
-    </gen_OtherFieldValueGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- FK hd_demo_sk -->
-  <field name="wr_returning_hdemo_sk" size="19" type="BIGINT" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_OtherFieldValueGenerator>
-     <reference field="wr_refunded_hdemo_sk" />
-    </gen_OtherFieldValueGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- FK ca_address_sk -->
-  <field name="wr_returning_addr_sk" size="19" type="BIGINT" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_OtherFieldValueGenerator>
-     <reference field="wr_refunded_addr_sk" />
-    </gen_OtherFieldValueGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- FK wp_web_page_sk -->
-  <field name="wr_web_page_sk" size="19" type="BIGINT" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_RandomListItemsGenerator>
-     <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
-     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-      <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
-      <reference table="web_sales" field="ws_web_page_sk" />
-     </gen_ReferenceGenerator>
-    </gen_RandomListItemsGenerator>
-   </gen_NullGenerator>
-  </field>
-  
-  <!-- FK r_reason_sk -->
-  <field name="wr_reason_sk" size="19" type="BIGINT" primary="false">
-   <gen_ForGenerator>
-    <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
-    <do>
-     <gen_NullGenerator probability="${NULL_CHANCE}">
-      <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="reason" field="r_reason_sk" />
-      </gen_ReferenceGenerator>
-     </gen_NullGenerator>
-    </do>
-   </gen_ForGenerator>
-  </field>
-  
-  <!-- used by Q16 -->
-  <!-- FK ws_order_number -->
-  <field name="wr_order_number" size="19" type="BIGINT" primary="true">
-   <gen_PermutationReferenceGenerator id="orderChooser">
-    <reference table="web_sales" field="ws_order_number" />
-   </gen_PermutationReferenceGenerator>
-  </field>
-  
-  <!-- used by Q19 -->
-  <field name="wr_return_quantity" size="10" type="INTEGER" primary="false">
-   <gen_ExtendedFormulaGenerator>
-    <formula>parent.getRandomSample(1l, (long) generator[0], random)</formula>
-    <decimalPlaces>0</decimalPlaces>
-    <gen_RandomListItemsGenerator>
-     <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
-     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-      <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
-      <reference table="web_sales" field="ws_quantity" />
-     </gen_ReferenceGenerator>
-    </gen_RandomListItemsGenerator>
-   </gen_ExtendedFormulaGenerator>
-  </field>
-  
-  <!-- decimalSize="7,2"-->
-  <field name="wr_return_amt" size="7" type="NUMERIC" primary="false">
-   <!-- TODO calculation unknown -->
-   <gen_ForGenerator>
-    <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
-    <do>
-     <gen_DoubleGenerator>
-      <minD>0.00d</minD>
-      <maxD>30000.00d</maxD>
-      <decimalPlaces>2</decimalPlaces>
-     </gen_DoubleGenerator>
-    </do>
-   </gen_ForGenerator>
-  </field>
-  
-  <!-- decimalSize="7,2"-->
-  <field name="wr_return_tax" size="7" type="NUMERIC" primary="false">
-   <!-- TODO calculation unknown -->
-   <gen_ForGenerator>
-    <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
-    <do>
-     <gen_DoubleGenerator>
-      <minD>0.00d</minD>
-      <maxD>2100.00d</maxD>
-      <decimalPlaces>2</decimalPlaces>
-     </gen_DoubleGenerator>
-    </do>
-   </gen_ForGenerator>
-  </field>
-  
-  <!-- decimalSize="7,2"-->
-  <field name="wr_return_amt_inc_tax" size="7" type="NUMERIC" primary="false">
-   <gen_ForGenerator>
-    <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
-    <do>
-     <gen_NullGenerator probability="${NULL_CHANCE}">
-      <gen_ForFormulaGenerator>
-       <formula>generator[0] + generator[1]</formula>
-       <decimalPlaces>2</decimalPlaces>
-       <gen_OtherFieldValueGenerator>
-        <reference field="wr_return_amt" />
-       </gen_OtherFieldValueGenerator>
-       <gen_OtherFieldValueGenerator>
-        <reference field="wr_return_tax" />
-       </gen_OtherFieldValueGenerator>
-      </gen_ForFormulaGenerator>
-     </gen_NullGenerator>
-    </do>
-   </gen_ForGenerator>
-  </field>
-  
-  <!-- decimalSize="7,2"-->
-  <field name="wr_fee" size="7" type="NUMERIC" primary="false">
-   <gen_ForGenerator>
-    <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
-    <do>
-     <gen_DoubleGenerator>
-      <minD>0.50d</minD>
-      <maxD>100.00d</maxD>
-      <decimalPlaces>2</decimalPlaces>
-     </gen_DoubleGenerator>
-    </do>
-   </gen_ForGenerator>
-  </field>
-  
-  <!-- decimalSize="7,2"-->
-  <field name="wr_return_ship_cost" size="7" type="NUMERIC" primary="false">
-   <!-- TODO calculation unknown -->
-   <gen_ForGenerator>
-    <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
-    <do>
-     <gen_NullGenerator probability="${NULL_CHANCE}">
-      <gen_DoubleGenerator>
-       <minD>0.00d</minD>
-       <maxD>11730.85d</maxD>
-       <decimalPlaces>2</decimalPlaces>
-      </gen_DoubleGenerator>
-     </gen_NullGenerator>
-    </do>
-   </gen_ForGenerator>
-  </field>
-  
-  <!-- used by Q16 -->
-  <!-- decimalSize="7,2"-->
-  <field name="wr_refunded_cash" size="7" type="NUMERIC" primary="false">
-   <gen_ExtendedFormulaGenerator>
-    <formula>generator[0] * generator[1] * generator[2]</formula>
-    <decimalPlaces>2</decimalPlaces>
-    <gen_DoubleGenerator>
-     <minD>0.00d</minD>
-     <maxD>1.00d</maxD>
-     <decimalPlaces>2</decimalPlaces>
-    </gen_DoubleGenerator>
-    <gen_RandomListItemsGenerator>
-     <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
-     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-      <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
-      <reference table="web_sales" field="ws_list_price" />
-     </gen_ReferenceGenerator>
-    </gen_RandomListItemsGenerator>
-    <gen_OtherFieldValueGenerator>
-     <reference field="wr_return_quantity" />
-    </gen_OtherFieldValueGenerator>
-   </gen_ExtendedFormulaGenerator>
-  </field>
-  
-  <!-- decimalSize="7,2"-->
-  <field name="wr_reversed_charge" size="7" type="NUMERIC" primary="false">
-   <gen_ExtendedFormulaGenerator>
-    <formula>generator[0] * ((generator[1] * generator[2]) - generator[3])</formula>
-    <decimalPlaces>2</decimalPlaces>
-    <gen_DoubleGenerator>
-     <minD>0.01d</minD>
-     <maxD>1.00d</maxD>
-     <decimalPlaces>2</decimalPlaces>
-    </gen_DoubleGenerator>
-    <gen_RandomListItemsGenerator>
-     <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
-     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-      <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
-      <reference table="web_sales" field="ws_list_price" />
-     </gen_ReferenceGenerator>
-    </gen_RandomListItemsGenerator>
-    <gen_OtherFieldValueGenerator>
-     <reference field="wr_return_quantity" />
-    </gen_OtherFieldValueGenerator>
-    <gen_OtherFieldValueGenerator>
-     <reference field="wr_refunded_cash" />
-    </gen_OtherFieldValueGenerator>
-   </gen_ExtendedFormulaGenerator>
-  </field>
-  
-  <!-- decimalSize="7,2"-->
-  <field name="wr_account_credit" size="7" type="NUMERIC" primary="false">
-   <gen_ExtendedFormulaGenerator>
-    <formula>(generator[0] * generator[1]) - generator[2] - generator[3]</formula>
-    <decimalPlaces>2</decimalPlaces>
-    <gen_RandomListItemsGenerator>
-     <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
-     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-      <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
-      <reference table="web_sales" field="ws_list_price" />
-     </gen_ReferenceGenerator>
-    </gen_RandomListItemsGenerator>
-    <gen_OtherFieldValueGenerator>
-     <reference field="wr_return_quantity" />
-    </gen_OtherFieldValueGenerator>
-    <gen_OtherFieldValueGenerator>
-     <reference field="wr_reversed_charge" />
-    </gen_OtherFieldValueGenerator>
-    <gen_OtherFieldValueGenerator>
-     <reference field="wr_refunded_cash" />
-    </gen_OtherFieldValueGenerator>
-   </gen_ExtendedFormulaGenerator>
-  </field>
-  
-  <!-- decimalSize="7,2"-->
-  <field name="wr_net_loss" size="7" type="NUMERIC" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
-    <gen_DoubleGenerator>
-     <minD>0.63d</minD>
-     <maxD>13871.85d</maxD>
-     <decimalPlaces>2</decimalPlaces>
-    </gen_DoubleGenerator>
-   </gen_NullGenerator>
-  </field>
- </table>
+
  
  
  <!-- Each row in this table represents a single lineitem for a sale made through the web channel and recorded in the web_sales fact table -->
@@ -3746,7 +2939,7 @@
   <field name="ws_sold_date_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="date_dim" field="d_date_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="date_dim" field="d_date_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -3757,7 +2950,7 @@
   <field name="ws_sold_time_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="time_dim" field="t_time_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="time_dim" field="t_time_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -3796,7 +2989,7 @@
     </i>
     <do>
      <gen_ReferenceGenerator id="itemChooser" choose="random" from="historical">
-      <reference table="item" field="i_item_sk" />
+      <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="item" field="i_item_sk" />
      </gen_ReferenceGenerator>
     </do>
    </gen_ForGenerator>
@@ -3807,7 +3000,7 @@
   <field name="ws_bill_customer_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="customer" field="c_customer_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_customer_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -3816,7 +3009,7 @@
   <field name="ws_bill_cdemo_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="customer_demographics" field="cd_demo_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer_demographics" field="cd_demo_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -3825,7 +3018,7 @@
   <field name="ws_bill_hdemo_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="household_demographics" field="hd_demo_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="household_demographics" field="hd_demo_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -3834,7 +3027,7 @@
   <field name="ws_bill_addr_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="customer_address" field="ca_address_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer_address" field="ca_address_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -3845,7 +3038,7 @@
     <probability value="${WS_GIFT_PCT}">
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="customer" field="c_customer_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_customer_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </probability>
@@ -3866,7 +3059,7 @@
     <probability value="${WS_GIFT_PCT}">
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="customer_demographics" field="cd_demo_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer_demographics" field="cd_demo_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </probability>
@@ -3888,7 +3081,7 @@
     <probability value="${WS_GIFT_PCT}">
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="household_demographics" field="hd_demo_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="household_demographics" field="hd_demo_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </probability>
@@ -3909,7 +3102,7 @@
     <probability value="${WS_GIFT_PCT}">
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="customer_address" field="ca_address_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer_address" field="ca_address_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </probability>
@@ -3931,7 +3124,7 @@
     <do>
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="web_page" field="wp_web_page_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_page" field="wp_web_page_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </do>
@@ -3945,7 +3138,7 @@
     <do>
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="web_site" field="web_site_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_site" field="web_site_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </do>
@@ -3959,7 +3152,7 @@
     <do>
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="ship_mode" field="sm_ship_mode_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="ship_mode" field="sm_ship_mode_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </do>
@@ -3974,7 +3167,7 @@
     <do>
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="warehouse" field="w_warehouse_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="warehouse" field="w_warehouse_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </do>
@@ -3988,7 +3181,7 @@
     <do>
      <gen_NullGenerator probability="${NULL_CHANCE}">
       <gen_ReferenceGenerator choose="random" from="historical">
-       <reference table="promotion" field="p_promo_sk" />
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="promotion" field="p_promo_sk" />
       </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </do>
@@ -4324,6 +3517,748 @@
  </table>
  
  
+ 
+ <!-- Each row in this table represents a single lineitem for the return of an item sold through the web sales channel and recorded in the web_returns table -->
+ <table name="web_returns">
+  <size>${web_returns_size}</size>
+  
+  <!-- used by Q19 -->
+  <!-- FK d_date_sk -->
+  <field name="wr_returned_date_sk" size="19" type="BIGINT" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_ExtendedFormulaGenerator>
+     <formula>generator[0] + parent.getRandomSample(0l, (long) (${date_dim_size} - generator[0]), random)</formula>
+     <decimalPlaces>0</decimalPlaces>
+     <gen_RandomListItemsGenerator>
+      <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
+      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+       <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_ship_date_sk" />
+      </gen_ReferenceGenerator>
+     </gen_RandomListItemsGenerator>
+    </gen_ExtendedFormulaGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- FK t_time_sk -->
+  <field name="wr_returned_time_sk" size="19" type="BIGINT" primary="false">
+   <gen_ForGenerator>
+    <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
+    <do>
+     <gen_NullGenerator probability="${NULL_CHANCE}">
+      <gen_ReferenceGenerator choose="random" from="historical">
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="time_dim" field="t_time_sk" />
+      </gen_ReferenceGenerator>
+     </gen_NullGenerator>
+    </do>
+   </gen_ForGenerator>
+  </field>
+  
+  <!-- used by Q16, Q19 -->
+  <!-- FK i_item_sk,ws_item_sk -->
+  <field name="wr_item_sk" size="19" type="BIGINT" primary="true">
+   <gen_RandomListItemsGenerator id="listIndexChooser">
+    <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+     <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_item_sk" />
+    </gen_ReferenceGenerator>
+   </gen_RandomListItemsGenerator>
+  </field>
+  
+  <!-- FK c_customer_sk -->
+  <field name="wr_refunded_customer_sk" size="19" type="BIGINT" primary="false">
+   <gen_ProbabilityGenerator id="isGiftChooser">
+    <probability value="${WS_GIFT_PCT}">
+     <gen_NullGenerator probability="${NULL_CHANCE}">
+      <gen_ReferenceGenerator choose="random" from="historical">
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_customer_sk" />
+      </gen_ReferenceGenerator>
+     </gen_NullGenerator>
+    </probability>
+    <probability value="1 - ${WS_GIFT_PCT}">
+     <gen_NullGenerator probability="${NULL_CHANCE}">
+      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+       <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_ship_customer_sk" />
+      </gen_ReferenceGenerator>
+     </gen_NullGenerator>
+    </probability>
+   </gen_ProbabilityGenerator>
+  </field>
+  
+  <!-- FK cd_demo_sk -->
+  <field name="wr_refunded_cdemo_sk" size="19" type="BIGINT" primary="false">
+   <gen_ProbabilityGenerator>
+    <sameChoiceAs field="wr_refunded_customer_sk" generatorByID="isGiftChooser"/>
+    <probability value="${WS_GIFT_PCT}">
+     <gen_NullGenerator probability="${NULL_CHANCE}">
+      <gen_ReferenceGenerator choose="random" from="historical">
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer_demographics" field="cd_demo_sk" />
+      </gen_ReferenceGenerator>
+     </gen_NullGenerator>
+    </probability>
+    <probability value="1 - ${WS_GIFT_PCT}">
+     <gen_NullGenerator probability="${NULL_CHANCE}">
+      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+       <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_ship_cdemo_sk" />
+      </gen_ReferenceGenerator>
+     </gen_NullGenerator>
+    </probability>
+   </gen_ProbabilityGenerator>
+  </field>
+  
+  <!-- FK hd_demo_sk -->
+  <field name="wr_refunded_hdemo_sk" size="19" type="BIGINT" primary="false">
+   <gen_ProbabilityGenerator>
+    <sameChoiceAs field="wr_refunded_customer_sk" generatorByID="isGiftChooser"/>
+    <probability value="${WS_GIFT_PCT}">
+     <gen_NullGenerator probability="${NULL_CHANCE}">
+      <gen_ReferenceGenerator choose="random" from="historical">
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="household_demographics" field="hd_demo_sk" />
+      </gen_ReferenceGenerator>
+     </gen_NullGenerator>
+    </probability>
+    <probability value="1 - ${WS_GIFT_PCT}">
+     <gen_NullGenerator probability="${NULL_CHANCE}">
+      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+       <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_ship_hdemo_sk" />
+      </gen_ReferenceGenerator>
+     </gen_NullGenerator>
+    </probability>
+   </gen_ProbabilityGenerator>
+  </field>
+  
+  <!-- FK ca_address_sk -->
+  <field name="wr_refunded_addr_sk" size="19" type="BIGINT" primary="false">
+   <gen_ProbabilityGenerator>
+    <sameChoiceAs field="wr_refunded_customer_sk" generatorByID="isGiftChooser"/>
+    <probability value="${WS_GIFT_PCT}">
+     <gen_NullGenerator probability="${NULL_CHANCE}">
+      <gen_ReferenceGenerator choose="random" from="historical">
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer_address" field="ca_address_sk" />
+      </gen_ReferenceGenerator>
+     </gen_NullGenerator>
+    </probability>
+    <probability value="1 - ${WS_GIFT_PCT}">
+     <gen_NullGenerator probability="${NULL_CHANCE}">
+      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+       <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_ship_addr_sk" />
+      </gen_ReferenceGenerator>
+     </gen_NullGenerator>
+    </probability>
+   </gen_ProbabilityGenerator>
+  </field>
+  
+  <!-- FK c_customer_sk -->
+  <field name="wr_returning_customer_sk" size="19" type="BIGINT" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_OtherFieldValueGenerator>
+     <reference field="wr_refunded_customer_sk" />
+    </gen_OtherFieldValueGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- FK cd_demo_sk -->
+  <field name="wr_returning_cdemo_sk" size="19" type="BIGINT" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_OtherFieldValueGenerator>
+     <reference field="wr_refunded_cdemo_sk" />
+    </gen_OtherFieldValueGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- FK hd_demo_sk -->
+  <field name="wr_returning_hdemo_sk" size="19" type="BIGINT" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_OtherFieldValueGenerator>
+     <reference field="wr_refunded_hdemo_sk" />
+    </gen_OtherFieldValueGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- FK ca_address_sk -->
+  <field name="wr_returning_addr_sk" size="19" type="BIGINT" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_OtherFieldValueGenerator>
+     <reference field="wr_refunded_addr_sk" />
+    </gen_OtherFieldValueGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- FK wp_web_page_sk -->
+  <field name="wr_web_page_sk" size="19" type="BIGINT" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_RandomListItemsGenerator>
+     <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
+     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+      <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
+      <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_web_page_sk" />
+     </gen_ReferenceGenerator>
+    </gen_RandomListItemsGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- FK r_reason_sk -->
+  <field name="wr_reason_sk" size="19" type="BIGINT" primary="false">
+   <gen_ForGenerator>
+    <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
+    <do>
+     <gen_NullGenerator probability="${NULL_CHANCE}">
+      <gen_ReferenceGenerator choose="random" from="historical">
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="reason" field="r_reason_sk" />
+      </gen_ReferenceGenerator>
+     </gen_NullGenerator>
+    </do>
+   </gen_ForGenerator>
+  </field>
+  
+  <!-- used by Q16 -->
+  <!-- FK ws_order_number -->
+  <field name="wr_order_number" size="19" type="BIGINT" primary="true">
+   <gen_PermutationReferenceGenerator id="orderChooser">
+    <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_order_number" />
+   </gen_PermutationReferenceGenerator>
+  </field>
+  
+  <!-- used by Q19 -->
+  <field name="wr_return_quantity" size="10" type="INTEGER" primary="false">
+   <gen_ExtendedFormulaGenerator>
+    <formula>parent.getRandomSample(1l, (long) generator[0], random)</formula>
+    <decimalPlaces>0</decimalPlaces>
+    <gen_RandomListItemsGenerator>
+     <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
+     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+      <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
+      <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_quantity" />
+     </gen_ReferenceGenerator>
+    </gen_RandomListItemsGenerator>
+   </gen_ExtendedFormulaGenerator>
+  </field>
+  
+  <!-- decimalSize="7,2"-->
+  <field name="wr_return_amt" size="7" type="NUMERIC" primary="false">
+   <!-- TODO calculation unknown -->
+   <gen_ForGenerator>
+    <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
+    <do>
+     <gen_DoubleGenerator>
+      <minD>0.00d</minD>
+      <maxD>30000.00d</maxD>
+      <decimalPlaces>2</decimalPlaces>
+     </gen_DoubleGenerator>
+    </do>
+   </gen_ForGenerator>
+  </field>
+  
+  <!-- decimalSize="7,2"-->
+  <field name="wr_return_tax" size="7" type="NUMERIC" primary="false">
+   <!-- TODO calculation unknown -->
+   <gen_ForGenerator>
+    <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
+    <do>
+     <gen_DoubleGenerator>
+      <minD>0.00d</minD>
+      <maxD>2100.00d</maxD>
+      <decimalPlaces>2</decimalPlaces>
+     </gen_DoubleGenerator>
+    </do>
+   </gen_ForGenerator>
+  </field>
+  
+  <!-- decimalSize="7,2"-->
+  <field name="wr_return_amt_inc_tax" size="7" type="NUMERIC" primary="false">
+   <gen_ForGenerator>
+    <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
+    <do>
+     <gen_NullGenerator probability="${NULL_CHANCE}">
+      <gen_ForFormulaGenerator>
+       <formula>generator[0] + generator[1]</formula>
+       <decimalPlaces>2</decimalPlaces>
+       <gen_OtherFieldValueGenerator>
+        <reference field="wr_return_amt" />
+       </gen_OtherFieldValueGenerator>
+       <gen_OtherFieldValueGenerator>
+        <reference field="wr_return_tax" />
+       </gen_OtherFieldValueGenerator>
+      </gen_ForFormulaGenerator>
+     </gen_NullGenerator>
+    </do>
+   </gen_ForGenerator>
+  </field>
+  
+  <!-- decimalSize="7,2"-->
+  <field name="wr_fee" size="7" type="NUMERIC" primary="false">
+   <gen_ForGenerator>
+    <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
+    <do>
+     <gen_DoubleGenerator>
+      <minD>0.50d</minD>
+      <maxD>100.00d</maxD>
+      <decimalPlaces>2</decimalPlaces>
+     </gen_DoubleGenerator>
+    </do>
+   </gen_ForGenerator>
+  </field>
+  
+  <!-- decimalSize="7,2"-->
+  <field name="wr_return_ship_cost" size="7" type="NUMERIC" primary="false">
+   <!-- TODO calculation unknown -->
+   <gen_ForGenerator>
+    <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
+    <do>
+     <gen_NullGenerator probability="${NULL_CHANCE}">
+      <gen_DoubleGenerator>
+       <minD>0.00d</minD>
+       <maxD>11730.85d</maxD>
+       <decimalPlaces>2</decimalPlaces>
+      </gen_DoubleGenerator>
+     </gen_NullGenerator>
+    </do>
+   </gen_ForGenerator>
+  </field>
+  
+  <!-- used by Q16 -->
+  <!-- decimalSize="7,2"-->
+  <field name="wr_refunded_cash" size="7" type="NUMERIC" primary="false">
+   <gen_ExtendedFormulaGenerator>
+    <formula>generator[0] * generator[1] * generator[2]</formula>
+    <decimalPlaces>2</decimalPlaces>
+    <gen_DoubleGenerator>
+     <minD>0.00d</minD>
+     <maxD>1.00d</maxD>
+     <decimalPlaces>2</decimalPlaces>
+    </gen_DoubleGenerator>
+    <gen_RandomListItemsGenerator>
+     <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
+     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+      <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
+      <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_list_price" />
+     </gen_ReferenceGenerator>
+    </gen_RandomListItemsGenerator>
+    <gen_OtherFieldValueGenerator>
+     <reference field="wr_return_quantity" />
+    </gen_OtherFieldValueGenerator>
+   </gen_ExtendedFormulaGenerator>
+  </field>
+  
+  <!-- decimalSize="7,2"-->
+  <field name="wr_reversed_charge" size="7" type="NUMERIC" primary="false">
+   <gen_ExtendedFormulaGenerator>
+    <formula>generator[0] * ((generator[1] * generator[2]) - generator[3])</formula>
+    <decimalPlaces>2</decimalPlaces>
+    <gen_DoubleGenerator>
+     <minD>0.01d</minD>
+     <maxD>1.00d</maxD>
+     <decimalPlaces>2</decimalPlaces>
+    </gen_DoubleGenerator>
+    <gen_RandomListItemsGenerator>
+     <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
+     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+      <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
+      <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_list_price" />
+     </gen_ReferenceGenerator>
+    </gen_RandomListItemsGenerator>
+    <gen_OtherFieldValueGenerator>
+     <reference field="wr_return_quantity" />
+    </gen_OtherFieldValueGenerator>
+    <gen_OtherFieldValueGenerator>
+     <reference field="wr_refunded_cash" />
+    </gen_OtherFieldValueGenerator>
+   </gen_ExtendedFormulaGenerator>
+  </field>
+  
+  <!-- decimalSize="7,2"-->
+  <field name="wr_account_credit" size="7" type="NUMERIC" primary="false">
+   <gen_ExtendedFormulaGenerator>
+    <formula>(generator[0] * generator[1]) - generator[2] - generator[3]</formula>
+    <decimalPlaces>2</decimalPlaces>
+    <gen_RandomListItemsGenerator>
+     <sameChoiceAs field="wr_item_sk" generatorByID="listIndexChooser" />
+     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+      <sameChoiceAs field="wr_order_number" generatorByID="orderChooser"/>
+      <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_list_price" />
+     </gen_ReferenceGenerator>
+    </gen_RandomListItemsGenerator>
+    <gen_OtherFieldValueGenerator>
+     <reference field="wr_return_quantity" />
+    </gen_OtherFieldValueGenerator>
+    <gen_OtherFieldValueGenerator>
+     <reference field="wr_reversed_charge" />
+    </gen_OtherFieldValueGenerator>
+    <gen_OtherFieldValueGenerator>
+     <reference field="wr_refunded_cash" />
+    </gen_OtherFieldValueGenerator>
+   </gen_ExtendedFormulaGenerator>
+  </field>
+  
+  <!-- decimalSize="7,2"-->
+  <field name="wr_net_loss" size="7" type="NUMERIC" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_DoubleGenerator>
+     <minD>0.63d</minD>
+     <maxD>13871.85d</maxD>
+     <decimalPlaces>2</decimalPlaces>
+    </gen_DoubleGenerator>
+   </gen_NullGenerator>
+  </field>
+ </table>
+ 
+ 
+ 
+ 
+ <table name="web_clickstreams">
+  <size>${web_clickstreams_size}</size>
+  
+  <!-- Removed in accordance with Tilmann (conference call 2014-04-15) -->
+  <!--
+  <field name="wcs_click_sk" size="19" type="BIGINT" primary="true">
+   <gen_IdGenerator />
+  </field>
+  -->
+   
+ <!-- used by Q3, Q4, Q8, Q12 -->
+  <field name="wcs_click_date_sk" size="19" type="BIGINT" primary="false">
+   <gen_ProbabilityGenerator id="buyChooser">
+    <disableRng>true</disableRng>
+    <chunkSize>${clickstreams_chunksize}</chunkSize>
+    <probability value="${visitor_likelihood}">
+     <gen_ForGenerator id="numberOfVisitorClicksChooser">
+      <i>
+       <gen_LongGenerator>
+        <min>${mean_clicks_per_visitor} - 5</min>
+        <max>${mean_clicks_per_visitor} + 5</max>
+       </gen_LongGenerator>
+      </i>
+      <do>
+       <gen_NullGenerator probability="${NULL_CHANCE}">
+        <gen_FormulaGenerator>
+         <formula>${web_sales_days_since_date_begin_date} + Math.floor(gc.getID() * ((${web_sales_days_within} - 1) / ${web_clickstreams_size}))</formula>
+         <decimalPlaces>0</decimalPlaces>
+        </gen_FormulaGenerator>
+       </gen_NullGenerator>
+      </do>
+     </gen_ForGenerator>
+    </probability>
+    <probability value="1 - ${visitor_likelihood}">
+     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+      <sameChoiceAs field="wcs_sales_sk" generatorByID="orderChooser"/>
+      <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_sold_date_sk" />
+     </gen_ReferenceGenerator>
+    </probability>
+   </gen_ProbabilityGenerator>
+  </field>
+  
+  <!-- used by Q3, Q4, Q8, Q12 -->
+  <field name="wcs_click_time_sk" size="19" type="BIGINT" primary="false">
+   <gen_ProbabilityGenerator>
+    <sameChoiceAs field="wcs_click_date_sk" generatorByID="buyChooser"/>
+    <probability value="${visitor_likelihood}">
+     <gen_ForGenerator>
+      <sameChoiceAs field="wcs_click_date_sk" generatorByID="numberOfVisitorClicksChooser"/>
+      <do>
+       <gen_NullGenerator probability="${NULL_CHANCE}">
+        <gen_ReferenceGenerator choose="random" from="historical">
+         <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="time_dim" field="t_time_sk" />
+        </gen_ReferenceGenerator>
+       </gen_NullGenerator>
+      </do>
+     </gen_ForGenerator>
+    </probability>
+    <probability value="1 - ${visitor_likelihood}">
+     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+      <sameChoiceAs field="wcs_sales_sk" generatorByID="orderChooser"/>
+      <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_sold_time_sk" />
+     </gen_ReferenceGenerator>
+    </probability>
+   </gen_ProbabilityGenerator>
+  </field>
+  
+  <!-- used by Q3, Q8 -->
+  <field name="wcs_sales_sk" size="19" type="BIGINT" primary="false">
+   <gen_ProbabilityGenerator>
+    <sameChoiceAs field="wcs_click_date_sk" generatorByID="buyChooser"/>
+    <probability value="${visitor_likelihood}">
+     <gen_StaticValueGenerator>
+      <value></value>
+     </gen_StaticValueGenerator>
+    </probability>
+    <probability value="1 - ${visitor_likelihood}">
+     <!--
+     <gen_NullGenerator probability="${NULL_CHANCE}">
+      <gen_ReferenceGenerator id="orderChooser" choose="random" from="historical">
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_order_number" />
+      </gen_ReferenceGenerator>
+     </gen_NullGenerator>
+     -->
+     <gen_RelativeGenerator id="orderChooser" correctionFactor="1 / ${clickstreams_chunksize}">
+      <gen_IdGenerator />
+     </gen_RelativeGenerator>
+    </probability>
+   </gen_ProbabilityGenerator>
+  </field>
+  
+  <!-- used by Q2, Q3, Q4, Q5, Q8, Q12, Q30 -->
+  <field name="wcs_item_sk" size="19" type="BIGINT" primary="false">
+   <gen_ProbabilityGenerator>
+    <sameChoiceAs field="wcs_click_date_sk" generatorByID="buyChooser"/>
+    <probability value="${visitor_likelihood}">
+     <gen_ForGenerator>
+      <sameChoiceAs field="wcs_click_date_sk" generatorByID="numberOfVisitorClicksChooser"/>
+      <do>
+       <gen_ReferenceGenerator choose="random" from="historical">
+        <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="item" field="i_item_sk" />
+       </gen_ReferenceGenerator>
+      </do>
+     </gen_ForGenerator>
+    </probability>
+    <probability value="1 - ${visitor_likelihood}">
+     <gen_BuildListGenerator>
+      <gen_ForGenerator id="additionalBuyerClicksChooser">
+       <i>
+        <gen_LongGenerator>
+         <min>${mean_clicks_per_buyer} - 1</min>
+         <max>${mean_clicks_per_buyer} + 2</max>
+        </gen_LongGenerator>
+       </i>
+       <do>
+        <gen_ReferenceGenerator choose="random" from="historical">
+         <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="item" field="i_item_sk" />
+        </gen_ReferenceGenerator>
+       </do>
+      </gen_ForGenerator>
+      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+       <sameChoiceAs field="wcs_sales_sk" generatorByID="orderChooser"/>
+       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_item_sk" />
+      </gen_ReferenceGenerator>
+     </gen_BuildListGenerator>
+    </probability>
+   </gen_ProbabilityGenerator>
+  </field>
+  
+  <!-- used by Q8 -->
+  <field name="wcs_web_page_sk" size="19" type="BIGINT" primary="false">
+   <gen_ProbabilityGenerator>
+    <sameChoiceAs field="wcs_click_date_sk" generatorByID="buyChooser"/>
+    <probability value="${visitor_likelihood}">
+     <gen_ForGenerator>
+      <sameChoiceAs field="wcs_click_date_sk" generatorByID="numberOfVisitorClicksChooser"/>
+      <do>
+       <gen_NullGenerator probability="${NULL_CHANCE}">
+        <gen_ReferenceGenerator choose="random" from="historical">
+         <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_page" field="wp_web_page_sk" />
+        </gen_ReferenceGenerator>
+       </gen_NullGenerator>
+      </do>
+     </gen_ForGenerator>
+    </probability>
+    <probability value="1 - ${visitor_likelihood}">
+     <gen_NullGenerator probability="${NULL_CHANCE}">
+      <gen_BuildListGenerator>
+       <gen_ForGenerator>
+        <sameChoiceAs field="wcs_item_sk" generatorByID="additionalBuyerClicksChooser"/>
+        <do>
+         <gen_ReferenceGenerator choose="random" from="historical">
+          <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_page" field="wp_web_page_sk" />
+         </gen_ReferenceGenerator>
+        </do>
+       </gen_ForGenerator>
+       <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+        <sameChoiceAs field="wcs_sales_sk" generatorByID="orderChooser"/>
+        <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_web_page_sk" />
+       </gen_ReferenceGenerator>
+      </gen_BuildListGenerator>
+     </gen_NullGenerator>
+    </probability>
+   </gen_ProbabilityGenerator>
+  </field>
+  
+  <!-- used by Q2, Q3, Q4, Q5, Q8, Q12, Q30 -->
+  <field name="wcs_user_sk" size="19" type="BIGINT" primary="false">
+   <gen_ProbabilityGenerator>
+    <sameChoiceAs field="wcs_click_date_sk" generatorByID="buyChooser"/>
+    <probability value="${visitor_likelihood}">
+     <gen_ProbabilityGenerator>
+      <probability value="${visitor_known_likelihood}">
+       <gen_ReferenceGenerator choose="random" from="historical">
+        <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_customer_sk" />
+       </gen_ReferenceGenerator>
+      </probability>
+      <probability value="1 - ${visitor_known_likelihood}">
+       <gen_StaticValueGenerator>
+        <value></value>
+       </gen_StaticValueGenerator>
+      </probability>
+     </gen_ProbabilityGenerator>
+    </probability>
+    <probability value="1 - ${visitor_likelihood}">
+     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+      <sameChoiceAs field="wcs_sales_sk" generatorByID="orderChooser"/>
+      <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_bill_customer_sk" />
+     </gen_ReferenceGenerator>
+    </probability>
+   </gen_ProbabilityGenerator>
+  </field>
+ </table>
+ 
+ 
+ <!-- Each row in this table represents details of a web page within a web site -->
+ <table name="web_page">
+  <size>${web_page_size}</size>
+  
+  <!-- used by Q4, Q8, Q14 -->
+  <field name="wp_web_page_sk" size="19" type="BIGINT" primary="true">
+   <gen_IdGenerator />
+  </field>
+  
+  <field name="wp_web_page_id" size="16" type="CHAR" primary="false">
+   <gen_ConvertNumberToStringGenerator>
+    <gen_IdGenerator/>
+    <size>16.0</size>
+    <characters>ABCDEFGHIJKLMNOPQRSTUVWXYZ</characters>
+   </gen_ConvertNumberToStringGenerator>
+  </field>
+  
+  <field name="wp_rec_start_date" size="13" type="DATE" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_DateTimeGenerator>
+     <useFixedStepSize>true</useFixedStepSize>
+     <startDate>${web_page_begin_date}</startDate>
+     <endDate>${web_sales_begin_date}</endDate>
+     <outputFormat>yyyy-MM-dd</outputFormat>
+    </gen_DateTimeGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="wp_rec_end_date" size="13" type="DATE" primary="false">
+   <!-- all pages are active for the moment => NULL -->
+   <gen_StaticValueGenerator>
+    <value></value>
+   </gen_StaticValueGenerator>
+   <!--
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_IFGenerator>
+     <if>generator[0] == null</if>
+     <gen_OtherFieldValueGenerator>
+      <reference field="wp_rec_start_date" />
+     </gen_OtherFieldValueGenerator>
+     <then>
+      <gen_DateTimeGenerator>
+       <useFixedStepSize>true</useFixedStepSize>
+       <inputFormat>yyyy-MM-dd</inputFormat>
+       <startDate>1999-09-03</startDate>
+       <endDate>2001-09-02</endDate>
+       <outputFormat>yyyy-MM-dd</outputFormat>
+      </gen_DateTimeGenerator>
+     </then>
+     <else>
+      <gen_AddRandomSecondsGenerator>
+       <reference field="wp_rec_start_date" />
+       <outputFormat>yyyy-MM-dd</outputFormat>
+       <min>2.0 * 365 * ${one_day_in_milliseconds} / 1000</min>
+       <max>4.0 * 365 * ${one_day_in_milliseconds} / 1000</max>
+      </gen_AddRandomSecondsGenerator>
+     </else>
+    </gen_IFGenerator>
+   </gen_NullGenerator>
+   -->
+  </field>
+  
+  <!-- FK d_date_sk -->
+  <field name="wp_creation_date_sk" size="19" type="BIGINT" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_ReferenceGenerator choose="random" from="historical">
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="date_dim" field="d_date_sk" />
+    </gen_ReferenceGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- FK d_date_sk -->
+  <field name="wp_access_date_sk" size="19" type="BIGINT" primary="false"><!-- TODO access date after creation -->
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_ReferenceGenerator choose="random" from="historical">
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="date_dim" field="d_date_sk" />
+    </gen_ReferenceGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="wp_autogen_flag" size="1" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_RandomAString>
+     <min>1.0</min>
+     <max>1.0</max>
+    </gen_RandomAString>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- FK c_customer_sk -->
+  <field name="wp_customer_sk" size="19" type="BIGINT" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_ReferenceGenerator choose="random" from="historical">
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_customer_sk" />
+    </gen_ReferenceGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="wp_url" size="100" type="VARCHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_TemplateGenerator>
+     <getValue>fvdto.setBothValues("http://www." + generator[0] + ".com");</getValue>
+     <gen_RandomAString>
+      <min>4.0</min>
+      <max>85.0</max>
+     </gen_RandomAString>
+    </gen_TemplateGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- used by Q4, Q8 -->
+  <field name="wp_type" size="50" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="web_page_use" valueColumn="0" weightColumn="0" />
+   </gen_NullGenerator>
+  </field>
+  
+  <!-- used by Q14 -->
+  <field name="wp_char_count" size="10" type="INTEGER" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_LongGenerator>
+     <min>701.0</min>
+     <max>7046.0</max>
+    </gen_LongGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="wp_link_count" size="10" type="INTEGER" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_LongGenerator>
+     <min>2.0</min>
+     <max>25.0</max>
+    </gen_LongGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="wp_image_count" size="10" type="INTEGER" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_LongGenerator>
+     <min>1.0</min>
+     <max>7.0</max>
+    </gen_LongGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="wp_max_ad_count" size="10" type="INTEGER" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_LongGenerator>
+     <min>0.0</min>
+     <max>4.0</max>
+    </gen_LongGenerator>
+   </gen_NullGenerator>
+  </field>
+ </table>
+ 
  <!-- currently not touched by queries -->
  <!-- Each row in this table represents details of a web site -->
  <table name="web_site">
@@ -4377,7 +4312,7 @@
   <field name="web_open_date_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="date_dim" field="d_date_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="date_dim" field="d_date_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -4386,7 +4321,7 @@
   <field name="web_close_date_sk" size="19" type="BIGINT" primary="false">
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_ReferenceGenerator choose="random" from="historical">
-     <reference table="date_dim" field="d_date_sk" />
+     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="date_dim" field="d_date_sk" />
     </gen_ReferenceGenerator>
    </gen_NullGenerator>
   </field>
@@ -4561,4 +4496,113 @@
    </gen_NullGenerator>
   </field>
  </table>
+ 
+  
+ <!-- currently not touched by queries -->
+ <!-- Each row in this table represents details of an income range -->
+ <table name="income_band">
+  <size>${income_band_size}</size>
+  
+  <field name="ib_income_band_sk" size="19" type="BIGINT" primary="true">
+   <gen_IdGenerator />
+  </field>
+  
+  <field name="ib_lower_bound" size="10" type="INTEGER" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_FormulaGenerator>
+     <formula>gc.getID() * ${income_band_stepsize} + 1</formula>
+    </gen_FormulaGenerator>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="ib_upper_bound" size="10" type="INTEGER" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_FormulaGenerator>
+     <formula>(gc.getID() + 1) * ${income_band_stepsize}</formula>
+    </gen_FormulaGenerator>
+   </gen_NullGenerator>
+  </field>
+ </table>
+ 
+  <!-- currently not touched by queries -->
+ <!-- Each row in this table represents a reason why an item was returned -->
+ <table name="reason">
+  <size>${reason_size}</size>
+  
+  <field name="r_reason_sk" size="19" type="BIGINT" primary="true">
+   <gen_IdGenerator />
+  </field>
+  
+  <field name="r_reason_id" size="16" type="CHAR" primary="false">
+   <gen_RandomAString>
+    <min>1.0</min>
+    <max>16.0</max>
+   </gen_RandomAString>
+  </field>
+  
+  <field name="r_reason_desc" size="100" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_RandomAString>
+     <min>1.0</min>
+     <max>100.0</max>
+    </gen_RandomAString>
+   </gen_NullGenerator>
+  </field>
+ </table>
+ 
+ 
+ <!-- currently not touched by queries -->
+ <!-- Each row in this table represents a shipping mode -->
+ <table name="ship_mode">
+  <size>${ship_mode_size}</size>
+  
+  <field name="sm_ship_mode_sk" size="19" type="BIGINT" primary="true">
+   <gen_IdGenerator />
+  </field>
+  
+  <field name="sm_ship_mode_id" size="16" type="CHAR" primary="false">
+   <gen_RandomAString>
+    <min>1.0</min>
+    <max>16.0</max>
+   </gen_RandomAString>
+  </field>
+  
+  <field name="sm_type" size="30" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_RandomAString>
+     <min>1.0</min>
+     <max>30.0</max>
+    </gen_RandomAString>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="sm_code" size="10" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_RandomAString>
+     <min>1.0</min>
+     <max>10.0</max>
+    </gen_RandomAString>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="sm_carrier" size="20" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_RandomAString>
+     <min>1.0</min>
+     <max>20.0</max>
+    </gen_RandomAString>
+   </gen_NullGenerator>
+  </field>
+  
+  <field name="sm_contract" size="20" type="CHAR" primary="false">
+   <gen_NullGenerator probability="${NULL_CHANCE}">
+    <gen_RandomAString>
+     <min>1.0</min>
+     <max>20.0</max>
+    </gen_RandomAString>
+   </gen_NullGenerator>
+  </field>
+ </table>
+ 
+ 
  </schema>
