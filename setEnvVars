@@ -44,6 +44,7 @@ export BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR="$BIG_BENCH_HDFS_ABSOLUTE_PATH/$BIG_BENC
 ## HIVE (recommended minimum version v0.12)
 ## ==========================
 export BIG_BENCH_HIVE_DATABASE="bigbenchORC"
+export BIG_BENCH_hive_default_fileformat_source_table="ORC"
 export BIG_BENCH_hive_default_fileformat_result_table="TEXTFILE"
 
 export HIVE_BINARY="/usr/bin/hive"
