@@ -21,6 +21,6 @@ execrefreshMetastore () {
 	echo "==========================="
 
 	echo "==============================================="
-	echo "HIVE load finished."
+	echo "HIVE refresh finished."
 	echo "==============================================="
 }
