@@ -143,6 +143,8 @@ All available options as well as all found modules can be listed by calling the 
 * -q: Defines the query number to be executed
 * -s: This option defines the number of parallel streams to use. It is only of any use with the runQueryInParallel module
 * -t: Sets the stream number of the current query. This option is important so that one query can run multiple times in parallel without interfering with other instances
+* -v: Use the provided file as initial metastore population script
+* -w: Use the provided file as metastore refresh script
 * -y: Use the provided file for custom query parameters
 * -z: Use the provided file for custom hive settings
 
@@ -177,7 +179,12 @@ All available options as well as all found modules can be listed by calling the 
 
 * populateMetastore: populates the metastore with the dataset tables.
 ```
-"$INSTALL_DIR/scripts/bigBench [-z <hive settings>] populateMetastore
+"$INSTALL_DIR/scripts/bigBench [-v <population script>] [-z <hive settings>] populateMetastore
+```
+
+* refreshMetastore: refreshes the metastore with the refresh dataset.
+```
+"$INSTALL_DIR/scripts/bigBench [-w <refresh script>] [-z <hive settings>] refreshMetastore
 ```
 
 * runBenchmark: runs the driver. This module parses its options itself. For details look at the driver usage section above.
