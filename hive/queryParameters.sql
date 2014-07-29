@@ -22,6 +22,8 @@ set q01_i_category_id_IN=1, 2 ,3;
 -- sf1 -> 11 stores, 90k sales in 820k lines
 set q01_ss_store_sk_IN=10, 20, 33, 40, 50;
 set q01_COUNT_pid1_greater=49;
+set q01_NPATH_ITEM_SET_MAX=500;
+
 
 -------- Q02 -----------
 -- q02_pid1_IN=<pid>, <pid>, ..
