@@ -18,7 +18,7 @@ logEnvInformation
 
 populateHive () {
 	"$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchCleanHive.sh"
-	"$HIVE_BINARY" -f "${BIG_BENCH_HIVE_SCRIPT_DIR}/hiveCreateLoadORC.sql"
+	"$HIVE_BINARY" -f "${BIG_BENCH_HIVE_SCRIPT_DIR}/hiveCreateLoad.sql"
 
 	hadoop fs -mkdir -p "$BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR" &
 	hadoop fs -mkdir -p "$BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR" &
