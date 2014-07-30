@@ -134,7 +134,7 @@ CREATE EXTERNAL TABLE  ${hiveconf:LM_BASENAME}12 (
 -------------------------------------------------------------------------------
 
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
-!echo concatenate result files ${hiveconf:LM_BASENAME}1-12 into table: ${hiveconf:TEMP_TABLE};
+-- !echo concatenate result files ${hiveconf:LM_BASENAME}1-12 into table: ${hiveconf:TEMP_TABLE};
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE}
 (

@@ -100,8 +100,8 @@ query_run_main_method () {
 		echo "========================="
 		echo "$QUERY_NAME Step 5/6: exec hive query(s) part 3, combine with sentiment analysis"
 		echo "========================="
-		echo "$BINARY --auxpath \"$BIG_BENCH_QUERIES_DIR/Resources/opennlp-maxent-3.0.3.jar:$BIG_BENCH_QUERIES_DIR/Resources/opennlp-tools-1.5.3.jar\" -f \"${QUERY_DIR}/hive3.sql\""
-		"$BINARY" --auxpath "$BIG_BENCH_QUERIES_DIR/Resources/opennlp-maxent-3.0.3.jar:$BIG_BENCH_QUERIES_DIR/Resources/opennlp-tools-1.5.3.jar" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE3_SCRIPT"
+		echo "$BINARY  -f \"${QUERY_DIR}/hive3.sql\""
+		"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" -f "$HIVE3_SCRIPT"
 	fi
 
 	#Step 6. Hadoop  3-----------------------------------------------------------------------

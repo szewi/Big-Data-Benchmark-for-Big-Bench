@@ -14,7 +14,7 @@ query_run_main_method () {
 		exit 1
 	fi
 
-	local HIVE_PARAMS="--auxpath $BIG_BENCH_QUERIES_DIR/Resources/opennlp-maxent-3.0.3.jar:$BIG_BENCH_QUERIES_DIR/Resources/opennlp-tools-1.5.3.jar:${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar $HIVE_PARAMS"
+	local HIVE_PARAMS=" $HIVE_PARAMS"
 
 	runHiveCmd -f "$HIVE_SCRIPT"
 }
