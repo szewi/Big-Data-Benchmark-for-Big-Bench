@@ -18,7 +18,7 @@ else
 	echo "data generator EULA"
 	echo "==============================================="
 	echo "This is your first run of the data generation tool. Please accept the EULA."
-	java -jar "$BIG_BENCH_DATA_GENERATOR_DIR"/pdgf.jar -ns -c
+	${BIG_BENCH_DATAGEN_JVM_ENV} -jar "$BIG_BENCH_DATA_GENERATOR_DIR"/pdgf.jar -ns -c
 	if grep -q "IS_EULA_ACCEPTED=true" "$BIG_BENCH_DATA_GENERATOR_DIR/Constants.properties"; then
 		echo "OK"
 	else
@@ -66,8 +66,8 @@ echo "HADOOP CLASSPATH: $HADOOP_CP"
 
 for (( i = 0; i < ${NODE_COUNT}; i++ ));
 do
-	echo ssh ${BIG_BENCH_SSH_OPTIONS} ${IPs[$i]} java ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:${BIG_BENCH_DATA_GENERATOR_DIR}/pdgf.jar" ${CLUSTER_CONF} pdgf.Controller  -nc ${NODE_COUNT} -nn $((i+1)) -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" -s ${BIGBENCH_TABLES} "$@"
-	ssh ${BIG_BENCH_SSH_OPTIONS} ${IPs[$i]} java ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:${BIG_BENCH_DATA_GENERATOR_DIR}/pdgf.jar" ${CLUSTER_CONF} pdgf.Controller  -nc ${NODE_COUNT} -nn $((i+1)) -ns -c -o "\'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/\'+table.getName\(\)+\'/\'" -s ${BIGBENCH_TABLES} "$@" &
+	echo ssh ${BIG_BENCH_SSH_OPTIONS} ${IPs[$i]}  ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:${BIG_BENCH_DATA_GENERATOR_DIR}/pdgf.jar" ${CLUSTER_CONF} pdgf.Controller  -nc ${NODE_COUNT} -nn $((i+1)) -ns -c -o "'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/'+table.getName()+'/'" -s ${BIGBENCH_TABLES} "$@"
+	ssh ${BIG_BENCH_SSH_OPTIONS} ${IPs[$i]} ${BIG_BENCH_DATAGEN_JVM_ENV} -cp "${HADOOP_CP}:${BIG_BENCH_DATA_GENERATOR_DIR}/pdgf.jar" ${CLUSTER_CONF} pdgf.Controller  -nc ${NODE_COUNT} -nn $((i+1)) -ns -c -o "\'${BIG_BENCH_HDFS_ABSOLUTE_DATA_DIR}/\'+table.getName\(\)+\'/\'" -s ${BIGBENCH_TABLES} "$@" &
 
 done
 wait

@@ -96,7 +96,7 @@ export BIG_BENCH_DATAGEN_HDFS_SITE="$BIG_BENCH_HADOOP_CONF/hdfs-site.xml"
 # specify JVM arguments like: -Xmx2000m; 
 # default of: 300m is sufficient if the datagen only uses 1 worker thread per map task 
 # Add +100MB per addition worker if you modified: BIGBENCH_DATAGEN_HADOOP_OPTIONS
-export BIG_BENCH_HADOOP_DATAGEN_JVM_ENV=" -DDEBUG_PRINT_PERIODIC_THREAD_DUMPS=5000 -Xmx300m " 		
+export BIG_BENCH_HADOOP_DATAGEN_JVM_ENV="java -DDEBUG_PRINT_PERIODIC_THREAD_DUMPS=5000 -Xmx300m " 		
 
 
 # if you increase -workers, you must also increase the -Xmx setting in BIG_BENCH_DATAGEN_JVM_ENV; 		
@@ -118,7 +118,7 @@ BIG_BENCH_SSH_OPTIONS=""					   ## you want to make sure that you can reach all 
 # specify JVM arguments like: -Xmx2000m
 # 300m is sufficient if the datagen only uses 1 worker thread (default: unrestricted)
 # Calculation: 200Mb +(100MB*threads per node)
-export BIG_BENCH_DATAGEN_JVM_ENV="  " 	  
+export BIG_BENCH_DATAGEN_JVM_ENV="java " 	  
 
 
 
