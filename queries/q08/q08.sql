@@ -14,7 +14,7 @@ AS
 	WHERE d.d_date >= '${hiveconf:q08_startDate}'
 	AND   d.d_date <= '${hiveconf:q08_endDate}'
 ;
---!echo "created ${hiveconf:TEMP_TABLE1}";
+---- !echo "created ${hiveconf:TEMP_TABLE1}";
 
 --PART 1 - sales that users have viewed the review pages--------------------------------------------------------
 DROP VIEW if EXISTS ${hiveconf:TEMP_TABLE2};

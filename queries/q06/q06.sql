@@ -8,10 +8,10 @@
 -- Part 1 helper table(s) --------------------------------------------------------------
 
 -- Union customer store_sales and customer web_sales
-!echo Drop ${hiveconf:TEMP_TABLE};
+-- !echo Drop ${hiveconf:TEMP_TABLE};
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 
-!echo create ${hiveconf:TEMP_TABLE};
+-- !echo create ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE}
 	(customer_id              STRING,
 	customer_first_name       STRING,
@@ -26,7 +26,7 @@ CREATE TABLE ${hiveconf:TEMP_TABLE}
 	)
 ;
 
-!echo INSERT INTO TABLE ${hiveconf:TEMP_TABLE} -> customer store_sales;
+-- !echo INSERT INTO TABLE ${hiveconf:TEMP_TABLE} -> customer store_sales;
 INSERT INTO TABLE ${hiveconf:TEMP_TABLE} 
 	-- customer store_sales
 	SELECT 	
@@ -61,7 +61,7 @@ INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
 ;
 
 
-!echo INSERT INTO TABLE ${hiveconf:TEMP_TABLE} -> customer web_sales;
+-- !echo INSERT INTO TABLE ${hiveconf:TEMP_TABLE} -> customer web_sales;
 INSERT INTO TABLE ${hiveconf:TEMP_TABLE} 
 	-- customer web_sales
 	SELECT 	
