@@ -8,11 +8,54 @@
  *
  ******************************************************************************/
 -->
-<generation>
+<generation>	
 
- 
- 
+	<!-- example of parallel scheduling plan on a 3 node cluster
+	Shows which tables will be generate on which nodes depending on the benchmark phase (phase: normal, refresh)
+	
+	Refresh tables generate extra data during refresh (e.g. add new data to the existing tables)
+	In "normal"-Phase  generate table rows:  [0,REFRESH_PERCENTAGE*Table.Size]; 
+	In "refresh"-Phase generate table rows:  [REFRESH_PERCENTAGE*Table.Size+1, Table.Size] 
+	
+												|Generate on node:		|			|Generate on node:	
+	Table					|used	|fixed size	|1/3	|2/3	|3/3	|refresh	|1/3	|2/3	|3/3
+	======================================================================================================	
+	Not used tables:
+	income_band				|		|			|x		|x		|x		|			|		|		|	
+	reason					|		|			|x		|x		|x		|			|		|		|	
+	ship_mode				|		|			|x		|x		|x		|			|		|		|
+	web_site				|		|			|x		|x		|x		|			|		|		|
+	_____________________________________________________________________________________________________
+	Static tables:
+	date_dim				|x		|x			|x		|		|		|			|		|		|
+	time_dim				|x		|x			|x		|		|		|			|		|		|
+	customer_demographics	|x		|x			|x		|		|		|			|		|		|
+	household_demographics	|x		|x			|x		|		|		|			|		|		|
+	_____________________________________________________________________________________________________	
+	"Normal" tables:		
+	store					|x		|			|x		|x		|x		|			|		|		|
+	warehouse				|x		|			|x		|x		|x		|			|		|		|
+	promotion				|x		|			|x		|x		|x		|			|		|		|
+	web_page				|x		|			|x		|x		|x		|			|		|		|
+	_____________________________________________________________________________________________________
+	Refreshed tables:
+	customer				|x		|			|x		|x		|x		|x			|x		|x		|x
+	customer_address		|x		|			|x		|x		|x		|x			|x		|x		|x
+	item					|x		|			|x		|x		|x		|x			|x		|x		|x
+	item_marketprices		|x		|			|x		|x		|x		|x			|x		|x		|x
+	inventory				|x		|			|x		|x		|x		|x			|x		|x		|x
+	store_sales				|x		|			|x		|x		|x		|x			|x		|x		|x
+	store_returns			|x		|			|x		|x		|x		|x			|x		|x		|x
+	web_sales				|x		|			|x		|x		|x		|x			|x		|x		|x
+	web_returns				|x		|			|x		|x		|x		|x			|x		|x		|x
+	web_clickstreams		|x		|			|x		|x		|x		|x			|x		|x		|x
+	product_reviews			|x		|			|x		|x		|x		|x			|x		|x		|x
+	
+	
+	 -->
+	
 	<!-- DEFAULT Scheduler for all Tables, if no table specific scheduler is specified-->
+	<!--  used for "normal" tables. Normal "non-refresh" tables are excluded from generation during refresh phase  -->
 	<scheduler name="DefaultScheduler">
 			<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner" staticTableOnAllNodes="false">
 				<prePartition><!--  
@@ -42,21 +85,21 @@
 		<tables>	
 		<!-- not refreshed tables -->	
 			
-			<!-- tables not used in benchmark, not refreshed. Kept for legacy reasons  -->
+			<!-- tables not used in benchmark, but some tables have references to them. not refreshed. Kept for legacy reasons  -->
 			<table name="income_band"></table>
 			<table name="reason"></table>
 			<table name="ship_mode"></table>
 			<table name="web_site"></table>		
 			<!-- /tables not used in benchmark  -->
 			
-			<!-- Static tables (fixed small size, generated only on one node, skipped on others) -->
+			<!-- Static tables (fixed small size, generated only on node 1, skipped on others, not generated during refresh) -->
 			<table name="date_dim" static="true"></table>
 			<table name="time_dim" static="true"></table>
 			<table name="customer_demographics" static="true"></table>
 			<table name="household_demographics" static="true"></table>
 			<!-- /static tables -->
 			
-			<!-- "normal" tables. split over nodes, but no refresh -->
+			<!-- "normal" tables. split over all nodes. not generated during refresh -->
 			<table name="store"></table>
 			<table name="warehouse"></table>
 			<table name="promotion"></table>
@@ -65,8 +108,13 @@
 			
 		<!-- /not refreshed tables -->	
 			
-			<!-- refreshed tables -->			
-			
+			<!-- 
+			refreshed tables. Generated on all nodes. 
+			Refresh tables generate extra data during refresh (e.g. add new data to the existing tables)
+			In "normal"-Phase  generate table rows:  [0,REFRESH_PERCENTAGE*Table.Size]; 
+			In "refresh"-Phase generate table rows:  [REFRESH_PERCENTAGE*Table.Size+1, Table.Size] 
+			.Has effect only if  ${REFRESH_SYSTEM_ENABLED}==1. 
+			-->
 			<table name="customer">
 				<scheduler name="DefaultScheduler">
 					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
@@ -181,7 +229,7 @@
 					</partitioner>
 				</scheduler>
 			</table>
-			
+
 			<table name="item_marketprices">
 			<scheduler name="DefaultScheduler">
 					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
@@ -257,7 +305,7 @@
 					</partitioner>
 				</scheduler>
 			</table>
-					
+
 			<!-- not refreshed tables  tables -->
 			<table name ="store_sales">
 				<output name ="MultiLineOutput">
@@ -306,6 +354,8 @@
 					</partitioner>
 				</scheduler>
 			</table>
+			
+
 			<table name ="store_returns">
 				<output name ="MultiLineOutput">
 					<multilineFieldId>2</multilineFieldId>
@@ -353,6 +403,7 @@
 					</partitioner>
 				</scheduler>
 			</table>
+		
 			<table name ="web_sales">
 				<output name ="MultiLineOutput">
 					<multilineFieldId>3</multilineFieldId>
@@ -400,6 +451,8 @@
 					</partitioner>
 				</scheduler>
 			</table>
+			
+
 			<table name ="web_returns">
 				<output name ="MultiLineOutput">
 					<multilineFieldId>2</multilineFieldId>
@@ -447,6 +500,8 @@
 					</partitioner>
 				</scheduler>
 			</table>
+			
+
 			<table name ="web_clickstreams">
 				<output name ="MultiLineOutput">
 					<multilineFieldId>3</multilineFieldId>
@@ -495,7 +550,7 @@
 				</scheduler>
 			</table>	
 			
-			
+
 			<table name="product_reviews">
 				<scheduler name="DefaultScheduler">
 					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">

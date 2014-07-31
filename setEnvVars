@@ -121,7 +121,7 @@ BIG_BENCH_SSH_OPTIONS=""					   ## you want to make sure that you can reach all 
 # specify JVM arguments like: -Xmx2000m
 # 300m is sufficient if the datagen only uses 1 worker thread (default: unrestricted)
 # Calculation: 200Mb +(100MB*threads per node)
-export BIG_BENCH_DATAGEN_JVM_ENV="java " 	  
+export BIG_BENCH_DATAGEN_JVM_ENV="java "
 
 
 
