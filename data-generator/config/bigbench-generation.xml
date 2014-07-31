@@ -14,33 +14,20 @@
  
 	<!-- DEFAULT Scheduler for all Tables, if no table specific scheduler is specified-->
 	<scheduler name="DefaultScheduler">
-	<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
-	<prePartition><!--  
-	if(${REFRESH_SYSTEM_ENABLED}>0){
-		int tableID = table.getTableID();
-		int updateID = 0;
-		long rowStart;
-		long rowStop;
-		if(${REFRESH_PHASE}>0){
-			//Refresh part
-			rowStart = table.getSize()*${REFRESH_PERCENTAGE}+1;
-			rowStop = table.getSize()-1;
-		}else{
-			//"normal" part
-			rowStart = 0;
-			rowStop = table.getSize()*${REFRESH_PERCENTAGE};
-		}
-		return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop);
-	}else{
-		//DEFAULT
-		return getDefaultPartitioner().getPrePartition(project, table);				
-	}
-
-			
-	-->
-	</prePartition>
-	</partitioner>
+			<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner" staticTableOnAllNodes="false">
+				<prePartition><!--  
+				pdgf.core.dataGenerator.scheduler.Partition partition =getParentPartitioner().getDefaultPrePartition(project, table);	
+				
+				//exclude non-refresh tables from generation during refresh phase.
+				if(${REFRESH_SYSTEM_ENABLED}>0 && ${REFRESH_PHASE}>0 ){
+					partition.setExcluded(true);
+				}
+				return partition;							
+				-->
+				</prePartition>
+			</partitioner>
 	</scheduler>
+	
 	<!-- DEFAULT output for all Tables, if no table specific output is specified-->
 	<output name="CSVRowOutput">
 		<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+Integer.toString(nodeNumber):"")+ fileEnding</fileTemplate>
@@ -53,50 +40,225 @@
 
 	<schema name="default">
 		<tables>	
+		<!-- not refreshed tables -->	
+			
+			<!-- tables not used in benchmark, not refreshed. Kept for legacy reasons  -->
+			<table name="income_band"></table>
+			<table name="reason"></table>
+			<table name="ship_mode"></table>
+			<table name="web_site"></table>		
+			<!-- /tables not used in benchmark  -->
+			
 			<!-- Static tables (fixed small size, generated only on one node, skipped on others) -->
-			<table name="date_dim" static="true">
-				<scheduler name="DefaultScheduler" >
-					<partitioner name="pdgf.core.dataGenerator.scheduler.DefaultPartitioner" staticTableOnAllNodes="false"/>
-				</scheduler>
-			</table>
-			<table name="time_dim" static="true">
-				<scheduler name="DefaultScheduler" >
-					<partitioner name="pdgf.core.dataGenerator.scheduler.DefaultPartitioner" staticTableOnAllNodes="false"/>
-				</scheduler>			</table>
-			<table name="customer_demographics" static="true">
-				<scheduler name="DefaultScheduler" >
-					<partitioner name="pdgf.core.dataGenerator.scheduler.DefaultPartitioner" staticTableOnAllNodes="false"/>
-				</scheduler>			</table>
-			<table name="household_demographics" static="true">
-				<scheduler name="DefaultScheduler" >
-					<partitioner name="pdgf.core.dataGenerator.scheduler.DefaultPartitioner" staticTableOnAllNodes="false"/>
-				</scheduler>			
-			</table>
+			<table name="date_dim" static="true"></table>
+			<table name="time_dim" static="true"></table>
+			<table name="customer_demographics" static="true"></table>
+			<table name="household_demographics" static="true"></table>
 			<!-- /static tables -->
 			
+			<!-- "normal" tables. split over nodes, but no refresh -->
+			<table name="store"></table>
+			<table name="warehouse"></table>
+			<table name="promotion"></table>
+			<table name="web_page"></table>
+			<!-- /"normal" tables.-->
+			
+		<!-- /not refreshed tables -->	
+			
+			<!-- refreshed tables -->			
+			
 			<table name="customer">
-			</table>
-			<table name="customer_address">
+				<scheduler name="DefaultScheduler">
+					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+					<prePartition><!--  
+					if(${REFRESH_SYSTEM_ENABLED}>0){
+						int tableID = table.getTableID();
+						int updateID = 0;
+						long lastTableRow=table.getSize()-1;
+						long rowStart;
+						long rowStop;
+						boolean exclude=false;
+						long refreshRows=table.getSize()*(1.0-${REFRESH_PERCENTAGE});
+						if(${REFRESH_PHASE}>0){
+							//Refresh part
+							rowStart = lastTableRow - refreshRows +1;
+							rowStop  = lastTableRow;
+							if(refreshRows<=0){
+								exclude=true;
+							}
+							
+						}else{
+							//"normal" part
+							rowStart = 0;
+							rowStop = lastTableRow - refreshRows;
+						}
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+					}else{
+						//DEFAULT
+						return getParentPartitioner().getDefaultPrePartition(project, table);				
+					}
+				
+							
+					-->
+					</prePartition>
+					</partitioner>
+				</scheduler>
 			</table>
 			
-			<table name="store">
+			<table name="customer_address">
+				<scheduler name="DefaultScheduler">
+					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+					<prePartition><!--  
+					if(${REFRESH_SYSTEM_ENABLED}>0){
+						int tableID = table.getTableID();
+						int updateID = 0;
+						long lastTableRow=table.getSize()-1;
+						long rowStart;
+						long rowStop;
+						boolean exclude=false;
+						long refreshRows=table.getSize()*(1.0-${REFRESH_PERCENTAGE});
+						if(${REFRESH_PHASE}>0){
+							//Refresh part
+							rowStart = lastTableRow - refreshRows +1;
+							rowStop  = lastTableRow;
+							if(refreshRows<=0){
+								exclude=true;
+							}
+							
+						}else{
+							//"normal" part
+							rowStart = 0;
+							rowStop = lastTableRow - refreshRows;
+						}
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+					}else{
+						//DEFAULT
+						return getParentPartitioner().getDefaultPrePartition(project, table);				
+					}
+				
+							
+					-->
+					</prePartition>
+					</partitioner>
+				</scheduler>
 			</table>
-			<table name="warehouse">
-			</table>
-			  
-			<table name="promotion">
-			</table>
-			<table name="web_page">
-			</table>
-			  
+			
+
 			<table name="item">
+				<scheduler name="DefaultScheduler">
+					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+					<prePartition><!--  
+					if(${REFRESH_SYSTEM_ENABLED}>0){
+						int tableID = table.getTableID();
+						int updateID = 0;
+						long lastTableRow=table.getSize()-1;
+						long rowStart;
+						long rowStop;
+						boolean exclude=false;
+						long refreshRows=table.getSize()*(1.0-${REFRESH_PERCENTAGE});
+						if(${REFRESH_PHASE}>0){
+							//Refresh part
+							rowStart = lastTableRow - refreshRows +1;
+							rowStop  = lastTableRow;
+							if(refreshRows<=0){
+								exclude=true;
+							}
+							
+						}else{
+							//"normal" part
+							rowStart = 0;
+							rowStop = lastTableRow - refreshRows;
+						}
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+					}else{
+						//DEFAULT
+						return getParentPartitioner().getDefaultPrePartition(project, table);				
+					}
+				
+							
+					-->
+					</prePartition>
+					</partitioner>
+				</scheduler>
 			</table>
+			
 			<table name="item_marketprices">
+			<scheduler name="DefaultScheduler">
+					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+					<prePartition><!--  
+					if(${REFRESH_SYSTEM_ENABLED}>0){
+						int tableID = table.getTableID();
+						int updateID = 0;
+						long lastTableRow=table.getSize()-1;
+						long rowStart;
+						long rowStop;
+						boolean exclude=false;
+						long refreshRows=table.getSize()*(1.0-${REFRESH_PERCENTAGE});
+						if(${REFRESH_PHASE}>0){
+							//Refresh part
+							rowStart = lastTableRow - refreshRows +1;
+							rowStop  = lastTableRow;
+							if(refreshRows<=0){
+								exclude=true;
+							}
+							
+						}else{
+							//"normal" part
+							rowStart = 0;
+							rowStop = lastTableRow - refreshRows;
+						}
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+					}else{
+						//DEFAULT
+						return getParentPartitioner().getDefaultPrePartition(project, table);				
+					}
+				
+							
+					-->
+					</prePartition>
+					</partitioner>
+				</scheduler>
 			</table>
+			
 			<table name="inventory">
+				<scheduler name="DefaultScheduler">
+					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+					<prePartition><!--  
+					if(${REFRESH_SYSTEM_ENABLED}>0){
+						int tableID = table.getTableID();
+						int updateID = 0;
+						long lastTableRow=table.getSize()-1;
+						long rowStart;
+						long rowStop;
+						boolean exclude=false;
+						long refreshRows=table.getSize()*(1.0-${REFRESH_PERCENTAGE});
+						if(${REFRESH_PHASE}>0){
+							//Refresh part
+							rowStart = lastTableRow - refreshRows +1;
+							rowStop  = lastTableRow;
+							if(refreshRows<=0){
+								exclude=true;
+							}
+							
+						}else{
+							//"normal" part
+							rowStart = 0;
+							rowStop = lastTableRow - refreshRows;
+						}
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+					}else{
+						//DEFAULT
+						return getParentPartitioner().getDefaultPrePartition(project, table);				
+					}
+				
+							
+					-->
+					</prePartition>
+					</partitioner>
+				</scheduler>
 			</table>
 					
-		
+			<!-- not refreshed tables  tables -->
 			<table name ="store_sales">
 				<output name ="MultiLineOutput">
 					<multilineFieldId>2</multilineFieldId>
@@ -108,6 +270,41 @@
 					<charset>UTF-8</charset>
 					<sortByRowID>true</sortByRowID>
 				</output>
+				<scheduler name="DefaultScheduler">
+					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+					<prePartition><!--  
+					if(${REFRESH_SYSTEM_ENABLED}>0){
+						int tableID = table.getTableID();
+						int updateID = 0;
+						long lastTableRow=table.getSize()-1;
+						long rowStart;
+						long rowStop;
+						boolean exclude=false;
+						long refreshRows=table.getSize()*(1.0-${REFRESH_PERCENTAGE});
+						if(${REFRESH_PHASE}>0){
+							//Refresh part
+							rowStart = lastTableRow - refreshRows +1;
+							rowStop  = lastTableRow;
+							if(refreshRows<=0){
+								exclude=true;
+							}
+							
+						}else{
+							//"normal" part
+							rowStart = 0;
+							rowStop = lastTableRow - refreshRows;
+						}
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+					}else{
+						//DEFAULT
+						return getParentPartitioner().getDefaultPrePartition(project, table);				
+					}
+				
+							
+					-->
+					</prePartition>
+					</partitioner>
+				</scheduler>
 			</table>
 			<table name ="store_returns">
 				<output name ="MultiLineOutput">
@@ -120,6 +317,41 @@
 					<charset>UTF-8</charset>
 					<sortByRowID>true</sortByRowID>
 				</output>
+				<scheduler name="DefaultScheduler">
+					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+					<prePartition><!--  
+					if(${REFRESH_SYSTEM_ENABLED}>0){
+						int tableID = table.getTableID();
+						int updateID = 0;
+						long lastTableRow=table.getSize()-1;
+						long rowStart;
+						long rowStop;
+						boolean exclude=false;
+						long refreshRows=table.getSize()*(1.0-${REFRESH_PERCENTAGE});
+						if(${REFRESH_PHASE}>0){
+							//Refresh part
+							rowStart = lastTableRow - refreshRows +1;
+							rowStop  = lastTableRow;
+							if(refreshRows<=0){
+								exclude=true;
+							}
+							
+						}else{
+							//"normal" part
+							rowStart = 0;
+							rowStop = lastTableRow - refreshRows;
+						}
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+					}else{
+						//DEFAULT
+						return getParentPartitioner().getDefaultPrePartition(project, table);				
+					}
+				
+							
+					-->
+					</prePartition>
+					</partitioner>
+				</scheduler>
 			</table>
 			<table name ="web_sales">
 				<output name ="MultiLineOutput">
@@ -132,6 +364,41 @@
 					<charset>UTF-8</charset>
 					<sortByRowID>true</sortByRowID>
 				</output>
+				<scheduler name="DefaultScheduler">
+					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+					<prePartition><!--  
+					if(${REFRESH_SYSTEM_ENABLED}>0){
+						int tableID = table.getTableID();
+						int updateID = 0;
+						long lastTableRow=table.getSize()-1;
+						long rowStart;
+						long rowStop;
+						boolean exclude=false;
+						long refreshRows=table.getSize()*(1.0-${REFRESH_PERCENTAGE});
+						if(${REFRESH_PHASE}>0){
+							//Refresh part
+							rowStart = lastTableRow - refreshRows +1;
+							rowStop  = lastTableRow;
+							if(refreshRows<=0){
+								exclude=true;
+							}
+							
+						}else{
+							//"normal" part
+							rowStart = 0;
+							rowStop = lastTableRow - refreshRows;
+						}
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+					}else{
+						//DEFAULT
+						return getParentPartitioner().getDefaultPrePartition(project, table);				
+					}
+				
+							
+					-->
+					</prePartition>
+					</partitioner>
+				</scheduler>
 			</table>
 			<table name ="web_returns">
 				<output name ="MultiLineOutput">
@@ -144,6 +411,41 @@
 					<charset>UTF-8</charset>
 					<sortByRowID>true</sortByRowID>
 				</output>
+				<scheduler name="DefaultScheduler">
+					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+					<prePartition><!--  
+					if(${REFRESH_SYSTEM_ENABLED}>0){
+						int tableID = table.getTableID();
+						int updateID = 0;
+						long lastTableRow=table.getSize()-1;
+						long rowStart;
+						long rowStop;
+						boolean exclude=false;
+						long refreshRows=table.getSize()*(1.0-${REFRESH_PERCENTAGE});
+						if(${REFRESH_PHASE}>0){
+							//Refresh part
+							rowStart = lastTableRow - refreshRows +1;
+							rowStop  = lastTableRow;
+							if(refreshRows<=0){
+								exclude=true;
+							}
+							
+						}else{
+							//"normal" part
+							rowStart = 0;
+							rowStop = lastTableRow - refreshRows;
+						}
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+					}else{
+						//DEFAULT
+						return getParentPartitioner().getDefaultPrePartition(project, table);				
+					}
+				
+							
+					-->
+					</prePartition>
+					</partitioner>
+				</scheduler>
 			</table>
 			<table name ="web_clickstreams">
 				<output name ="MultiLineOutput">
@@ -156,21 +458,82 @@
 					<charset>UTF-8</charset>
 					<sortByRowID>true</sortByRowID>
 				</output>
+				<scheduler name="DefaultScheduler">
+					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+					<prePartition><!--  
+					if(${REFRESH_SYSTEM_ENABLED}>0){
+						int tableID = table.getTableID();
+						int updateID = 0;
+						long lastTableRow=table.getSize()-1;
+						long rowStart;
+						long rowStop;
+						boolean exclude=false;
+						long refreshRows=table.getSize()*(1.0-${REFRESH_PERCENTAGE});
+						if(${REFRESH_PHASE}>0){
+							//Refresh part
+							rowStart = lastTableRow - refreshRows +1;
+							rowStop  = lastTableRow;
+							if(refreshRows<=0){
+								exclude=true;
+							}
+							
+						}else{
+							//"normal" part
+							rowStart = 0;
+							rowStop = lastTableRow - refreshRows;
+						}
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+					}else{
+						//DEFAULT
+						return getParentPartitioner().getDefaultPrePartition(project, table);				
+					}
+				
+							
+					-->
+					</prePartition>
+					</partitioner>
+				</scheduler>
 			</table>	
 			
 			
 			<table name="product_reviews">
+				<scheduler name="DefaultScheduler">
+					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+					<prePartition><!--  
+					if(${REFRESH_SYSTEM_ENABLED}>0){
+						int tableID = table.getTableID();
+						int updateID = 0;
+						long lastTableRow=table.getSize()-1;
+						long rowStart;
+						long rowStop;
+						boolean exclude=false;
+						long refreshRows=table.getSize()*(1.0-${REFRESH_PERCENTAGE});
+						if(${REFRESH_PHASE}>0){
+							//Refresh part
+							rowStart = lastTableRow - refreshRows +1;
+							rowStop  = lastTableRow;
+							if(refreshRows<=0){
+								exclude=true;
+							}
+							
+						}else{
+							//"normal" part
+							rowStart = 0;
+							rowStop = lastTableRow - refreshRows;
+						}
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+					}else{
+						//DEFAULT
+						return getParentPartitioner().getDefaultPrePartition(project, table);				
+					}
+				
+							
+					-->
+					</prePartition>
+					</partitioner>
+				</scheduler>
 			</table>
 			
-			<!-- not used in benchmark  -->
-			<table name="income_band">
-			</table>
-			<table name="reason">
-			</table>
-			<table name="ship_mode">
-			</table>
-			<table name="web_site">
-			</table>
 		</tables>
 	</schema>
 </generation>
