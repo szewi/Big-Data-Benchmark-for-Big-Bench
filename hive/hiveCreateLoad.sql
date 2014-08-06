@@ -28,6 +28,20 @@ set marketPricesTableName=item_marketprices;
 set clickstreamsTableName=web_clickstreams;
 set reviewsTableName=product_reviews;
 
+-- /Begin HACK create first table differently
+-- README! why is the first table not done with CTAS (create table as), like the other tables?
+--
+-- hack for https://issues.apache.org/jira/browse/HIVE-2419 where CTAS (create table as) is not working for a fresh install where the "warehouse" folder for hive does not exist. 
+-- The normal create table creates the warehouse folder if its missing.
+-- But CTAS does not! create the warehouse folder, thus the "move" operation for data would fail with: 
+-- "Failed with exception Unable to rename: hdfs://namenode:port/tmp/hive-root/../-ext-000001 hdfs://namenode:port/user/hive/warehouse/<database>/<table>"
+
+DROP TABLE IF EXISTS createDatabaseDummyTable;
+CREATE TABLE IF NOT EXISTS  createDatabaseDummyTable(  sk   bigint);
+DROP TABLE IF EXISTS createDatabaseDummyTable;
+
+-- /END HACK create first table differently
+
 
 !echo Create temporary table: ${hiveconf:customerTableName}${hiveconf:temporaryTableSuffix};
 DROP TABLE IF EXISTS ${hiveconf:customerTableName}${hiveconf:temporaryTableSuffix};
@@ -55,45 +69,17 @@ CREATE EXTERNAL TABLE ${hiveconf:customerTableName}${hiveconf:temporaryTableSuff
   STORED AS TEXTFILE LOCATION '${hiveconf:hdfsDataPath}/${hiveconf:customerTableName}'
 ;
 
--- /Begin HACK create first table differently
--- README! why is the first table not done with CTAS (create table as), like the other tables?
---
--- hack for https://issues.apache.org/jira/browse/HIVE-2419 where CTAS (create table as) is not working for a fresh install where the "warehouse" folder for hive does not exist. 
--- The normal create table creates the warehouse folder if its missing.
--- But CTAS does not! create the warehouse folder, thus the "move" operation for data would fail with: 
--- "Failed with exception Unable to rename: hdfs://namenode:port/tmp/hive-root/../-ext-000001 hdfs://namenode:port/user/hive/warehouse/<database>/<table>"
+
 !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:customerTableName};
 CREATE TABLE IF NOT EXISTS ${hiveconf:customerTableName}
-( c_customer_sk             bigint              --not null
-  , c_customer_id             string              --not null
-  , c_current_cdemo_sk        bigint
-  , c_current_hdemo_sk        bigint
-  , c_current_addr_sk         bigint
-  , c_first_shipto_date_sk    bigint
-  , c_first_sales_date_sk     bigint
-  , c_salutation              string
-  , c_first_name              string
-  , c_last_name               string
-  , c_preferred_cust_flag     string
-  , c_birth_day               int
-  , c_birth_month             int
-  , c_birth_year              int
-  , c_birth_country           string
-  , c_login                   string
-  , c_email_address           string
-  , c_last_review_date        string
-  )
 STORED AS ${hiveconf:tableFormat}
-;
-
-INSERT OVERWRITE TABLE  ${hiveconf:customerTableName}
+AS
 SELECT * FROM ${hiveconf:customerTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 !echo Drop temporary table: ${hiveconf:customerTableName}${hiveconf:temporaryTableSuffix};
 DROP TABLE IF EXISTS ${hiveconf:customerTableName}${hiveconf:temporaryTableSuffix};
 
--- /END HACK create first table differently
 
 
 !echo Create temporary table: ${hiveconf:customerAddressTableName}${hiveconf:temporaryTableSuffix};
