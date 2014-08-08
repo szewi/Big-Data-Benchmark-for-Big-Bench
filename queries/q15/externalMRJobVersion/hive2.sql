@@ -108,7 +108,7 @@ CREATE EXTERNAL TABLE ${hiveconf:LM_BASENAME}10 (
 --LOAD DATA INPATH '${hiveconf:LM_BASEDIR}10/part-r-00000' OVERWRITE INTO TABLE ${hiveconf:LM_BASENAME}10;
 
 
---Result  --------------------------------------------------------------------		
+--Result  --------------------------------------------------------------------    
 --keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
@@ -118,7 +118,7 @@ DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE}
 (
     cat             INT,
-    intercept	    DOUBLE,
+    intercept     DOUBLE,
     slope           DOUBLE
 )
 ROW FORMAT

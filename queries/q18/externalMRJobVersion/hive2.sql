@@ -139,7 +139,7 @@ DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE}
 (
     cat             INT,
-    intercept	    DOUBLE,
+    intercept     DOUBLE,
     slope           DOUBLE
 );
 

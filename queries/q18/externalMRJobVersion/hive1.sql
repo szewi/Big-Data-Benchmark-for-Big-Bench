@@ -79,22 +79,22 @@ CREATE TABLE ${hiveconf:MATRIX_BASENAME}12 (d BIGINT, sales BIGINT)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ' ' 
 STORED AS TEXTFILE LOCATION '${hiveconf:MATRIX_BASEDIR}12'
 ;
-	
+  
 
 
 FROM (
   SELECT 
-    ss_store_sk 	 AS store,
+    ss_store_sk    AS store,
     ss_sold_date_sk  AS d,
     sum(ss_net_paid) AS sales
   FROM store_sales s
   --select date range
-  LEFT SEMI JOIN (	
-			SELECT d_date_sk 
-			FROM  date_dim d
-			WHERE d.d_date >= '${hiveconf:q18_startDate}'
-			AND   d.d_date <= '${hiveconf:q18_endDate}'
-		) dd ON ( s.ss_sold_date_sk=dd.d_date_sk ) 
+  LEFT SEMI JOIN (  
+      SELECT d_date_sk 
+      FROM  date_dim d
+      WHERE d.d_date >= '${hiveconf:q18_startDate}'
+      AND   d.d_date <= '${hiveconf:q18_endDate}'
+    ) dd ON ( s.ss_sold_date_sk=dd.d_date_sk ) 
   GROUP BY ss_store_sk, ss_sold_date_sk
 ) tmp
 INSERT OVERWRITE TABLE ${hiveconf:MATRIX_BASENAME}1  SELECT d, sales WHERE store = 1

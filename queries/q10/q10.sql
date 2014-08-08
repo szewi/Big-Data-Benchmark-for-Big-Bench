@@ -10,19 +10,24 @@ CREATE TEMPORARY FUNCTION extract_sentiment AS 'de.bankmark.bigbench.queries.q10
 
 -- Query parameters
 
---Result  --------------------------------------------------------------------		
+--Result  --------------------------------------------------------------------
 --keep result human readable
 set hive.exec.compress.output=false;
-set hive.exec.compress.output;	
-
+set hive.exec.compress.output;
 
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
-CREATE TABLE ${hiveconf:RESULT_TABLE}
+CREATE TABLE ${hiveconf:RESULT_TABLE} (
+  pr_item_sk      BIGINT,
+  review_sentence STRING,
+  sentiment       STRING,
+  sentiment_word  STRING
+)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
-STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}' 
-AS
+STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}';
+
 -- the real query part
-  SELECT extract_sentiment(pr_item_sk,pr_review_content) AS (pr_item_sk, review_sentence, sentiment, sentiment_word)  
-  FROM product_reviews
+INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
+SELECT extract_sentiment(pr_item_sk,pr_review_content) AS (pr_item_sk, review_sentence, sentiment, sentiment_word)
+FROM product_reviews
 ;

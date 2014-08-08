@@ -76,22 +76,22 @@ STORED AS TEXTFILE LOCATION '${hiveconf:MATRIX_BASEDIR}10'
 
 
 FROM (
-	SELECT  
-		i.i_category_id 	AS cat, -- ranges from 1 to 10
-		s.ss_sold_date_sk 	AS d,
-		sum(s.ss_net_paid) 	AS sales
-	FROM    store_sales s
-	-- select date range 
-	LEFT SEMI JOIN (	
-			SELECT d_date_sk 
-			FROM  date_dim d
-			WHERE d.d_date >= '${hiveconf:q15_startDate}'
-			AND   d.d_date <= '${hiveconf:q15_endDate}'
-		) dd ON ( s.ss_sold_date_sk=dd.d_date_sk ) 
-	INNER JOIN item i ON s.ss_item_sk = i.i_item_sk 
-	WHERE i.i_category_id IS NOT NULL
-	  AND s.ss_store_sk = ${hiveconf:q15_store_sk} -- for a given store ranges from 1 to 12
-	GROUP BY i.i_category_id, s.ss_sold_date_sk
+  SELECT  
+    i.i_category_id   AS cat, -- ranges from 1 to 10
+    s.ss_sold_date_sk   AS d,
+    sum(s.ss_net_paid)  AS sales
+  FROM    store_sales s
+  -- select date range 
+  LEFT SEMI JOIN (  
+      SELECT d_date_sk 
+      FROM  date_dim d
+      WHERE d.d_date >= '${hiveconf:q15_startDate}'
+      AND   d.d_date <= '${hiveconf:q15_endDate}'
+    ) dd ON ( s.ss_sold_date_sk=dd.d_date_sk ) 
+  INNER JOIN item i ON s.ss_item_sk = i.i_item_sk 
+  WHERE i.i_category_id IS NOT NULL
+    AND s.ss_store_sk = ${hiveconf:q15_store_sk} -- for a given store ranges from 1 to 12
+  GROUP BY i.i_category_id, s.ss_sold_date_sk
 ) tsc
 INSERT OVERWRITE TABLE ${hiveconf:MATRIX_BASENAME}1  SELECT d, sales WHERE cat = 1
 INSERT OVERWRITE TABLE ${hiveconf:MATRIX_BASENAME}2  SELECT d, sales WHERE cat = 2
