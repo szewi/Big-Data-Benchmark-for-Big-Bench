@@ -51,7 +51,7 @@ export HIVE_BINARY="/usr/bin/hive"
 export SPARK_HOME="$HOME/spark-git"
 export SPARK_BINARY="$SPARK_HOME/bin/spark-sql"
 export DEFAULT_BINARY="$HIVE_BINARY"
-#export DEFAULT_BINARY="$SHARK_BINARY"
+#export DEFAULT_BINARY="$SPARK_BINARY"
 
 ## ================================================================
 ##  /END/  ADAPT BELOW VARIABLES TO YOUR CLUSTER
