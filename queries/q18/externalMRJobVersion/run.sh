@@ -42,7 +42,7 @@ query_run_main_method () {
 	LM_BASENAME="${TABLE_PREFIX}_lm"
 	LM_BASEDIR="$TEMP_DIR/output"
 
-	HIVE_PARAMS="$HIVE_PARAMS -hiveconf MATRIX_BASENAME=$MATRIX_BASENAME -hiveconf MATRIX_BASEDIR=$MATRIX_BASEDIR -hiveconf LM_BASENAME=$LM_BASENAME -hiveconf LM_BASEDIR=$LM_BASEDIR"
+	HIVE_PARAMS="$HIVE_PARAMS --hiveconf MATRIX_BASENAME=$MATRIX_BASENAME --hiveconf MATRIX_BASEDIR=$MATRIX_BASEDIR --hiveconf LM_BASENAME=$LM_BASENAME --hiveconf LM_BASEDIR=$LM_BASEDIR"
 
 	#Step 1. Hadoop Part 0-----------------------------------------------------------------------
 	# Copying jar to hdfs

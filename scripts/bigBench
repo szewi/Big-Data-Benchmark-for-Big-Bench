@@ -16,7 +16,7 @@ logEnvInformation
 runHiveCmd () {
   if [ "$BINARY" = "$SHARK_BINARY" ]
   then
-    local HIVE_PARAMS="-skipRddReload $HIVE_PARAMS"
+    local HIVE_PARAMS="-v --driver-memory 2g --executor-memory 1g --master local[32] $HIVE_PARAMS"
   fi
   "$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" "$@"
 }
@@ -135,7 +135,7 @@ initQueryEnv () {
   #echo "set TEMP_DIR=\"$TEMP_DIR\";" >> "$COMBINED_PARAMS_FILE"
   #echo "set TABLE_PREFIX=\"$TABLE_PREFIX\";" >> "$COMBINED_PARAMS_FILE"
 
-  HIVE_PARAMS="$HIVE_PARAMS -hiveconf BENCHMARK_PHASE=$BENCHMARK_PHASE -hiveconf STREAM_NUMBER=$STREAM_NUMBER -hiveconf QUERY_NAME=$QUERY_NAME -hiveconf QUERY_DIR=$QUERY_DIR -hiveconf RESULT_TABLE=$RESULT_TABLE -hiveconf RESULT_DIR=$RESULT_DIR -hiveconf TEMP_TABLE=$TEMP_TABLE -hiveconf TEMP_DIR=$TEMP_DIR -hiveconf TABLE_PREFIX=$TABLE_PREFIX"
+  HIVE_PARAMS="$HIVE_PARAMS --hiveconf BENCHMARK_PHASE=$BENCHMARK_PHASE --hiveconf STREAM_NUMBER=$STREAM_NUMBER --hiveconf QUERY_NAME=$QUERY_NAME --hiveconf QUERY_DIR=$QUERY_DIR --hiveconf RESULT_TABLE=$RESULT_TABLE --hiveconf RESULT_DIR=$RESULT_DIR --hiveconf TEMP_TABLE=$TEMP_TABLE --hiveconf TEMP_DIR=$TEMP_DIR --hiveconf TABLE_PREFIX=$TABLE_PREFIX"
 
   # source run.sh as late as possible to allow run.sh to use all above defined variables
   SCRIPT_FILENAME="$QUERY_DIR/run.sh"
