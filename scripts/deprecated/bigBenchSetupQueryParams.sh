@@ -22,7 +22,7 @@ then
 fi
 
 HIVE_BINARY_TYPE="hive"
-SHARK_BINARY_TYPE="shark"
+SPARK_BINARY_TYPE="spark"
 
 GLOBAL_QUERY_PARAMS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/queryParameters.sql"
 GLOBAL_HIVE_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/hiveSettings.sql"
@@ -51,12 +51,12 @@ while getopts ":q:b:y:z:p:s:d:" opt; do
           USER_BINARY="$HIVE_BINARY"
           BINARY_TYPE="$HIVE_BINARY_TYPE"
         ;;
-        "$SHARK_BINARY_TYPE")
-          USER_BINARY="$SHARK_BINARY"
-          BINARY_TYPE="$SHARK_BINARY_TYPE"
+        "$SPARK_BINARY_TYPE")
+          USER_BINARY="$SPARK_BINARY"
+          BINARY_TYPE="$SPARK_BINARY_TYPE"
         ;;
         *)
-          echo "binary must be h/hive or s/shark"
+          echo "binary must be h/hive or s/spark"
           exit 1
         ;;
       esac
@@ -195,9 +195,9 @@ TEMP_DIR="$BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR/$TEMP_TABLE"
 
 LOG_FILE_NAME="$BIG_BENCH_LOGS_DIR/${TABLE_PREFIX}.log"
 
-if [ "$BINARY" = "$SHARK_BINARY" ]
+if [ "$BINARY" = "$SPARK_BINARY" ]
 then
-  HIVE_PARAMS="-skipRddReload"
+  HIVE_PARAMS="-v --driver-memory 2g --executor-memory 1g --master local[*]"
 fi
 
 HIVE_PARAMS="$HIVE_PARAMS -hiveconf BENCHMARK_PHASE=$BENCHMARK_PHASE -hiveconf STREAM_NUMBER=$STREAM_NUMBER -hiveconf QUERY_NAME=$QUERY_NAME -hiveconf QUERY_DIR=$QUERY_DIR -hiveconf RESULT_TABLE=$RESULT_TABLE -hiveconf RESULT_DIR=$RESULT_DIR -hiveconf TEMP_TABLE=$TEMP_TABLE -hiveconf TEMP_DIR=$TEMP_DIR -hiveconf TABLE_PREFIX=$TABLE_PREFIX"

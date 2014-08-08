@@ -14,9 +14,9 @@ fi
 logEnvInformation
 
 runHiveCmd () {
-  if [ "$BINARY" = "$SHARK_BINARY" ]
+  if [ "$BINARY" = "$SPARK_BINARY" ]
   then
-    local HIVE_PARAMS="-v --driver-memory 2g --executor-memory 1g --master local[32] $HIVE_PARAMS"
+    local HIVE_PARAMS="-v --driver-memory 2g --executor-memory 1g --master local[*] $HIVE_PARAMS"
   fi
   "$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" "$@"
 }
@@ -239,7 +239,7 @@ then
   echo "Usage: `basename $0` [global options] module [module options]"
   echo
   echo "Global options are:"
-  echo -e "-b\tbinary to use (hive/shark)"
+  echo -e "-b\tbinary to use (hive/spark)"
   echo -e "-d\tquery part to debug"
   echo -e "-f\tscale factor for PDGF"
   echo -e "-h\tshow this help"
@@ -278,8 +278,8 @@ case "$USER_BINARY_TYPE" in
   "hive")
     BINARY="$HIVE_BINARY"
   ;;
-  "shark")
-    BINARY="$SHARK_BINARY"
+  "spark")
+    BINARY="$SPARK_BINARY"
   ;;
   "")
     BINARY="$DEFAULT_BINARY"
@@ -294,9 +294,9 @@ case "$BINARY" in
     GLOBAL_POPULATE_FILE="${USER_POPULATE_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveCreateLoad.sql"}"
     GLOBAL_REFRESH_FILE="${USER_REFRESH_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveRefreshCreateLoad.sql"}"
   ;;
-  "$SHARK_BINARY")
-    BINARY_TYPE="shark"
-    GLOBAL_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/sharkSettings.sql"
+  "$SPARK_BINARY")
+    BINARY_TYPE="spark"
+    GLOBAL_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/sparkSettings.sql"
     GLOBAL_POPULATE_FILE="${USER_POPULATE_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveCreateLoad.sql"}"
     GLOBAL_REFRESH_FILE="${USER_REFRESH_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveRefreshCreateLoad.sql"}"
   ;;

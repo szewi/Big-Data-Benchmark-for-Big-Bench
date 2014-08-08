@@ -48,8 +48,8 @@ export BIG_BENCH_hive_default_fileformat_source_table="ORC"
 export BIG_BENCH_hive_default_fileformat_result_table="TEXTFILE"
 
 export HIVE_BINARY="/usr/bin/hive"
-export BIG_BENCH_SHARK_HOME="/var/lib/spark/shark-0.9.1"
-export SHARK_BINARY="$BIG_BENCH_SHARK_HOME/bin/shark-withinfo"
+export SPARK_HOME="$HOME/spark-git"
+export SPARK_BINARY="$SPARK_HOME/bin/spark-sql"
 export DEFAULT_BINARY="$HIVE_BINARY"
 #export DEFAULT_BINARY="$SHARK_BINARY"
 
