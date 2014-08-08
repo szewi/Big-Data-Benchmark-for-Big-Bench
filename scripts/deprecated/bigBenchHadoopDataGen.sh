@@ -17,7 +17,7 @@ echo "USAGE: -mapTasks <number> -sf <number>  (SF: scalingFactor 1==1GB, 10==10G
         -mapTasks)
             case "$2" in
                 "") echo "Error parsing args. Expected a number after -mapTasks" ; exit 1 ;;
-				-*) echo "Error parsing args. Expected a number after -mapTasks" ; exit 1 ;;
+        -*) echo "Error parsing args. Expected a number after -mapTasks" ; exit 1 ;;
                 *) HadoopClusterExecOptions="-mapTasks $2" ; shift 2 ;;
             esac ;;
         *) echo "Error parsing args. Expected '-mapTasks <number>' as first argument " ; exit 1 ;;
@@ -34,17 +34,17 @@ PDGF_ARCHIVE_PATH="$BIG_BENCH_HOME/$PDGF_ARCHIVE_NAME"
 if grep -q "IS_EULA_ACCEPTED=true" "$BIG_BENCH_DATA_GENERATOR_DIR/Constants.properties"; then
   echo "EULA is accepted"
 else
-	echo "==============================================="
-	echo "data generator EULA"
-	echo "==============================================="
-	echo "This is your first run of the data generation tool. Please accept the EULA."
-	java -jar "$BIG_BENCH_DATA_GENERATOR_DIR/pdgf.jar" -ns -c
-	if grep -q "IS_EULA_ACCEPTED=true" "$BIG_BENCH_DATA_GENERATOR_DIR/Constants.properties"; then
-		echo "OK"
-	else
-		echo "ERROR! data generation tool EULA is not accepted. Cannot procced"
-		exit -1 
-	fi
+  echo "==============================================="
+  echo "data generator EULA"
+  echo "==============================================="
+  echo "This is your first run of the data generation tool. Please accept the EULA."
+  java -jar "$BIG_BENCH_DATA_GENERATOR_DIR/pdgf.jar" -ns -c
+  if grep -q "IS_EULA_ACCEPTED=true" "$BIG_BENCH_DATA_GENERATOR_DIR/Constants.properties"; then
+    echo "OK"
+  else
+    echo "ERROR! data generation tool EULA is not accepted. Cannot procced"
+    exit -1 
+  fi
 fi
 
 # delete any previously generated data

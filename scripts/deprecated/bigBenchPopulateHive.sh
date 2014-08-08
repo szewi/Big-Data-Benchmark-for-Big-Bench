@@ -4,10 +4,10 @@
 ENV_SETTINGS="`dirname $0`/../setEnvVars"
 if [ ! -f "$ENV_SETTINGS" ]
 then
-	echo "Environment setup file $ENV_SETTINGS not found"
-	exit 1
+  echo "Environment setup file $ENV_SETTINGS not found"
+  exit 1
 else
-	source "$ENV_SETTINGS"
+  source "$ENV_SETTINGS"
 fi
 
 echo "drop old log $BIG_BENCH_LOADING_STAGE_LOG"
@@ -17,15 +17,15 @@ rm -rf "$BIG_BENCH_LOADING_STAGE_LOG"
 logEnvInformation
 
 populateHive () {
-	"$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchCleanHive.sh"
-	"$HIVE_BINARY" -f "${BIG_BENCH_HIVE_SCRIPT_DIR}/hiveCreateLoad.sql"
+  "$BIG_BENCH_BASH_SCRIPT_DIR/bigBenchCleanHive.sh"
+  "$HIVE_BINARY" -f "${BIG_BENCH_HIVE_SCRIPT_DIR}/hiveCreateLoad.sql"
 
-	hadoop fs -mkdir -p "$BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR" &
-	hadoop fs -mkdir -p "$BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR" &
-	wait
-	hadoop fs -chmod ugo+rw "$BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR" &
-	hadoop fs -chmod ugo+rw "$BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR" &
-	wait
+  hadoop fs -mkdir -p "$BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR" &
+  hadoop fs -mkdir -p "$BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR" &
+  wait
+  hadoop fs -chmod ugo+rw "$BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR" &
+  hadoop fs -chmod ugo+rw "$BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR" &
+  wait
 }
 
 echo "==============================================="

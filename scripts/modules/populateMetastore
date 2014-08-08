@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
 
 populateMetastore () {
-	"$BIG_BENCH_BASH_SCRIPT_DIR/bigBench" $LIST_OF_USER_OPTIONS cleanMetastore
-	runHiveCmd -f "$GLOBAL_POPULATE_FILE"
+  "$BIG_BENCH_BASH_SCRIPT_DIR/bigBench" $LIST_OF_USER_OPTIONS cleanMetastore
+  runHiveCmd -f "$GLOBAL_POPULATE_FILE"
 
-	hadoop fs -mkdir -p "$BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR" &
-	hadoop fs -mkdir -p "$BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR" &
-	wait
-	hadoop fs -chmod ugo+rw "$BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR" &
-	hadoop fs -chmod ugo+rw "$BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR" &
-	wait
+  hadoop fs -mkdir -p "$BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR" &
+  hadoop fs -mkdir -p "$BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR" &
+  wait
+  hadoop fs -chmod ugo+rw "$BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR" &
+  hadoop fs -chmod ugo+rw "$BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR" &
+  wait
 }
 
 execpopulateMetastore () {
-	echo "==============================================="
-	echo "Adding/Updating generated files to hive metastore"
-	echo "==============================================="
+  echo "==============================================="
+  echo "Adding/Updating generated files to hive metastore"
+  echo "==============================================="
 
-	time (populateMetastore ; echo "======= Load data into hive time =========") > >(tee -a "$BIG_BENCH_LOADING_STAGE_LOG") 2>&1 
-	echo "==========================="
+  time (populateMetastore ; echo "======= Load data into hive time =========") > >(tee -a "$BIG_BENCH_LOADING_STAGE_LOG") 2>&1 
+  echo "==========================="
 
-	echo "==============================================="
-	echo "HIVE load finished."
-	echo "==============================================="
+  echo "==============================================="
+  echo "HIVE load finished."
+  echo "==============================================="
 }

@@ -1,37 +1,37 @@
 #!/usr/bin/env bash
 
 execcleanQuery () {
-	if ! initQueryEnv
-	then
-		return 1
-	fi
+  if ! initQueryEnv
+  then
+    return 1
+  fi
 
-	echo "==============================================="
-	echo "Cleaning query  : $QUERY_NAME"
-	echo "-----------------------------------------------"
-	echo "benchmark phase: $BENCHMARK_PHASE"
-	echo "stream number  : $STREAM_NUMBER"
-	echo "user parameter file : $USER_QUERY_PARAMS_FILE"
-	echo "user settings file  :$USER_HIVE_SETTINGS_FILE"
-	if [[ -n "$DEBUG_QUERY_PART" ]]; then
-		echo "query part to debug: $DEBUG_QUERY_PART"
-	fi
-	echo "log: $LOG_FILE_NAME"
-	echo "==============================================="	
+  echo "==============================================="
+  echo "Cleaning query  : $QUERY_NAME"
+  echo "-----------------------------------------------"
+  echo "benchmark phase: $BENCHMARK_PHASE"
+  echo "stream number  : $STREAM_NUMBER"
+  echo "user parameter file : $USER_QUERY_PARAMS_FILE"
+  echo "user settings file  :$USER_HIVE_SETTINGS_FILE"
+  if [[ -n "$DEBUG_QUERY_PART" ]]; then
+    echo "query part to debug: $DEBUG_QUERY_PART"
+  fi
+  echo "log: $LOG_FILE_NAME"
+  echo "==============================================="  
 
-	### Checking required folder: logs/; tmp/; result/ if they exist, create them and set permissions
+  ### Checking required folder: logs/; tmp/; result/ if they exist, create them and set permissions
 
-	# Run the clean method implemented in the query's run.sh
-	"$QUERY_CLEAN_METHOD"
+  # Run the clean method implemented in the query's run.sh
+  "$QUERY_CLEAN_METHOD"
 
-	echo "cleaning dir $RESULT_DIR"
-	hadoop fs -rm -r -skipTrash "$RESULT_DIR" &
+  echo "cleaning dir $RESULT_DIR"
+  hadoop fs -rm -r -skipTrash "$RESULT_DIR" &
 
-	echo "cleaning dir $TEMP_DIR"
-	hadoop fs -rm -r -skipTrash "$TEMP_DIR" &
+  echo "cleaning dir $TEMP_DIR"
+  hadoop fs -rm -r -skipTrash "$TEMP_DIR" &
 
-	wait
+  wait
 
-	echo "cleaning log $LOG_FILE_NAME"
-	rm -rf "$LOG_FILE_NAME"
+  echo "cleaning log $LOG_FILE_NAME"
+  rm -rf "$LOG_FILE_NAME"
 }

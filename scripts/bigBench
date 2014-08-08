@@ -4,231 +4,231 @@
 ENV_SETTINGS="`dirname $0`/../setEnvVars"
 if [ ! -f "$ENV_SETTINGS" ]
 then
-	echo "Environment setup file $ENV_SETTINGS not found"
-	exit 1
+  echo "Environment setup file $ENV_SETTINGS not found"
+  exit 1
 else
-	source "$ENV_SETTINGS"
+  source "$ENV_SETTINGS"
 fi
 
 # write environment information into logfile
 logEnvInformation
 
 runHiveCmd () {
-	if [ "$BINARY" = "$SHARK_BINARY" ]
-	then
-		local HIVE_PARAMS="-skipRddReload $HIVE_PARAMS"
-	fi
-	"$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" "$@"
+  if [ "$BINARY" = "$SHARK_BINARY" ]
+  then
+    local HIVE_PARAMS="-skipRddReload $HIVE_PARAMS"
+  fi
+  "$BINARY" $HIVE_PARAMS -i "$COMBINED_PARAMS_FILE" "$@"
 }
 
 buildCombinedParamsFile () {
-	# build combined parameter file for hive
-	if [ -r "$GLOBAL_QUERY_PARAMS_FILE" ]
-	then
-		echo "!echo settings from global parameter file: $GLOBAL_QUERY_PARAMS_FILE ;" >> "$COMBINED_PARAMS_FILE"
-		cat "$GLOBAL_QUERY_PARAMS_FILE" > "$COMBINED_PARAMS_FILE"
-	else
-		echo "Global query parameter file $GLOBAL_QUERY_PARAMS_FILE can not be read."
-		rm -rf "$COMBINED_PARAMS_FILE"
-		return 1
-	fi
+  # build combined parameter file for hive
+  if [ -r "$GLOBAL_QUERY_PARAMS_FILE" ]
+  then
+    echo "!echo settings from global parameter file: $GLOBAL_QUERY_PARAMS_FILE ;" >> "$COMBINED_PARAMS_FILE"
+    cat "$GLOBAL_QUERY_PARAMS_FILE" > "$COMBINED_PARAMS_FILE"
+  else
+    echo "Global query parameter file $GLOBAL_QUERY_PARAMS_FILE can not be read."
+    rm -rf "$COMBINED_PARAMS_FILE"
+    return 1
+  fi
 
-	if [ -r "$GLOBAL_SETTINGS_FILE" ]
-	then
-		echo "!echo settings from global settings file: $GLOBAL_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
-		cat "$GLOBAL_SETTINGS_FILE" >> "$COMBINED_PARAMS_FILE"
-	else
-		echo "Global hive settings file $GLOBAL_SETTINGS_FILE can not be read."
-		rm -rf "$COMBINED_PARAMS_FILE"
-		return 1
-	fi
+  if [ -r "$GLOBAL_SETTINGS_FILE" ]
+  then
+    echo "!echo settings from global settings file: $GLOBAL_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
+    cat "$GLOBAL_SETTINGS_FILE" >> "$COMBINED_PARAMS_FILE"
+  else
+    echo "Global hive settings file $GLOBAL_SETTINGS_FILE can not be read."
+    rm -rf "$COMBINED_PARAMS_FILE"
+    return 1
+  fi
 
-	if [[ -n "$LOCAL_HIVE_SETTINGS_FILE" && -r "$LOCAL_HIVE_SETTINGS_FILE" ]]
-	then
-		echo "!echo settings from local settings file: $LOCAL_HIVE_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
-		cat "$LOCAL_HIVE_SETTINGS_FILE" >> "$COMBINED_PARAMS_FILE"
-	else
-		echo "!echo no settings from local settings file: $LOCAL_HIVE_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
-	fi
+  if [[ -n "$LOCAL_HIVE_SETTINGS_FILE" && -r "$LOCAL_HIVE_SETTINGS_FILE" ]]
+  then
+    echo "!echo settings from local settings file: $LOCAL_HIVE_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
+    cat "$LOCAL_HIVE_SETTINGS_FILE" >> "$COMBINED_PARAMS_FILE"
+  else
+    echo "!echo no settings from local settings file: $LOCAL_HIVE_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
+  fi
 
-	if [ -n "$USER_QUERY_PARAMS_FILE" ]
-	then
-		if [ -r "$USER_QUERY_PARAMS_FILE" ]
-		then
-			echo "!echo settings file from -y <query parameter file> command line argument: $USER_QUERY_PARAMS_FILE ;" >> "$COMBINED_PARAMS_FILE"
-			cat "$USER_QUERY_PARAMS_FILE" >> "$COMBINED_PARAMS_FILE"
-		else
-			echo "User query parameter file $USER_QUERY_PARAMS_FILE can not be read."
-			rm -rf "$COMBINED_PARAMS_FILE"
-			return 1
-		fi
-	else
-		echo "!echo no settings file from -y <query parameter file> command line argument ;" >> "$COMBINED_PARAMS_FILE"
-	fi
+  if [ -n "$USER_QUERY_PARAMS_FILE" ]
+  then
+    if [ -r "$USER_QUERY_PARAMS_FILE" ]
+    then
+      echo "!echo settings file from -y <query parameter file> command line argument: $USER_QUERY_PARAMS_FILE ;" >> "$COMBINED_PARAMS_FILE"
+      cat "$USER_QUERY_PARAMS_FILE" >> "$COMBINED_PARAMS_FILE"
+    else
+      echo "User query parameter file $USER_QUERY_PARAMS_FILE can not be read."
+      rm -rf "$COMBINED_PARAMS_FILE"
+      return 1
+    fi
+  else
+    echo "!echo no settings file from -y <query parameter file> command line argument ;" >> "$COMBINED_PARAMS_FILE"
+  fi
 
-	if [ -n "$USER_HIVE_SETTINGS_FILE" ]
-	then
-		echo "!echo settings file from -z <hive settings file> command line argument: $USER_HIVE_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
-		if [ -r "$USER_HIVE_SETTINGS_FILE" ]
-		then
-			cat "$GLOBAL_SETTINGS_FILE" >> "$COMBINED_PARAMS_FILE"
-		else
-			echo "User hive settings file $USER_HIVE_SETTINGS_FILE can not be read."
-			rm -rf "$COMBINED_PARAMS_FILE"
-			return 1
-		fi
-	else
-		echo "!echo no settings file from -z <hive settings file> command line argument ;" >> "$COMBINED_PARAMS_FILE"
-	fi
-	return 0
+  if [ -n "$USER_HIVE_SETTINGS_FILE" ]
+  then
+    echo "!echo settings file from -z <hive settings file> command line argument: $USER_HIVE_SETTINGS_FILE ;" >> "$COMBINED_PARAMS_FILE"
+    if [ -r "$USER_HIVE_SETTINGS_FILE" ]
+    then
+      cat "$GLOBAL_SETTINGS_FILE" >> "$COMBINED_PARAMS_FILE"
+    else
+      echo "User hive settings file $USER_HIVE_SETTINGS_FILE can not be read."
+      rm -rf "$COMBINED_PARAMS_FILE"
+      return 1
+    fi
+  else
+    echo "!echo no settings file from -z <hive settings file> command line argument ;" >> "$COMBINED_PARAMS_FILE"
+  fi
+  return 0
 }
 
 initQueryEnv () {
-	if [ -z "$QUERY_NUMBER" ]
-	then
-		echo "The query number must be set."
-		return 1
-	fi
+  if [ -z "$QUERY_NUMBER" ]
+  then
+    echo "The query number must be set."
+    return 1
+  fi
 
-	if [[ $QUERY_NUMBER -lt 1 || $QUERY_NUMBER -gt 30 ]]
-	then
-		echo "Query number must be between 1 and 30"
-		return 1
-	fi
+  if [[ $QUERY_NUMBER -lt 1 || $QUERY_NUMBER -gt 30 ]]
+  then
+    echo "Query number must be between 1 and 30"
+    return 1
+  fi
 
-	if [ $QUERY_NUMBER -lt 10 ]
-	then
-		QUERY_NAME=q0$QUERY_NUMBER
-	else
-		QUERY_NAME=q$QUERY_NUMBER
-	fi
+  if [ $QUERY_NUMBER -lt 10 ]
+  then
+    QUERY_NAME=q0$QUERY_NUMBER
+  else
+    QUERY_NAME=q$QUERY_NUMBER
+  fi
 
-	QUERY_DIR="$BIG_BENCH_QUERIES_DIR/$QUERY_NAME"
-	if [ ! -d "$QUERY_DIR" ]
-	then
-		echo "Query directory $QUERY_DIR does not exist"
-		return 1
-	fi
+  QUERY_DIR="$BIG_BENCH_QUERIES_DIR/$QUERY_NAME"
+  if [ ! -d "$QUERY_DIR" ]
+  then
+    echo "Query directory $QUERY_DIR does not exist"
+    return 1
+  fi
 
-	LOCAL_HIVE_SETTINGS_FILE="$QUERY_DIR/hiveLocalSettings.sql"
-	if ! buildCombinedParamsFile
-	then
-		return 1
-	fi
+  LOCAL_HIVE_SETTINGS_FILE="$QUERY_DIR/hiveLocalSettings.sql"
+  if ! buildCombinedParamsFile
+  then
+    return 1
+  fi
 
-	TABLE_PREFIX="${QUERY_NAME}_${BINARY_TYPE}_${BENCHMARK_PHASE}_${STREAM_NUMBER}"
+  TABLE_PREFIX="${QUERY_NAME}_${BINARY_TYPE}_${BENCHMARK_PHASE}_${STREAM_NUMBER}"
 
-	RESULT_TABLE="${TABLE_PREFIX}_result"
-	RESULT_DIR="$BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR/$RESULT_TABLE"
-	TEMP_TABLE="${TABLE_PREFIX}_temp"
-	TEMP_DIR="$BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR/$TEMP_TABLE"
+  RESULT_TABLE="${TABLE_PREFIX}_result"
+  RESULT_DIR="$BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR/$RESULT_TABLE"
+  TEMP_TABLE="${TABLE_PREFIX}_temp"
+  TEMP_DIR="$BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR/$TEMP_TABLE"
 
-	LOG_FILE_NAME="$BIG_BENCH_LOGS_DIR/${TABLE_PREFIX}.log"
+  LOG_FILE_NAME="$BIG_BENCH_LOGS_DIR/${TABLE_PREFIX}.log"
 
-	#echo "set BENCHMARK_PHASE=\"$BENCHMARK_PHASE\";" >> "$COMBINED_PARAMS_FILE"
-	#echo "set STREAM_NUMBER=\"$STREAM_NUMBER\";" >> "$COMBINED_PARAMS_FILE"
-	#echo "set QUERY_NAME=\"$QUERY_NAME\";" >> "$COMBINED_PARAMS_FILE"
-	#echo "set QUERY_DIR=\"$QUERY_DIR\";" >> "$COMBINED_PARAMS_FILE"
-	#echo "set RESULT_TABLE=\"$RESULT_TABLE\";" >> "$COMBINED_PARAMS_FILE"
-	#echo "set RESULT_DIR=\"$RESULT_DIR\";" >> "$COMBINED_PARAMS_FILE"
-	#echo "set TEMP_TABLE=\"$TEMP_TABLE\";" >> "$COMBINED_PARAMS_FILE"
-	#echo "set TEMP_DIR=\"$TEMP_DIR\";" >> "$COMBINED_PARAMS_FILE"
-	#echo "set TABLE_PREFIX=\"$TABLE_PREFIX\";" >> "$COMBINED_PARAMS_FILE"
+  #echo "set BENCHMARK_PHASE=\"$BENCHMARK_PHASE\";" >> "$COMBINED_PARAMS_FILE"
+  #echo "set STREAM_NUMBER=\"$STREAM_NUMBER\";" >> "$COMBINED_PARAMS_FILE"
+  #echo "set QUERY_NAME=\"$QUERY_NAME\";" >> "$COMBINED_PARAMS_FILE"
+  #echo "set QUERY_DIR=\"$QUERY_DIR\";" >> "$COMBINED_PARAMS_FILE"
+  #echo "set RESULT_TABLE=\"$RESULT_TABLE\";" >> "$COMBINED_PARAMS_FILE"
+  #echo "set RESULT_DIR=\"$RESULT_DIR\";" >> "$COMBINED_PARAMS_FILE"
+  #echo "set TEMP_TABLE=\"$TEMP_TABLE\";" >> "$COMBINED_PARAMS_FILE"
+  #echo "set TEMP_DIR=\"$TEMP_DIR\";" >> "$COMBINED_PARAMS_FILE"
+  #echo "set TABLE_PREFIX=\"$TABLE_PREFIX\";" >> "$COMBINED_PARAMS_FILE"
 
-	HIVE_PARAMS="$HIVE_PARAMS -hiveconf BENCHMARK_PHASE=$BENCHMARK_PHASE -hiveconf STREAM_NUMBER=$STREAM_NUMBER -hiveconf QUERY_NAME=$QUERY_NAME -hiveconf QUERY_DIR=$QUERY_DIR -hiveconf RESULT_TABLE=$RESULT_TABLE -hiveconf RESULT_DIR=$RESULT_DIR -hiveconf TEMP_TABLE=$TEMP_TABLE -hiveconf TEMP_DIR=$TEMP_DIR -hiveconf TABLE_PREFIX=$TABLE_PREFIX"
+  HIVE_PARAMS="$HIVE_PARAMS -hiveconf BENCHMARK_PHASE=$BENCHMARK_PHASE -hiveconf STREAM_NUMBER=$STREAM_NUMBER -hiveconf QUERY_NAME=$QUERY_NAME -hiveconf QUERY_DIR=$QUERY_DIR -hiveconf RESULT_TABLE=$RESULT_TABLE -hiveconf RESULT_DIR=$RESULT_DIR -hiveconf TEMP_TABLE=$TEMP_TABLE -hiveconf TEMP_DIR=$TEMP_DIR -hiveconf TABLE_PREFIX=$TABLE_PREFIX"
 
-	# source run.sh as late as possible to allow run.sh to use all above defined variables
-	SCRIPT_FILENAME="$QUERY_DIR/run.sh"
-	if [ -r "$SCRIPT_FILENAME" ]
-	then
-		source "$SCRIPT_FILENAME"
-	else
-		echo "File $SCRIPT_FILENAME containing main method not found, aborting script."
-		return 1
-	fi
+  # source run.sh as late as possible to allow run.sh to use all above defined variables
+  SCRIPT_FILENAME="$QUERY_DIR/run.sh"
+  if [ -r "$SCRIPT_FILENAME" ]
+  then
+    source "$SCRIPT_FILENAME"
+  else
+    echo "File $SCRIPT_FILENAME containing main method not found, aborting script."
+    return 1
+  fi
 
-	# check if the main method was implemented properly in the run.sh
-	QUERY_MAIN_METHOD="query_run_main_method"
-	if ! declare -F "$QUERY_MAIN_METHOD" > /dev/null 2>&1
-	then
-		echo "$QUERY_MAIN_METHOD was not implemented, aborting script"
-		return 1
-	fi
+  # check if the main method was implemented properly in the run.sh
+  QUERY_MAIN_METHOD="query_run_main_method"
+  if ! declare -F "$QUERY_MAIN_METHOD" > /dev/null 2>&1
+  then
+    echo "$QUERY_MAIN_METHOD was not implemented, aborting script"
+    return 1
+  fi
 
-	# check if the clean method was implemented properly in the run.sh
-	QUERY_CLEAN_METHOD="query_run_clean_method"
-	if ! declare -F "$QUERY_CLEAN_METHOD" > /dev/null 2>&1
-	then
-		echo "$QUERY_CLEAN_METHOD was not implemented, aborting script"
-		return 1
-	fi
-	return 0
+  # check if the clean method was implemented properly in the run.sh
+  QUERY_CLEAN_METHOD="query_run_clean_method"
+  if ! declare -F "$QUERY_CLEAN_METHOD" > /dev/null 2>&1
+  then
+    echo "$QUERY_CLEAN_METHOD was not implemented, aborting script"
+    return 1
+  fi
+  return 0
 }
 
 # parse command line arguments
 while getopts ":b:d:f:hm:p:q:s:t:v:w:y:z:" OPT; do
-	case "$OPT" in
-		b)
-			USER_BINARY_TYPE="$OPTARG"
-		;;
-		d)
-			#echo "-d was triggered, Parameter: $OPTARG" >&2
-			DEBUG_QUERY_PART="$OPTARG"
-		;;
-		f)
-			#echo "-f was triggered, Parameter: $OPTARG" >&2
-			SCALE_FACTOR="$OPTARG"
-		;;
-		h)
-			#echo "-h was triggered, Parameter: $OPTARG" >&2
-			SHOW_HELP="true"
-		;;
-		m)
-			#echo "-m was triggered, Parameter: $OPTARG" >&2
-			MAP_TASKS="$OPTARG"
-		;;
-		p)
-			#echo "-p was triggered, Parameter: $OPTARG" >&2
-			USER_BENCHMARK_PHASE="$OPTARG"
-		;;
-		q)
-			#echo "-q was triggered, Parameter: $OPTARG" >&2
-			QUERY_NUMBER="$OPTARG"
-		;;
-		s)
-			#echo "-t was triggered, Parameter: $OPTARG" >&2
-			USER_NUMBER_OF_PARALLEL_STREAMS="$OPTARG"
-		;;
-		t)
-			#echo "-s was triggered, Parameter: $OPTARG" >&2
-			USER_STREAM_NUMBER="$OPTARG"
-		;;
-		v)
-			#echo "-v was triggered, Parameter: $OPTARG" >&2
-			USER_POPULATE_FILE="$OPTARG"
-		;;
-		w)
-			#echo "-w was triggered, Parameter: $OPTARG" >&2
-			USER_REFRESH_FILE="$OPTARG"
-		;;
-		y)
-			#echo "-y was triggered, Parameter: $OPTARG" >&2
-			USER_QUERY_PARAMS_FILE="$OPTARG"
-		;;
-		z)
-			#echo "-z was triggered, Parameter: $OPTARG" >&2
-			USER_HIVE_SETTINGS_FILE="$OPTARG"
-		;;
-		\?)
-			echo "Invalid option: -$OPTARG" >&2
-			exit 1
-		;;
-		:)
-			echo "Option -$OPTARG requires an argument." >&2
-			exit 1
-	;;
-	esac
-	LIST_OF_USER_OPTIONS="$LIST_OF_USER_OPTIONS -$OPT $OPTARG"
+  case "$OPT" in
+    b)
+      USER_BINARY_TYPE="$OPTARG"
+    ;;
+    d)
+      #echo "-d was triggered, Parameter: $OPTARG" >&2
+      DEBUG_QUERY_PART="$OPTARG"
+    ;;
+    f)
+      #echo "-f was triggered, Parameter: $OPTARG" >&2
+      SCALE_FACTOR="$OPTARG"
+    ;;
+    h)
+      #echo "-h was triggered, Parameter: $OPTARG" >&2
+      SHOW_HELP="true"
+    ;;
+    m)
+      #echo "-m was triggered, Parameter: $OPTARG" >&2
+      MAP_TASKS="$OPTARG"
+    ;;
+    p)
+      #echo "-p was triggered, Parameter: $OPTARG" >&2
+      USER_BENCHMARK_PHASE="$OPTARG"
+    ;;
+    q)
+      #echo "-q was triggered, Parameter: $OPTARG" >&2
+      QUERY_NUMBER="$OPTARG"
+    ;;
+    s)
+      #echo "-t was triggered, Parameter: $OPTARG" >&2
+      USER_NUMBER_OF_PARALLEL_STREAMS="$OPTARG"
+    ;;
+    t)
+      #echo "-s was triggered, Parameter: $OPTARG" >&2
+      USER_STREAM_NUMBER="$OPTARG"
+    ;;
+    v)
+      #echo "-v was triggered, Parameter: $OPTARG" >&2
+      USER_POPULATE_FILE="$OPTARG"
+    ;;
+    w)
+      #echo "-w was triggered, Parameter: $OPTARG" >&2
+      USER_REFRESH_FILE="$OPTARG"
+    ;;
+    y)
+      #echo "-y was triggered, Parameter: $OPTARG" >&2
+      USER_QUERY_PARAMS_FILE="$OPTARG"
+    ;;
+    z)
+      #echo "-z was triggered, Parameter: $OPTARG" >&2
+      USER_HIVE_SETTINGS_FILE="$OPTARG"
+    ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+    ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+  ;;
+  esac
+  LIST_OF_USER_OPTIONS="$LIST_OF_USER_OPTIONS -$OPT $OPTARG"
 done
 
 MODULES_DIR="$BIG_BENCH_BASH_SCRIPT_DIR/modules"
@@ -236,29 +236,29 @@ MODULES_DIR="$BIG_BENCH_BASH_SCRIPT_DIR/modules"
 # show help if no arguments or '-h' present
 if [[ $# -eq 0 || "$SHOW_HELP" = "true" ]]
 then
-	echo "Usage: `basename $0` [global options] module [module options]"
-	echo
-	echo "Global options are:"
-	echo -e "-b\tbinary to use (hive/shark)"
-	echo -e "-d\tquery part to debug"
-	echo -e "-f\tscale factor for PDGF"
-	echo -e "-h\tshow this help"
-	echo -e "-m\tmap tasks for PDGF"
-	echo -e "-p\tbenchmark phase to use"
-	echo -e "-q\tquery number to run"
-	echo -e "-s\tnumber of parallel streams (only used when supported by module)"
-	echo -e "-t\tstream number for query run"
-	echo -e "-v\tsql script for metastore population"
-	echo -e "-w\tsql script for metastore refresh"
-	echo -e "-y\tfile with user defined query parameters"
-	echo -e "-z\tfile with user defined hive settings"
-	echo
-	echo "Module options are specific to the used module and are therefore implemented there"
-	echo
-	echo "List of available modules:"
-	ls -1 "$MODULES_DIR"
-	#find "$MODULES_DIR" -type f -exec basename {} \;
-	exit 0
+  echo "Usage: `basename $0` [global options] module [module options]"
+  echo
+  echo "Global options are:"
+  echo -e "-b\tbinary to use (hive/shark)"
+  echo -e "-d\tquery part to debug"
+  echo -e "-f\tscale factor for PDGF"
+  echo -e "-h\tshow this help"
+  echo -e "-m\tmap tasks for PDGF"
+  echo -e "-p\tbenchmark phase to use"
+  echo -e "-q\tquery number to run"
+  echo -e "-s\tnumber of parallel streams (only used when supported by module)"
+  echo -e "-t\tstream number for query run"
+  echo -e "-v\tsql script for metastore population"
+  echo -e "-w\tsql script for metastore refresh"
+  echo -e "-y\tfile with user defined query parameters"
+  echo -e "-z\tfile with user defined hive settings"
+  echo
+  echo "Module options are specific to the used module and are therefore implemented there"
+  echo
+  echo "List of available modules:"
+  ls -1 "$MODULES_DIR"
+  #find "$MODULES_DIR" -type f -exec basename {} \;
+  exit 0
 fi
 
 # remove options from parameter list
@@ -275,55 +275,55 @@ GLOBAL_NUMBER_OF_PARALLEL_STREAMS="1"
 
 # set the binary to use according to the user input
 case "$USER_BINARY_TYPE" in
-	"hive")
-		BINARY="$HIVE_BINARY"
-	;;
-	"shark")
-		BINARY="$SHARK_BINARY"
-	;;
-	"")
-		BINARY="$DEFAULT_BINARY"
-	;;
+  "hive")
+    BINARY="$HIVE_BINARY"
+  ;;
+  "shark")
+    BINARY="$SHARK_BINARY"
+  ;;
+  "")
+    BINARY="$DEFAULT_BINARY"
+  ;;
 esac
 
 # set other variables for the chosen binary
 case "$BINARY" in
-	"$HIVE_BINARY")
-		BINARY_TYPE="hive"
-		GLOBAL_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/hiveSettings.sql"
-		GLOBAL_POPULATE_FILE="${USER_POPULATE_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveCreateLoad.sql"}"
-		GLOBAL_REFRESH_FILE="${USER_REFRESH_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveRefreshCreateLoad.sql"}"
-	;;
-	"$SHARK_BINARY")
-		BINARY_TYPE="shark"
-		GLOBAL_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/sharkSettings.sql"
-		GLOBAL_POPULATE_FILE="${USER_POPULATE_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveCreateLoad.sql"}"
-		GLOBAL_REFRESH_FILE="${USER_REFRESH_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveRefreshCreateLoad.sql"}"
-	;;
+  "$HIVE_BINARY")
+    BINARY_TYPE="hive"
+    GLOBAL_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/hiveSettings.sql"
+    GLOBAL_POPULATE_FILE="${USER_POPULATE_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveCreateLoad.sql"}"
+    GLOBAL_REFRESH_FILE="${USER_REFRESH_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveRefreshCreateLoad.sql"}"
+  ;;
+  "$SHARK_BINARY")
+    BINARY_TYPE="shark"
+    GLOBAL_SETTINGS_FILE="$BIG_BENCH_HIVE_SCRIPT_DIR/sharkSettings.sql"
+    GLOBAL_POPULATE_FILE="${USER_POPULATE_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveCreateLoad.sql"}"
+    GLOBAL_REFRESH_FILE="${USER_REFRESH_FILE:-"$BIG_BENCH_HIVE_SCRIPT_DIR/hiveRefreshCreateLoad.sql"}"
+  ;;
 esac
 
 if [ ! -f "$GLOBAL_QUERY_PARAMS_FILE" ]
 then
-	echo "Global query parameter file $GLOBAL_QUERY_PARAMS_FILE can not be found"
-	exit 1
+  echo "Global query parameter file $GLOBAL_QUERY_PARAMS_FILE can not be found"
+  exit 1
 fi
 
 if [ ! -f "$GLOBAL_SETTINGS_FILE" ]
 then
-	echo "Global settings file $GLOBAL_SETTINGS_FILE can not be found"
-	exit 1
+  echo "Global settings file $GLOBAL_SETTINGS_FILE can not be found"
+  exit 1
 fi
 
 if [ ! -f "$GLOBAL_POPULATE_FILE" ]
 then
-	echo "Global populate metastore file $GLOBAL_POPULATE_FILE can not be found"
-	exit 1
+  echo "Global populate metastore file $GLOBAL_POPULATE_FILE can not be found"
+  exit 1
 fi
 
 if [ ! -f "$GLOBAL_REFRESH_FILE" ]
 then
-	echo "Global refresh metastore file $GLOBAL_REFRESH_FILE can not be found"
-	exit 1
+  echo "Global refresh metastore file $GLOBAL_REFRESH_FILE can not be found"
+  exit 1
 fi
 
 BENCHMARK_PHASE="${USER_BENCHMARK_PHASE:-$GLOBAL_BENCHMARK_PHASE}"
@@ -333,25 +333,25 @@ NUMBER_OF_PARALLEL_STREAMS="${USER_NUMBER_OF_PARALLEL_STREAMS:-$GLOBAL_NUMBER_OF
 MODULE="$MODULES_DIR/$MODULE_NAME"
 if [ -f "$MODULE" ]
 then
-	source "$MODULE"
+  source "$MODULE"
 else
-	echo "Module $MODULE not found, aborting script."
-	exit 1
+  echo "Module $MODULE not found, aborting script."
+  exit 1
 fi
 
 # check if the run method was implemented properly
 RUN_METHOD="exec$MODULE_NAME"
 if ! declare -F "$RUN_METHOD" > /dev/null 2>&1
 then
-	echo "$RUN_METHOD was not implemented, aborting script"
-	exit 1
+  echo "$RUN_METHOD was not implemented, aborting script"
+  exit 1
 fi
 
 COMBINED_PARAMS_FILE="`mktemp`"
 if buildCombinedParamsFile
 then
-	# run module
-	"$RUN_METHOD" "$@"
+  # run module
+  "$RUN_METHOD" "$@"
 fi
 
 rm -rf "$COMBINED_PARAMS_FILE"

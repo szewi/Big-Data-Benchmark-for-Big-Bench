@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
 execrunBenchmark () {
-	java -jar "${BIG_BENCH_TOOLS_DIR}/RunBigBench.jar" "$@"
+  java -jar "${BIG_BENCH_TOOLS_DIR}/RunBigBench.jar" "$@"
 }

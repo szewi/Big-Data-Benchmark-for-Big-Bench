@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
 execcleanMetastore () {
-	echo "cleaning HIVE TABLES"
-	runHiveCmd -f "${BIG_BENCH_HIVE_SCRIPT_DIR}/dropTables.sql"
+  echo "cleaning HIVE TABLES"
+  runHiveCmd -f "${BIG_BENCH_HIVE_SCRIPT_DIR}/dropTables.sql"
 }

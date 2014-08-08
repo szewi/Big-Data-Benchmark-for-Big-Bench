@@ -1,25 +1,25 @@
 #!/usr/bin/env bash
 
 execcleanQueries () {
-	FIRST_QUERY="1"
-	LAST_QUERY="30"
+  FIRST_QUERY="1"
+  LAST_QUERY="30"
 
-	echo "==============================================="
-	echo "Cleaning queries $FIRST_QUERY-$LAST_QUERY"
-	echo "==============================================="
+  echo "==============================================="
+  echo "Cleaning queries $FIRST_QUERY-$LAST_QUERY"
+  echo "==============================================="
 
-	if [ -n "$QUERY_NUMBER" ]
-	then
-		echo "The query number must not be set by the user."
-		return 1
-	fi
+  if [ -n "$QUERY_NUMBER" ]
+  then
+    echo "The query number must not be set by the user."
+    return 1
+  fi
 
-	for (( i = $FIRST_QUERY; i <= $LAST_QUERY; i++ ))
-	do
-		"$BIG_BENCH_BASH_SCRIPT_DIR/bigBench" $LIST_OF_USER_OPTIONS -q $i cleanQuery
-	done
+  for (( i = $FIRST_QUERY; i <= $LAST_QUERY; i++ ))
+  do
+    "$BIG_BENCH_BASH_SCRIPT_DIR/bigBench" $LIST_OF_USER_OPTIONS -q $i cleanQuery
+  done
 
-	echo "==============================================="
-	echo "All queries cleaned"
-	echo "==============================================="
+  echo "==============================================="
+  echo "All queries cleaned"
+  echo "==============================================="
 }
