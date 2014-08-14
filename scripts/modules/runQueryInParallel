@@ -9,7 +9,7 @@ execrunQueryInParallel () {
 
   for (( i = 0; i < $NUMBER_OF_PARALLEL_STREAMS; i++ ))
   do
-    "$BIG_BENCH_BASH_SCRIPT_DIR/bigBench" $LIST_OF_USER_OPTIONS -s $i runQuery &
+    "$BIG_BENCH_BASH_SCRIPT_DIR/bigBench" $LIST_OF_USER_OPTIONS -t $i runQuery &
   done
   wait
 }
