@@ -1,4 +1,5 @@
-UNDER DEVELOPMENT -- contact bhaskar.gowda@intel.com for help in running the workload.
+UNDER DEVELOPMENT -- Post your questions on Google Groups https://groups.google.com/forum/#!forum/big-bench
+ for help any help in running the workload.
 
 ======
 
