@@ -22,7 +22,7 @@ exechadoopDataGen () {
 
   local PDGF_ARCHIVE_NAME="pdgfEnvironment.tar"
   local PDGF_DISTRIBUTED_NODE_DIR="$PDGF_ARCHIVE_NAME/data-generator/"
-  local PDGF_ARCHIVE_PATH="$BIG_BENCH_HOME/$PDGF_ARCHIVE_NAME"
+  local PDGF_ARCHIVE_PATH="`mktemp -d`/$PDGF_ARCHIVE_NAME"
 
   if grep -q "IS_EULA_ACCEPTED=true" "$BIG_BENCH_DATA_GENERATOR_DIR/Constants.properties"; then
     echo "EULA is accepted"
@@ -90,6 +90,7 @@ exechadoopDataGen () {
   echo "==============================================="
   echo "Creating data generator archive to upload to DistCache"
   echo "==============================================="
+  echo "creating: $PDGF_ARCHIVE_PATH"
   rm -f "$PDGF_ARCHIVE_PATH"
   tar -C "$BIG_BENCH_HOME" -caf "$PDGF_ARCHIVE_PATH" data-generator/
   rc=$?
@@ -97,6 +98,7 @@ exechadoopDataGen () {
     echo "Creating data generator archive failed. (This archive would be distributed to all nodes by using hadoops dist-cache)"
     return $rc
   fi
+  
   echo "OK"
 
   echo "==============================================="
