@@ -117,16 +117,16 @@ exechadoopDataGen () {
 
   echo hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" ${BIGBENCH_DATAGEN_HADOOP_EXEC_DEBUG} -taskFailOnNonZeroReturnValue -archives "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec ${BIG_BENCH_DATAGEN_HADOOP_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks -nn HadoopClusterExec.taskNumber -ns -c -sp REFRESH_PHASE 0 -o "'${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIG_BENCH_DATAGEN_TABLES} ${PDGF_OPTIONS} "$@"
 
-  time ( if ! hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" ${BIGBENCH_DATAGEN_HADOOP_EXEC_DEBUG} -archives "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec ${BIG_BENCH_DATAGEN_HADOOP_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks -nn HadoopClusterExec.taskNumber -ns -c -sp REFRESH_PHASE 0 -o "'${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIG_BENCH_DATAGEN_TABLES} ${PDGF_OPTIONS} "$@"  ; then  echo "Error executing data generation job. See $BIG_BENCH_DATAGEN_STAGE_LOG"; exit 1; fi   ; echo  "======= Generating data time =========") > >(tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG") 2>&1
+  time ( if ! hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" ${BIGBENCH_DATAGEN_HADOOP_EXEC_DEBUG} -taskFailOnNonZeroReturnValue -archives "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec ${BIG_BENCH_DATAGEN_HADOOP_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks -nn HadoopClusterExec.taskNumber -ns -c -sp REFRESH_PHASE 0 -o "'${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIG_BENCH_DATAGEN_TABLES} ${PDGF_OPTIONS} "$@"  ; then  echo "Error executing data generation job. See $BIG_BENCH_DATAGEN_STAGE_LOG"; exit 1; fi   ; echo  "======= Generating base data time =========") > >(tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG") 2>&1
   rc=$?
   if [[ $rc != 0 ]] ; then
     echo "Error executing data generation job. See $BIG_BENCH_DATAGEN_STAGE_LOG"
     return $rc
   fi
 
-  echo hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" ${BIGBENCH_DATAGEN_HADOOP_EXEC_DEBUG} -archives "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec ${BIG_BENCH_DATAGEN_HADOOP_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks -nn HadoopClusterExec.taskNumber -ns -c -sp REFRESH_PHASE 1 -o "'${BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIG_BENCH_DATAGEN_TABLES} ${PDGF_OPTIONS} "$@"
+  echo hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" ${BIGBENCH_DATAGEN_HADOOP_EXEC_DEBUG} -taskFailOnNonZeroReturnValue -archives "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec ${BIG_BENCH_DATAGEN_HADOOP_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks -nn HadoopClusterExec.taskNumber -ns -c -sp REFRESH_PHASE 1 -o "'${BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIG_BENCH_DATAGEN_TABLES} ${PDGF_OPTIONS} "$@"
 
-  time (hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" ${BIGBENCH_DATAGEN_HADOOP_EXEC_DEBUG} -archives "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec ${BIG_BENCH_DATAGEN_HADOOP_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks -nn HadoopClusterExec.taskNumber -ns -c -sp REFRESH_PHASE 1 -o "'${BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIG_BENCH_DATAGEN_TABLES} ${PDGF_OPTIONS} "$@" ; echo  "======= Generating data time =========") > >(tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG") 2>&1
+  time ( if ! time (hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" ${BIGBENCH_DATAGEN_HADOOP_EXEC_DEBUG} -taskFailOnNonZeroReturnValue -archives "${PDGF_ARCHIVE_PATH}" -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec ${BIG_BENCH_DATAGEN_HADOOP_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks -nn HadoopClusterExec.taskNumber -ns -c -sp REFRESH_PHASE 1 -o "'${BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR}/'+table.getName()+'/'" ${BIGBENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIG_BENCH_DATAGEN_TABLES} ${PDGF_OPTIONS} "$@" ; then  echo "Error executing data generation job. See $BIG_BENCH_DATAGEN_STAGE_LOG"; exit 1; fi   ; echo  "======= Generating refresh data time =========") > >(tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG") 2>&1
   rc=$?
   if [[ $rc != 0 ]] ; then
     echo "Error executing refresh data generation job"
@@ -135,6 +135,10 @@ exechadoopDataGen () {
 
   ##cleanup
   rm -f ${PDGF_ARCHIVE_PATH}
+
+  ##Verify
+  hadoop fs -ls ${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}"
+  hadoop fs -du ${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}"
 
   echo "==============================================="
   echo "Hadoop data generation job finished. "
