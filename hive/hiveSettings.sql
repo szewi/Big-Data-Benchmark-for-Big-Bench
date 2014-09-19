@@ -40,7 +40,7 @@ set hive.exec.reducers.bytes.per.reducer=256000000;
 -- things like mapjoins are done in memory and require a lot of it
 -- README!!!
 -- Hive 0.12 bug, hive ignores  'hive.mapred.local.mem' resulting in out of memory errors in map joins!
--- (more exactly: bug in Hadoop 2.2 where hadoop-env.cmd sets the -xmx parameter multiple times, effectively overriding the user set hive.mapred.locla.mem setting. see: https://issues.apache.org/jira/browse/HADOOP-10245
+-- (more exactly: bug in Hadoop 2.2 where hadoop-env.cmd sets the -xmx parameter multiple times, effectively overriding the user set hive.mapred.local.mem setting. see: https://issues.apache.org/jira/browse/HADOOP-10245
 -- There are 3 workarounds: 
 -- 1) assign more memory to the local!! Hadoop JVM client (not! mapred.map.memory)-> map-join child vm will inherit the parents jvm settings
 -- 2) reduce "hive.smalltable.filesize" to ~1MB (depends on your cluster settings for the local JVM)
@@ -49,7 +49,7 @@ set hive.exec.reducers.bytes.per.reducer=256000000;
 -- set hive.auto.convert.join=true;
 -- set hive.optimize.mapjoin.mapreduce=true;
 -- set hive.mapred.local.mem=1024;
---default:25MB, max size of tables considered for local in memory map joion.Beware! ORC files have only little file size but huge in memory data size! a 25MB ORC easily consumes 512MB.. related: https://issues.apache.org/jira/browse/HIVE-2601
+--default:25MB, max size of tables considered for local in memory map join. Beware! ORC files have only little file size but huge in memory data size! a 25MB ORC easily consumes 512MB.. related: https://issues.apache.org/jira/browse/HIVE-2601
 set hive.mapjoin.smalltable.filesize=5000000; 
 -- set hive.mapjoin.localtask.max.memory.usage=0.90;
 
