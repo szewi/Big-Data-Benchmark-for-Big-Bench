@@ -3,7 +3,7 @@
 --likelihood to be interested in a given category.
 
 -- Hive 0.12 bug, hive ignores  'hive.mapred.local.mem' resulting in out of memory errors in map joins!
--- (more exactly: bug in Hadoop 2.2 where hadoop-env.cmd sets the -xmx parameter multiple times, effectively overriding the user set hive.mapred.locla.mem setting. see: https://issues.apache.org/jira/browse/HADOOP-10245
+-- (more exactly: bug in Hadoop 2.2 where hadoop-env.cmd sets the -xmx parameter multiple times, effectively overriding the user set hive.mapred.local.mem setting. see: https://issues.apache.org/jira/browse/HADOOP-10245
 -- There are 3 workarounds: 
 -- 1) assign more memory to the local!! Hadoop JVM client via 'HADOOP_CLIENT_OPTS'. (Cloudera->hive service settings->gateway default group->Resourcemanagement->Java-Heap size)
 --    Map-join child vm will inherit the parents jvm settings. 
