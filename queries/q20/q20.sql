@@ -24,9 +24,6 @@ CREATE TABLE ${hiveconf:TEMP_TABLE} (
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ' ' LINES TERMINATED BY '\n'
 STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}';
 
-hive -e 'use bigbenchORC_michael; SELECT * FROM store_sales s WHERE   s.ss_net_paid = 0.0;'
-SELECT *,  SUM( s.ss_net_paid) FROM store_sales ss GROUP BY ss_customer_sk HAVING  SUM( s.ss_net_paid) = 0.0;
-
 
 INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
 SELECT
