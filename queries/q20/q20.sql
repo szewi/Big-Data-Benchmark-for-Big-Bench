@@ -24,21 +24,25 @@ CREATE TABLE ${hiveconf:TEMP_TABLE} (
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ' ' LINES TERMINATED BY '\n'
 STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}';
 
+hive -e 'use bigbenchORC_michael; SELECT * FROM store_sales s WHERE   s.ss_net_paid = 0.0;'
+SELECT *,  SUM( s.ss_net_paid) FROM store_sales ss GROUP BY ss_customer_sk HAVING  SUM( s.ss_net_paid) = 0.0;
+
+
 INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
 SELECT
   cid,
-  100.0 * COUNT(distinct (CASE WHEN r_date IS NOT NULL THEN oid ELSE NULL end)) / COUNT(distinct oid) AS r_order_ratio,
+  100.0 * COUNT(distinct (CASE WHEN r_date IS NOT NULL THEN oid ELSE 0.0 END)) / COUNT(distinct oid) AS r_order_ratio,
   SUM(CASE WHEN r_date IS NOT NULL THEN 1 ELSE 0 END) / COUNT(item) * 100 AS r_item_ratio,
-  SUM(CASE WHEN r_date IS NOT NULL THEN r_amount ELSE 0.0 END) / SUM(s_amount) * 100 AS r_amount_ratio,
-  COUNT(distinct (CASE WHEN r_date IS NOT NULL THEN r_date ELSE NULL END)) AS r_freq
+  CASE WHEN SUM(s_amount)=0.0 THEN 0.0 ELSE (SUM(CASE WHEN r_date IS NOT NULL THEN r_amount ELSE 0.0 END) / SUM(s_amount) * 100) END AS r_amount_ratio,
+  COUNT(distinct (CASE WHEN r_date IS NOT NULL THEN r_date ELSE 0.0 END)) AS r_freq
 FROM (
   SELECT --s.ss_sold_date_sk AS s_date, --
     r.sr_returned_date_sk AS r_date,
     s.ss_item_sk AS item,
     s.ss_ticket_number AS oid,
     s.ss_net_paid AS s_amount,
-    r.sr_return_amt AS r_amount,
-    (CASE WHEN s.ss_customer_sk IS NULL THEN r.sr_customer_sk ELSE s.ss_customer_sk END) AS cid
+    CASE WHEN r.sr_return_amt IS NULL THEN 0.0 ELSE r.sr_return_amt END AS r_amount,
+    (CASE WHEN s.ss_customer_sk  IS NULL THEN r.sr_customer_sk ELSE s.ss_customer_sk END) AS cid
     --s.ss_customer_sk AS s_cid,
     --sr_customer_sk AS r_cid
   FROM store_sales s
