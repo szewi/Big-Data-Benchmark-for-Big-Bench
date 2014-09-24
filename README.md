@@ -551,11 +551,13 @@ Error: GC overhead limit exceeded
 FAILED: Execution Error, return code 2 from org.apache.hadoop.hive.ql.exec.mr.MapRedTask
 ```
 Not enough (remote) mapper/reducer memory to complete the job.
-You have to increase your mapper/reducer job memory limits (and/or yarn container limits)
+You have to increase your mapper/reducer job memory limits (and/or yarn container limits).
+
+Please read the chapter **cluster setup** from this FAQ section.
 
 Note that this error is different from:
 ```
 Execution failed with exit status: 3
 FAILED: Execution Error, return code 3 from org.apache.hadoop.hive.ql.exec.mr.MapredLocalTask
 ```
-as "Exit status: 3" indicates a memory overflow in the "LOCAL" jvm (The jvm, that kicked of your task) where as "Error, return code 2" indicates a "REMOTE" problem. (A jvm started by e.g. YARN on a Node to process your job)
+as "Exit status: 3" indicates a memory overflow in the "LOCAL" jvm (the jvm that started your hive task) where as "Error, return code 2" indicates a "REMOTE" problem. (A jvm started by e.g. YARN on a Node to process your job)
