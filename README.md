@@ -1,5 +1,9 @@
 UNDER DEVELOPMENT -- Post your questions on Google Groups https://groups.google.com/forum/#!forum/big-bench
  for help any help in running the workload.
+ 
+ To collect performance metrics from  Hadoop nodes and analyze the resource utilization draw automated charts using MS-Excel, please feel free to use PAT publically available for download.
+ 
+ https://github.com/intel-hadoop/PAT 
 
 ======
 
