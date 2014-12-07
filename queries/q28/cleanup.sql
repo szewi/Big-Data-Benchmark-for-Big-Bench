@@ -1,3 +1,0 @@
--- Resources
-DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE1};
-DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE2};

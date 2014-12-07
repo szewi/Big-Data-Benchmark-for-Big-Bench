@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+helpModule () {
+  echo "This module runs a single query on a multiple streams"
+  echo
+  echo "Options:"
+  echo -e "-q\tquery number to run (required)"
+  echo -e "-d\tdatabase to use"
+  echo -e "-D\tquery part to debug"
+  echo -e "-h\tshow this help"
+  echo -e "-p\tbenchmark phase to use"
+  echo -e "-s\tnumber of parallel streams"
+  echo -e "-y\tfile with user defined query parameters"
+  echo -e "-z\tfile with user defined engine settings"
+}
+
+runModule () {
+  if [ -n "$USER_STREAM_NUMBER" ]
+  then
+    echo "The stream number must not be set by the user."
+    return 1
+  fi
+
+  for (( i = 0; i < $BIG_BENCH_NUMBER_OF_PARALLEL_STREAMS; i++ ))
+  do
+    "$BIG_BENCH_BIN_DIR/bigBench" runQuery $LIST_OF_USER_OPTIONS -t $i &
+  done
+  wait
+}

@@ -1,9 +1,8 @@
-UNDER DEVELOPMENT -- Post your questions on Google Groups https://groups.google.com/forum/#!forum/big-bench
- for help any help in running the workload.
- 
- To collect performance metrics from  Hadoop nodes and analyze the resource utilization draw automated charts using MS-Excel, PAT is available for download.
- 
- https://github.com/intel-hadoop/PAT 
+UNDER DEVELOPMENT -- Post your questions on Google Groups https://groups.google.com/forum/#!forum/big-bench for help in running the workload.
+
+To collect performance metrics from Hadoop nodes and analyze the resource utilization draw automated charts using MS-Excel, PAT is available for download.
+
+https://github.com/intel-hadoop/PAT 
 
 ======
 
@@ -13,30 +12,45 @@ This document is a development version and describes the BigBench installation a
 
 ## Cluster Environment
 
+**Cloudera**
+
+* Initially developed and tested on Cloudera CDH 5.0.0
++ Re-tested on Cloudera CDH 5.2.0
+
 **Java**
 
-Java 1.7 is required. 64 bit is recommended
+Java 1.7 is required. 64 bit is recommended. A suitable JDK is installed along with Cloudera (if using the parcel installation method)
 
 **Hadoop**
 
-* Hive 0.12 recommended
-* Mahout
+* Hadoop 2.3. A suitable hadoop version is installed along with Cloudera (if using the parcel installation method)
+* Hive 0.12 recommended. A suitable hive version is installed along with Cloudera (if using the parcel installation method)
+* Mahout. A suitable mahout version is installed along with Cloudera (if using the parcel installation method)
+
+**Other necessary system packages**
+
+* bash
+* findutils
+* coreutils
+* grep
+* tar
+* zip
 
 ## Installation
 
-On the AWS installation, clone the github repository into a folder stored in $INSTALL_DIR:
+On the SUT, clone the github repository into a folder stored in $INSTALL_DIR:
 
 ```
 export INSTALL_DIR="$HOME" # adapt this to your location
-cd $INSTALL_DIR
+cd "$INSTALL_DIR"
 git clone https://<username>@github.com/intel-hadoop/Big-Bench.git
 ```
 
 ## Configuration
 
-Check if the hadoop related variables are correctly set in the environment file:
+Check if the hadoop related variables are correctly set in the user settings file:
 
-`vi "$INSTALL_DIR/Big-Bench/setEnvVars"`
+`vi "$INSTALL_DIR/Big-Bench/conf/userSettings.conf"`
 
 Major settings, Specify your cluster environment:
 
@@ -46,9 +60,9 @@ BIG_BENCH_HADOOP_CONF         most important: core-site.xml and hdfs-site.xml
 ```
 Minor settings:
 ```
-BIG_BENCH_USER
+BIG_BENCH_USER                     the user who is running the benchmark (used to determine the base directory where PDGF stores its data)
 BIG_BENCH_DATAGEN_DFS_REPLICATION  replication count used during generation of the big bench table
-BIG_BENCH_DATAGEN_JVM_ENV          -Xmx750m is sufficient for Nodes with 2 CPU cores, remove or increase if your Nodes have more cores
+BIG_BENCH_DATAGEN_HADOOP_JVM_ENV   -Xmx300m is sufficient for one worker per map task, increase if you use more than one worker per map task (by 100m per additional worker)
 ```
 # Run the workload
 
@@ -56,7 +70,12 @@ There are two different methods for running the workload: use the driver to simp
 
 ## Common hints
 
-The following paragraphs are important for both methods.
+There is a configuration file with variables set by the user. This file is located here:
+```
+"$INSTALL_DIR/conf/userSettings.conf"
+```
+
+Apart from specific environment settings, the user can also specify default values for most benchmark options in this file.
 
 ### Accept license
 
@@ -72,14 +91,14 @@ YES
 ### PDGF
 The data are being generated directly into HDFS (into the $BIG_BENCH_HDFS_RELATIVE_INIT_DATA_DIR directory, absolute HDFS path is $BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR).
 
-Default HDFS replication count is 1 (data is only stored on the generating node). You can change this in the $BIG_BENCH_HOME/setEnvVars file by changing the variable
+Default HDFS replication count is 1 (data is only stored on the generating node). You can change this in the $INSTALL_DIR/conf/userSettings.conf file by changing the variable
 `BIG_BENCH_DATAGEN_DFS_REPLICATION=<Replication count>'.
 
 ## Using the BigBench driver
 
 The BigBench driver is started with a script. To show all available options, you can call the help first:
 ```
-"$INSTALL_DIR/scripts/bigBench runBenchmark -h
+"$INSTALL_DIR/bin/bigBench" runBenchmark -h
 ```
 
 ### Quick start
@@ -87,17 +106,19 @@ The BigBench driver is started with a script. To show all available options, you
 If a complete benchmark run should be performed and no data were generated previously, this is the command which should be executed:
 
 ```
-"$INSTALL_DIR/scripts/bigBench runBenchmark -m <number of map tasks for data generation> -f <scale factor of dataset> -s <number of parallel streams in the throughput test>
+"$INSTALL_DIR/bin/bigBench" runBenchmark [-m <number of map tasks for data generation>] [-f <scale factor of dataset>] [-s <number of parallel streams in the throughput test>]
 ```
 
 This command will generate data, run the load-, power- and throughput-test and calculate the BigBench result.
 
 So a complete benchmark run with all stages can be done by running (e.g., 4 map tasks, scale factor 100, 2 streams):
 ```
-"$INSTALL_DIR/scripts/bigBench runBenchmark -m 4 -f 100 -s 2
+"$INSTALL_DIR/bin/bigBench runBenchmark -m 4 -f 100 -s 2
 ```
 
-After the benchmark finished, two log files are written: BigBenchResult.txt (which contains the driver's sysout messages) as well as BigBenchTimes.csv (which contains all measured timestamps/durations). The log directory can be specified with the -l option, it defaults to the BigBench's log dir ($BIG_BENCH_LOGS_DIR).
+If one of the options is omitted, the script uses the default values defined in $INSTALL_DIR/conf/userSettings.conf (BIG_BENCH_DEFAULT_MAP_TASKS, BIG_BENCH_DEFAULT_SCALE_FACTOR, BIG_BENCH_DEFAULT_NUMBER_OF_PARALLEL_STREAMS).
+
+After the benchmark finished, two log files are written: BigBenchResult.txt (which contains the driver's sysout messages) as well as BigBenchTimes.csv (which contains all measured timestamps/durations).
 
 ### More detailed explanation
 
@@ -105,142 +126,156 @@ There are four phases the driver traverses (only three are benchmarked though): 
 
 #### Data generation
 
-The data generation phase is not benchmarked by BigBench. The driver can skip this phase by setting "-sd". Skipping this phase is a good idea if data were already generated previously and the complete benchmark should be repeated with the same dataset size. In that case, generting data is not necessary as PDGF would generate the exact same data as in the previous run. If data generation is not skipped, two other options must be provided to the driver: "-m" sets the number of map tasks for PDGF's data generation, "-f" sets the scale factor determining the dataset size (1 scale factor equals 1 GiB). If "-c" is set and "-sd" is not set, the dataset directory in HDFS will be deleted.
+The data generation phase is not benchmarked by BigBench. The driver can skip this phase by setting "-1". Skipping this phase is a good idea if data were already generated previously and the complete benchmark should be repeated with the same dataset size. In that case, generating data is not necessary as PDGF would generate the exact same data as in the previous run. If data generation is not skipped, two options can be provided to the driver: "-m" sets the number of map tasks for PDGF's data generation, "-f" sets the scale factor determining the dataset size (1 scale factor equals 1 GiB). If "-c" is set and "-1" is not set, the dataset directory in HDFS will be deleted.
 
 #### Load test
 
-Population of the hive metastore is the first phase that is benchmarked by BigBench. This phase can be skipped by providing "-sl" as an option. Re-populating the metastore is technically only necessary if the dataset has changed. Nevertheless, metastore population is part of the benchmark, so if this phase is skipped then no BigBench result can be computed. If "-c" is set and "-sl" is not set, the tables of the dataset in the metastore will be dropped (however it does not influence the query results from later tests).
-
+Population of the engine metastore is the first phase that is benchmarked by BigBench. This phase can be skipped by providing "-2" as an option. Re-populating the metastore is technically only necessary if the dataset has changed. Nevertheless, metastore population is part of the benchmark, so if this phase is skipped then no overall BigBench result can be computed. If "-c" is set and "-2" is not set, the tables of the dataset in the metastore will be dropped (however it does not clean the query results from other phases).
 
 #### Power test
 
-This is the second phase that is benchmarked by BigBench. All queries run sequentially in one stream. The phase can be skipped with the option "-sp". Setting "-c" (and not "-sp") cleans previous power-test's results in the hive metastore tables and HDFS directories.
+This is the second phase that is benchmarked by BigBench. All queries run sequentially in one stream. The phase can be skipped with the option "-3". Setting "-c" (and not "-3") cleans previous power-test's results in the engine metastore tables and HDFS directories.
 
 #### Throughput test
 
-The throughput test is the last benchmark phase. All queries run in parallel streams in different order. The phase can be skipped with "-st". If this phase is not skipped, "-s" is a required option because that sets the number of parallel streams used in this phase. As in the other phases, setting "-c" (and not "-st") cleans the thoughput-test's results in the hive metastore and the HDFS directories.
+The throughput test is the last benchmark phase. All queries run in parallel streams in different order. The complete phase can be skipped with "-4". If this phase is not skipped, "-s" can be set specifying the number of parallel streams used in this phase. As in the other phases, setting "-c" (and not "-4") cleans the thoughput-test's results in the engine metastore and the HDFS directories. Furthermore, the three sub-phases of the throughput test (first query run, dataset maintenance, second query run) can be skipped individually, using "-5", "-6" or "-7" as command line options.
 
 ## Using the bigBench bash script
 
-The driver internally calls the $BIG_BENCH_BASH_SCRIPT_DIR/bigBench bash script along with a module name. So every step the driver performs (apart from the more complicated "query mixing" and multi-stream execution logic) can be run manually by executing this script with the proper options.
+The driver internally calls the $BIG_BENCH_BIN_DIR/bigBench bash script along with a module name. So every step the driver performs (apart from the more complicated "query mixing" and multi-stream execution logic) can be run manually by executing this script with the proper options.
 
 ### Overview
 
-The general syntax for the bigBench script is:
+The general syntax for running the bigBench script is
 ```
-"$INSTALL_DIR/scripts/bigBench [global options] moduleName [module options]
+"$INSTALL_DIR/bin/bigBench" $MODULE_NAME [options]
 ```
 
-At the moment there is only one module which processes module options itself, namely runBenchmark. All other modules currently do NO option processing. They rely on bigBench for option processing. Therefore when not running the runBenchmark module, global options must be specified.
-
-All available options as well as all found modules can be listed by calling the script help:
+There is a global help for the bigBench script available which can be called with
 ```
-"$INSTALL_DIR/scripts/bigBench -h
+"$INSTALL_DIR/bin/bigBench" -h
+```
+as well as a specific help for each module
+```
+"$INSTALL_DIR/bin/bigBench" $MODULE_NAME -h
 ```
 
 ### Available options
-* -b: This option chooses which binary will be used for the benchmark. WARNING: support for choosing other binaries than "hive" is implemented, but hive is the only tested binary. In fact, no other binary works so far. DO NOT USE THAT OPTION
-* -d: Some more complex queries are split into multiple internal parts. This option chooses which internal query part will be executed. This is a developer only option. ONLY USE IF YOU KNOW WHAT YOU ARE DOING
-* -f: The scale factor for PDGF. It is used by the clusterDataGen and hadoopDataGen modules
+
+#### bigBench script options
+* -d: Defines the database to use. (default: $BIG_BENCH_DEFAULT_DATABASE)
+* -D: Some more complex queries are split into multiple internal parts. This option chooses which internal query part will be executed. This is a developer only option. ONLY USE IF YOU KNOW WHAT YOU ARE DOING
+* -e: This option chooses which binary will be used for the benchmark. (default: $BIG_BENCH_DEFAULT_ENGINE)
+* -f: The scale factor for PDGF. It is used by the dataGen module. (default: $BIG_BENCH_DEFAULT_SCALE_FACTOR)
 * -h: Show help
-* -m: The map tasks used for data generation. It is used by the clusterDataGen and hadoopDataGen modules
-* -p: The benchmark phase to use. It is necessary if subsequent query runs should not overwrite results of previous queries. The driver internally uses POWER_TEST_IN_PROGRESS, THROUGHPUT_TEST_FIRST_QUERY_RUN_IN_PROGRESS and THROUGHPUT_TEST_SECOND_QUERY_RUN_IN_PROGRESS. The default value when not providing this option is RUN_QUERY
+* -m: The map tasks used for data generation. It is used by the dataGen module. (default: $BIG_BENCH_DEFAULT_MAP_TASKS)
+* -p: Defines the benchmark phase to use (default: $BIG_BENCH_DEFAULT_BENCHMARK_PHASE)
 * -q: Defines the query number to be executed
-* -s: This option defines the number of parallel streams to use. It is only of any use with the runQueryInParallel module
-* -t: Sets the stream number of the current query. This option is important so that one query can run multiple times in parallel without interfering with other instances
-* -v: Use the provided file as initial metastore population script
-* -w: Use the provided file as metastore refresh script
-* -y: Use the provided file for custom query parameters
-* -z: Use the provided file for custom hive settings
+* -s: This option defines the number of parallel streams to use. It is only of any use with the runBenchmark and the runQueryInParallel modules. (default: $BIG_BENCH_DEFAULT_NUMBER_OF_PARALLEL_STREAMS)
+* -t: Sets the stream number of the current query. This option is important so that one query can run multiple times in parallel without interfering with other instances. (default: $BIG_BENCH_DEFAULT_STREAM_NUMBER)
+* -v: Use the provided file as initial metastore population script. (default: $BIG_BENCH_POPULATE_METASTORE_FILE)
+* -w: Use the provided file as metastore refresh script. (default: $BIG_BENCH_REFRESH_METASTORE_FILE)
+* -y: Use the provided file for custom query parameters. (global: $BIG_BENCH_QUERY_PARAMS_FILE)
+: -z: Use the provided file for custom engine settings. (global: $BIG_BENCH_ENGINE_SETTINGS_FILE)
+
+#### Driver specific options
+* -a: Only pretend command execution.
+* -b: Print stdout of called bash scripts during execution.
+* -c: Clean data/metatore instead of running workload.
+* -1: Skip data generation phase.
+* -2: Skip load test.
+* -3: Skip power test.
+* -4: Skip throughput test.
+* -5: Skip first query run of throughput test.
+* -6: Skip data refresh of throughput test.
+* -7: Skip second query run of throughput test.
 
 ### Modules usage examples
 
 * cleanData: cleans the dataset directory in HDFS. This module is automatically run by the data generator module to remove the dataset from the HDFS.
 ```
-"$INSTALL_DIR/scripts/bigBench cleanData
+"$INSTALL_DIR/bin/bigBench" cleanData [-h]
 ```
 
 * cleanMetastore: cleans the metastore dataset tables.
 ```
-"$INSTALL_DIR/scripts/bigBench [-z <hive settings>] cleanMetastore
+"$INSTALL_DIR/bin/bigBench" cleanMetastore [-d <database name>] [-h] [-z <engine settings>]
 ```
 
 * cleanQueries: cleans all metastore tables and result directories in HDFS for all 30 queries. This module works as a wrapper for cleanQuery and does not work if "-q" is set as option.
 ```
-"$INSTALL_DIR/scripts/bigBench [-p <benchmark phase>] [-t <stream number] [-z <hive settings>] cleanQueries
+"$INSTALL_DIR/bin/bigBench" cleanQueries [-d <database name>] [-h] [-p <benchmark phase>] [-t <stream number] [-z <engine settings>]
 ```
 
 * cleanQuery: cleans metastore tables and result directories in HDFS for one query. Needs the query number to be set.
 ```
-"$INSTALL_DIR/scripts/bigBench [-p <benchmark phase>] -q <query number> [-t <stream number] [-z <hive settings>] cleanQuery
+"$INSTALL_DIR/bin/bigBench" cleanQuery [-d <database name>] [-h] [-p <benchmark phase>] -q <query number> [-t <stream number] [-z <engine settings>]
 ```
 
-* clusterDataGen: generates data using ssh on all defined nodes. This module is deprecated. Do not use it.
-
-* hadoopDataGen: generates data using a hadoop job. Needs the map tasks and scale factor options.
+* dataGen: generates data using a hadoop job.
 ```
-"$INSTALL_DIR/scripts/bigBench -m <map tasks> -f <scale factor> hadoopDataGen
+"$INSTALL_DIR/bin/bigBench" dataGen [-h] [-m <map tasks>] [-f <scale factor>]
 ```
 
 * populateMetastore: populates the metastore with the dataset tables.
 ```
-"$INSTALL_DIR/scripts/bigBench [-v <population script>] [-z <hive settings>] populateMetastore
+"$INSTALL_DIR/bin/bigBench" populateMetastore [-d <database name>] [-h] [-v <population script>] [-z <engine settings>]
 ```
 
 * refreshMetastore: refreshes the metastore with the refresh dataset.
 ```
-"$INSTALL_DIR/scripts/bigBench [-w <refresh script>] [-z <hive settings>] refreshMetastore
+"$INSTALL_DIR/bin/bigBench" refreshMetastore [-d <database name>] [-h] [-w <refresh script>] [-z <engine settings>]
 ```
 
-* runBenchmark: runs the driver. This module parses its options itself. For details look at the driver usage section above.
+* runBenchmark: runs the driver.
 ```
-"$INSTALL_DIR/scripts/bigBench runBenchmark [driver options]
+"$INSTALL_DIR/bin/bigBench" runBenchmark [-d <database name>] [-e <engine name>] [-f <scale factor>] [-h] [-m <map tasks>] [-s <number of parallel streams>] [-v <population script>] [-w <refresh script>] [-y <query parameters>] [-z <engine settings>] [-a] [-b] [-c] [-1] [-2] [-3] [-4] [-5] [-6] [-7]
 ```
 
 * runQueries: runs all 30 queries sequentially. This module works as a wrapper for runQuery and does not work if "-q" is set as option.
 ```
-"$INSTALL_DIR/scripts/bigBench [-p <benchmark phase>] [-t <stream number] [-z <hive settings>] runQueries
+"$INSTALL_DIR/bin/bigBench" runQueries [-d <database name>] [-h] [-p <benchmark phase>] [-t <stream number] [-z <engine settings>]
 ```
 
 * runQuery: runs one query. Needs the query number to be set.
 ```
-"$INSTALL_DIR/scripts/bigBench [-p <benchmark phase>] -q <query number> [-t <stream number] [-z <hive settings>] runQuery
+"$INSTALL_DIR/bin/bigBench" runQuery [-d <database name>] [-D <debug query part] [-h] [-p <benchmark phase>] -q <query number> [-t <stream number] [-y <query parameters>] [-z <engine settings>]
 ```
 
-* runQueryInParallel: runs one query on multiple parallel streams. This module is a wrapper for runQuery. Needs the query number ("-q") and total number of streams ("-s") to be set and the stream number ("-t") to be unset.
+* runQueryInParallel: runs one query on multiple parallel streams. This module is a wrapper for runQuery. Needs the query number ("-q") to be set and the stream number ("-t") to be unset.
 ```
-"$INSTALL_DIR/scripts/bigBench [-p <benchmark phase>] -q <query number> -s <number of parallel streams> [-z <hive settings>] runQueryInParallel
+"$INSTALL_DIR/bin/bigBench" runQueryInParallel [-d <database name>] [-D <debug query part] [-h] [-p <benchmark phase>] -q <query number> [-s <number of parallel streams>] [-y <query parameters>] [-z <engine settings>]
 ```
 
 * showErrors: parses query errors in the log files after query runs.
 ```
-"$INSTALL_DIR/scripts/bigBench showErrors
+"$INSTALL_DIR/bin/bigBench" showErrors [-h]
 ```
 
 * showTimes: parses execution times in the log files after query runs.
 ```
-"$INSTALL_DIR/scripts/bigBench showTimes
+"$INSTALL_DIR/bin/bigBench" showTimes [-h]
 ```
 
-* zipQueryLogs: generates a zip file of all logs in the logs directory. It is run by the driver after each complete benchmark run. Subsequent runs override the old log files. A zip archive is created to save them before being overwritten.
+* zipQueryLogs: generates a zip file of all logs in the logs directory. It is run by the driver after each complete benchmark run. Subsequent runs override the old log files. A zip arcengine is created to save them before being overwritten.
 ```
-"$INSTALL_DIR/scripts/bigBench zipQueryLogs
+"$INSTALL_DIR/bin/bigBench" zipQueryLogs [-h]
 ```
 
 # FAQ 
-This Benchmark does not favour any platform and we ran this benchmark on many different distributions. But you gotta start somewhere.
-This Benchmark is also not HIVE specify, but hive happens to be the first module to be implemented.
+This benchmark does not favour any platform and we ran this benchmark on many different distributions. But you got to start somewhere.
+It is not HIVE specify as well, but hive happens to be the first engine to be implemented.
 
 This FAQ is mostly based on our experiments with Hive on Yarn with CDH 5.x)
 
 
 ## Where do i put my cluster specific settings?
 =============================================
-Here: Big-Bench/setEnvVars
+Here: Big-Bench/conf/userSettings.conf
 
-Where is my core-site.xml/hdfs-site.xml  for BIG_BENCH_HADOOP_CONF (usually the one in /etc/hadoop/...):
+Where is my core-site.xml/hdfs-site.xml for BIG_BENCH_HADOOP_CONF (usually the one in /etc/hadoop/...):
 
-`find / -name "hdfs-site.xml" 2> /dev/null`
+`find /etc -name "hdfs-site.xml" 2> /dev/null`
 
 Where is my hdfs native libs folder for BIG_BENCH_HADOOP_LIBS_NATIVE?
 
@@ -258,7 +293,7 @@ Look inside your hdfs-site.xml and locate this property value:
 ```
 
 ## Where do i put benchmark specific hive options?
-Big-Bench/hive/hiveSettings.sql
+Big-Bench/engines/hive/conf/hiveSettings.sql
 
 There are already a number of documented settings in there.
 
@@ -266,10 +301,10 @@ There are already a number of documented settings in there.
 ## Where do i put query specific hive options?
 You can place an optional file "hiveLocalSettings.sql" into a queries folder e.g.:
 
-Big-Bench/queries/q??/hiveLocalSettings.sql
+Big-Bench/engines/hive/queries/q??/hiveLocalSettings.sql
 
-You can put your query specific settings into this file, and the benchmark will automatically load the file. Its made so, that the hiveLocalSettings.sql file gets loaded last, which allows you to override any previously made settings made in e.g.: Big-Bench/hive/hiveSettings.sql
-This way your settings are independent from github updates and there wont be any conflicts when updating the query files. 
+You can put your query specific settings into this file, and the benchmark will automatically load the file. The hiveLocalSettings.sql file gets loaded last, which allows you to override any previously made settings in ,e.g., Big-Bench/engines/hive/conf/hiveSettings.sql.
+This way your settings are not overwritten by future github updates and there won't be any conflicts when updating the query files. 
 
 
 ## Underutilized cluster 
@@ -339,11 +374,11 @@ If you experience yarn deadlocks (yarn trying to allocate resources, but fails l
 **right settings for number of map tasks (bigBench -m option)**
 
 Short answer:
-On map task per virtual CPU/hardware thread is best to utilize all CPU resources.
+One map task per virtual CPU/hardware thread is best to utilize all CPU resources.
 
 But settings in your cluster may not allow you executing this number of map tasks in parallel. Basically you can not run more parallel map tasks then available (yarn-) containers.
-Another thing to consider when testing on big noisy clusters, is the non homogeneous runtime of nodes or node failures. Most mappers may finish long before certain others. To address for this skew in mapper runtime we suggest to set the number of mappers to a multiple (2-3 times) of available containers/threads in your cluster, reducing the runtime of a single mapper and making it cheaper to restart a task.
-But be aware that a to short runtime per map tasks also hurts performance, because launching a task is associated with a considerable amount of overhead. In addition to that, more map tasks produce more intermediate files and thus causing more load for the HDFS namenode.
+Another thing to consider when testing on big noisy clusters is the non homogeneous runtime of nodes or node failures. Most mappers may finish long before certain others. To address for this skew in mapper runtime we suggest to set the number of mappers to a multiple (2-3 times) of available containers/threads in your cluster, reducing the runtime of a single mapper and making it cheaper to restart a task.
+But be aware that a to short runtime per map task also hurts performance, because launching a task is associated with a considerable amount of overhead. In addition to that, more map tasks produce more intermediate files and thus causing more load for the HDFS namenode.
 Try targeting run times per mapper not shorter than 3 minutes.
 
 For a "small cluster" (4nodes á 40 hardware threads) (4Nodes * 40Threads) * 2 = 320 MapTasks may be a good value.
@@ -354,29 +389,21 @@ For a "small cluster" (4nodes á 40 hardware threads) (4Nodes * 40Threads) * 2 =
 If your cluster has more available threads then concurrently runnable containers, your cluster may be CPU underutilized.
 In this case you can increase the number of threads available to the data generation tool. The data generation tool will then allocate the specified number of threads per map task.
 
-Please open you Big-Bench/setEnvVars configuration file and see lines:
-  export BIG_BENCH_DATAGEN_JVM_ENV=" -Xmx300m "        
-and:   
-  export BIGBENCH_DATAGEN_HADOOP_OPTIONS=" -workers 1 -ap 3000 "   
+Please open your Big-Bench/conf/userSettings.conf configuration file and see lines:
+  export BIG_BENCH_DATAGEN_HADOOP_JVM_ENV="java -DDEBUG_PRINT_PERIODIC_THREAD_DUMPS=5000 -Xmx300m "
+and:
+  export BIG_BENCH_DATAGEN_HADOOP_OPTIONS=" -workers 1 -ap 3000 "
 
 You could set
-  export BIGBENCH_DATAGEN_HADOOP_OPTIONS=" -workers 4 -ap 3000 "
+
+  export BIG_BENCH_DATAGEN_HADOOP_OPTIONS=" -workers 4 -ap 3000 "
+
 telling the data generation tool to use 4 threads per map task.
-Note: increasing the number of threads  requires lager internal buffers so please add 100Mb of memory to  BIG_BENCH_DATAGEN_JVM_ENV per additional thread.
+Note: increasing the number of threads requires larger internal buffers so please add 100Mb of memory to BIG_BENCH_DATAGEN_HADOOP_JVM_ENV per additional thread.
 
 Your final settings for 4 threads per map task should look like this:
-  export BIG_BENCH_DATAGEN_JVM_ENV=" -Xmx600m "
-  export BIGBENCH_DATAGEN_HADOOP_OPTIONS=" -workers 4 -ap 3000 " 
-  
-
-One map task per virtual CPU/hardware thread is best to utilize all CPU resources.
-
-But settings in your cluster may not allow you executing this number of map tasks in parallel. Basically you can not run more parallel map tasks then available (yarn-) containers.
-Another thing to consider when testing on big noisy cluster, is the non homogeneous runtime of nodes or node failures. Most mappers may finish long before certain others. To address for this skew in mapper runtime i would suggest to set the number of mappers to a multiple (2-3 times) of available containers/threads in your cluster, reducing the runtime of a single mapper and making it cheaper to restart a task.
-But be aware that a to short runtime per map tasks also hurts performance. I would suggest targeting run times per mapper not shorter > 5min.
-
-
-
+  export BIG_BENCH_DATAGEN_HADOOP_JVM_ENV="java -DDEBUG_PRINT_PERIODIC_THREAD_DUMPS=5000 -Xmx600m "
+  export BIG_BENCH_DATAGEN_HADOOP_OPTIONS=" -workers 4 -ap 3000 " 
 
 ### Hive "loading"-stage is slow,
 The hive loading stage is not only "moving" file in hdfs from the data/ dir into the hive/warehouse.
@@ -392,9 +419,7 @@ hive.exec.parallel.thread.number=8
 
 They allow hive to run multiple uncorrelated jobs in parallel (like creating tables). But be warned, this feature is still considered unstable (Hive 0.12).
 If you cant modify your hive-site.xml cluster globally, you can uncomment/add these options in:
-  BigBench/hive/hiveCreateLoadORC.sql  
-to active them only for the loading stage or in:
-  Big-Bench/hive/hiveSettings.sql
+  Big-Bench/engines/hive/conf/hiveSettings.sql
 to enable them for the whole benchmark, including the queries.
 
 ### Hive Query's are running slow
@@ -433,7 +458,7 @@ set hive.exec.reducers.max=99999;
 ## More detailed log files
 
 The aggregated yarn application log file created for a yarn job contains much more information than the default printout you see on your screen.
-This log file is especially helpful to debug child-processes started by hadoop MR-jobs. e.g. java/pyhton scripts in certain streaming api using queries), or  the "hadoopDataGeneration" task which executes the data generator program.
+This log file is especially helpful to debug child-processes started by hadoop MR-jobs. e.g. java/pyhton scripts in certain streaming api using queries), or the "dataGen" task which executes the data generator program.
 
 To retrieve this log please follow these steps:
 
@@ -493,8 +518,8 @@ The later option may lead to bug number two if you happen to have a affected had
 
 **Bug 2)**
 
-Hive/Hadoop ignores  'hive.mapred.local.mem' !
-(more exactly: bug in Hadoop 2.2 where hadoop-env.cmd sets the -xmx parameter multiple times, effectively overriding the user set hive.mapred.locla.mem setting. 
+Hive/Hadoop ignores 'hive.mapred.local.mem' !
+(more exactly: bug in Hadoop 2.2 where hadoop-env.cmd sets the -xmx parameter multiple times, effectively overriding the user set hive.mapred.local.mem setting. 
 see: https://issues.apache.org/jira/browse/HADOOP-10245
 
 **There are 3 workarounds for this bug:**
@@ -506,7 +531,7 @@ see: https://issues.apache.org/jira/browse/HADOOP-10245
 * 2) reduce "hive.smalltable.filesize" to ~1MB or below (depends on your cluster settings for the local JVM)
 * 3) turn off "hive.auto.convert.join" to prevent hive from converting the joins to a mapjoin.
 
-2) & 3) can be set in Big-Bench/hive/hiveSettings.sql
+2) & 3) can be set in Big-Bench/engines/hive/conf/hiveSettings.sql
 
 
 ### Cannot allocate memory
@@ -518,11 +543,11 @@ There is insufficient memory for the Java Runtime Environment to continue.
 
 Native memory allocation (malloc) failed to allocate x bytes for committing reserved memory. 
 
-Basically your kernel handed out more memory than actually available, in expectants that most programs actually never use (allocate) every last bit of memory they request. Now a program (in this case java) tries to allocate something in its virtual reserved memory area, but the kernel was wrong with his estimation of application memory consumption and there is no physical memory left available to fulfil the applications malloc request.
+Basically your kernel handed out more memory than actually available, in expectants that most programs actually never use (allocate) every last bit of memory they request. Now a program (in this case java) tries to allocate something in its virtual reserved memory area, but the kernel was wrong with his estimation of application memory consumption and there is no physical memory left available to fulfill the applications malloc request.
 http://www.oracle.com/technetwork/articles/servers-storage-dev/oom-killer-1911807.html
 
 **WARNING:**
-Some "fixes" suggest disabling  "vm.overcommit_memory" in the kernel.
+Some "fixes" suggest disabling "vm.overcommit_memory" in the kernel.
 If you are already in an "overcommitted" state DO NOT SET sysctl vm.overcommit_memory=2 on the running machine to "cure" it! If you do, you will no longer be able to execute ANY program or shell command, as this would require a memory allocation of which nothing is left. This essentially will deadlock you machine, requiring you to forcefully physically reboot the system.
 
 

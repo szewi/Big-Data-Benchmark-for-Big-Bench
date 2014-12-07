@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+helpModule () {
+  echo "This module parses the logs for error messages and prints them to stdout"
+  echo
+  echo "Options:"
+  echo -e "-h\tshow this help"
+}
+
+runModule () {
+  if [ -z "$QUERY_NAME" ]
+  then
+    ERRLOG_FILE_NAME="$BIG_BENCH_LOGS_DIR/queryErrors.log"
+
+    grep -n -i -E 'FAIL|ERROR:|Could not|Exception|unexpected' "$BIG_BENCH_LOADING_STAGE_LOG"  | grep -v "Failed Shuffles=0"  > $ERRLOG_FILE_NAME
+    grep -n -i -E 'FAIL|ERROR:|Could not|Exception|unexpected' "$BIG_BENCH_LOGS_DIR"/q[0-9][0-9]*.log | grep -v "Failed Shuffles=0" >> $ERRLOG_FILE_NAME
+
+    if [ -s "$ERRLOG_FILE_NAME" ]
+    then
+      echo "==============================================="
+      echo "Errors in queries"
+      echo "==============================================="
+      cat $ERRLOG_FILE_NAME
+    else
+      echo "All queries ran successfully"
+    fi
+  else
+    echo "==============================================="
+    echo "Errors in query $QUERY_NAME"
+    echo "grep from file:  $BIG_BENCH_LOGS_DIR/$QUERY_NAME*.log"
+    echo "==============================================="
+    grep -n -i -E 'FAIL|ERROR:|Could not|Exception|unexpected' "$BIG_BENCH_LOGS_DIR"/${QUERY_NAME}*.log
+  fi
+}
