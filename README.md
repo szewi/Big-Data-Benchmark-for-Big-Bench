@@ -329,7 +329,7 @@ mapreduce.task.io.sort.mb
 ```
 
 Basically, you may want to have at least as much (yarn) "containers" (container may hold a map or a reduce task) on your cluster as you have CPU cores or hardware threads.
-Despite that, you configure your container count based on available memory in your cluster. 1-2GB of memory per container may be a good starting point.
+Despite that, you configure your container count based on available memory in your cluster. 1-2GB of memory per container may be a good starting point. For e.g: If you have 64 GB of memory and 32 threads, start with 2GB per container to tune 32 containers per node.
 
 In CDH you can do this with: (just example values! follow a more sophisticated tutorial on how to set up your cluster!):
 
@@ -429,7 +429,7 @@ There are several projects trying to reduces this problem like TEZ from the stin
 
 **Enough data (/bigBench -f <SF> option) ?**
 
-Make sure you run your benchmark with a big enough dataset to reduce the ratio of fixed overhead time vs. total runtime. Besides from initial testing your cluster setup, never run with a scaling factor of smaller than 100 ( -f 100 ==100GB)
+Make sure you run your benchmark with a big enough dataset to reduce the ratio of fixed overhead time vs. total runtime. Besides from initial testing your cluster setup, never run with a scaling factor of smaller than 100 ( -f 100 ==100GB). For fat nodes (E.g. Nodes with 128GB+ RAM, 32+ Threads, 24+ HDD's) experiement with 250GB/Node for cluster with 8 DataNodes  2-3TB Datset size is a good starting point.
 
 
 **Enough map/reduce tasks per query stage ?**
