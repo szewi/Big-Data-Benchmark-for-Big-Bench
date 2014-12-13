@@ -23,7 +23,7 @@ runModule () {
 
   for (( i = 0; i < $BIG_BENCH_NUMBER_OF_PARALLEL_STREAMS; i++ ))
   do
-    "$BIG_BENCH_BIN_DIR/bigBench" runQuery $LIST_OF_USER_OPTIONS -t $i &
+    runCmdWithErrorCheck "$BIG_BENCH_BIN_DIR/bigBench" runQuery $LIST_OF_USER_OPTIONS -t $i &
   done
   wait
 }

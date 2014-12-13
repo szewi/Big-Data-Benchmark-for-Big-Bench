@@ -49,9 +49,6 @@ query_run_main_method () {
 		echo "========================="
 		echo "$QUERY_NAME Step 1: Prepare required resources"
 		echo "========================="
-		#hadoop fs -rm -r -skipTrash "${TEMP_DIR}"/*
-		#hadoop fs -mkdir -p "${TEMP_DIR}"
-		#hadoop fs -chmod uga+rw "${TEMP_DIR}"
 		hadoop fs -copyFromLocal "${MR_JAR}" "${TEMP_DIR}/"
 	fi
 

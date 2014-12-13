@@ -42,9 +42,25 @@ showGlobalHelp () {
 
 logEnvInformation ()
 {
-	local ENV_INFO_FILE="$BIG_BENCH_LOGS_DIR/envInfo.log"
-	[ ! -d "$BIG_BENCH_LOGS_DIR" ] && mkdir -p "$BIG_BENCH_LOGS_DIR"
-	[ ! -f "$ENV_INFO_FILE" ] && ( hadoop version; hadoop classpath; java -version; ) > "$ENV_INFO_FILE" 2>&1
+  local ENV_INFO_FILE="$BIG_BENCH_LOGS_DIR/envInfo.log"
+  [ ! -d "$BIG_BENCH_LOGS_DIR" ] && mkdir -p "$BIG_BENCH_LOGS_DIR"
+  [ ! -f "$ENV_INFO_FILE" ] && ( hadoop version; hadoop classpath; java -version; ) > "$ENV_INFO_FILE" 2>&1
+}
+
+runCmdWithErrorCheck () {
+  "$@"
+  for RETURN_CODE in ${PIPESTATUS[@]}
+  do
+    if [[ $RETURN_CODE -ne 0 && $BIG_BENCH_STOP_AFTER_FAILURE -eq 1 ]]
+    then
+      echo "An error occured while running command:"
+      echo "=========="
+      echo "$@"
+      echo "=========="
+      echo "Please check the log files for details"
+      exit 1
+    fi
+  done
 }
 
 ## ===================================================
@@ -102,7 +118,7 @@ fi
 logEnvInformation
 
 # the help must list the modules, so keep on parsing stuff first
-[[ $# -eq 0 || "$1" = "-h" || "$1" = "--help" ]] && SHOW_GLOBAL_HELP="true"
+[[ $# -eq 0 || "$1" = "-h" || "$1" = "--help" ]] && SHOW_GLOBAL_HELP="1"
 
 ## ===================================================
 ## parse command line arguments
@@ -135,7 +151,7 @@ while getopts ":d:D:e:f:hm:p:q:s:t:v:w:y:z:abc1234567" OPT; do
     ;;
     h)
       #echo "-h was triggered, Parameter: $OPTARG" >&2
-      SHOW_MODULE_HELP="true"
+      SHOW_MODULE_HELP="1"
     ;;
     m)
       #echo "-m was triggered, Parameter: $OPTARG" >&2
@@ -176,43 +192,43 @@ while getopts ":d:D:e:f:hm:p:q:s:t:v:w:y:z:abc1234567" OPT; do
     # driver options
     a)
       #echo "-a was triggered, Parameter: $OPTARG" >&2
-      export PRETEND_MODE="true"
+      export PRETEND_MODE="1"
     ;;
     b)
       #echo "-b was triggered, Parameter: $OPTARG" >&2
-      export PRINT_STD_OUT="true"
+      export PRINT_STD_OUT="1"
     ;;
     c)
       #echo "-c was triggered, Parameter: $OPTARG" >&2
-      export CLEAN_MODE="true"
+      export CLEAN_MODE="1"
     ;;
     1)
       #echo "-1 was triggered, Parameter: $OPTARG" >&2
-      export SKIP_DATA_GENERATION="true"
+      export SKIP_DATA_GENERATION="1"
     ;;
     2)
       #echo "-2 was triggered, Parameter: $OPTARG" >&2
-      export SKIP_LOAD_TEST="true"
+      export SKIP_LOAD_TEST="1"
     ;;
     3)
       #echo "-3 was triggered, Parameter: $OPTARG" >&2
-      export SKIP_POWER_TEST="true"
+      export SKIP_POWER_TEST="1"
     ;;
     4)
       #echo "-4 was triggered, Parameter: $OPTARG" >&2
-      export SKIP_THROUGHPUT_TEST="true"
+      export SKIP_THROUGHPUT_TEST="1"
     ;;
     5)
       #echo "-5 was triggered, Parameter: $OPTARG" >&2
-      export SKIP_THROUGHPUT_TEST_FIRST_QUERY_RUN="true"
+      export SKIP_THROUGHPUT_TEST_FIRST_QUERY_RUN="1"
     ;;
     6)
       #echo "-6 was triggered, Parameter: $OPTARG" >&2
-      export SKIP_THROUGHPUT_TEST_REFRESH="true"
+      export SKIP_THROUGHPUT_TEST_REFRESH="1"
     ;;
     7)
       #echo "-7 was triggered, Parameter: $OPTARG" >&2
-      export SKIP_THROUGHPUT_TEST_SECOND_QUERY_RUN="true"
+      export SKIP_THROUGHPUT_TEST_SECOND_QUERY_RUN="1"
     ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -263,16 +279,16 @@ then
   echo "$BIG_BENCH_STREAM_NUMBER is not a number"
 fi
 
-[ -z "$PRETEND_MODE" ] && export PRETEND_MODE="false"
-[ -z "$PRINT_STD_OUT" ] && export PRINT_STD_OUT="false"
-[ -z "$CLEAN_MODE" ] && export CLEAN_MODE="false"
-[ -z "$SKIP_DATA_GENERATION" ] && export SKIP_DATA_GENERATION="false"
-[ -z "$SKIP_LOAD_TEST" ] && export SKIP_LOAD_TEST="false"
-[ -z "$SKIP_POWER_TEST" ] && export SKIP_POWER_TEST="false"
-[ -z "$SKIP_THROUGHPUT_TEST" ] && export SKIP_THROUGHPUT_TEST="false"
-[ -z "$SKIP_THROUGHPUT_TEST_FIRST_QUERY_RUN" ] && export SKIP_THROUGHPUT_TEST_FIRST_QUERY_RUN="false"
-[ -z "$SKIP_THROUGHPUT_TEST_REFRESH" ] && export SKIP_THROUGHPUT_TEST_REFRESH="false"
-[ -z "$SKIP_THROUGHPUT_TEST_SECOND_QUERY_RUN" ] && export SKIP_THROUGHPUT_TEST_SECOND_QUERY_RUN="false"
+[ -z "$PRETEND_MODE" ] && export PRETEND_MODE="0"
+[ -z "$PRINT_STD_OUT" ] && export PRINT_STD_OUT="0"
+[ -z "$CLEAN_MODE" ] && export CLEAN_MODE="0"
+[ -z "$SKIP_DATA_GENERATION" ] && export SKIP_DATA_GENERATION="0"
+[ -z "$SKIP_LOAD_TEST" ] && export SKIP_LOAD_TEST="0"
+[ -z "$SKIP_POWER_TEST" ] && export SKIP_POWER_TEST="0"
+[ -z "$SKIP_THROUGHPUT_TEST" ] && export SKIP_THROUGHPUT_TEST="0"
+[ -z "$SKIP_THROUGHPUT_TEST_FIRST_QUERY_RUN" ] && export SKIP_THROUGHPUT_TEST_FIRST_QUERY_RUN="0"
+[ -z "$SKIP_THROUGHPUT_TEST_REFRESH" ] && export SKIP_THROUGHPUT_TEST_REFRESH="0"
+[ -z "$SKIP_THROUGHPUT_TEST_SECOND_QUERY_RUN" ] && export SKIP_THROUGHPUT_TEST_SECOND_QUERY_RUN="0"
 
 ## ===================================================
 ## check for engine existence
@@ -311,7 +327,7 @@ then
 fi
 
 # as the module's bin directory is known at this point, the help can list all modules within that directory
-[ "$SHOW_GLOBAL_HELP" = "true" ] && showGlobalHelp
+[ "$SHOW_GLOBAL_HELP" = "1" ] && showGlobalHelp
 
 ## ===================================================
 ## check for module existence and correctness
@@ -333,6 +349,7 @@ then
   exit 1
 fi
 
+# check if the module's help method was implemented properly
 MODULE_HELP_METHOD="helpModule"
 if ! declare -F "$MODULE_HELP_METHOD" > /dev/null 2>&1
 then
@@ -349,9 +366,9 @@ then
 fi
 
 # run module
-if [ "$SHOW_MODULE_HELP" = "true" ]
+if [ "$SHOW_MODULE_HELP" = "1" ]
 then
   "$MODULE_HELP_METHOD"
 else
-  "$MODULE_RUN_METHOD"
+  runCmdWithErrorCheck "$MODULE_RUN_METHOD"
 fi

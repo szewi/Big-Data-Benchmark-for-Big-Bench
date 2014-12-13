@@ -35,5 +35,5 @@ runModule () {
     return 1
   fi
 
-  java -jar "${BIG_BENCH_TOOLS_DIR}/RunBigBench.jar"
+  runCmdWithErrorCheck java -jar "${BIG_BENCH_TOOLS_DIR}/RunBigBench.jar"
 }

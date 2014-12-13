@@ -34,13 +34,13 @@ runModule () {
   ### Checking required folder: logs/; tmp/; result/ if they exist, create them and set permissions
 
   # Run the clean method implemented in the query's run.sh
-  "$QUERY_CLEAN_METHOD"
+  runCmdWithErrorCheck "$QUERY_CLEAN_METHOD"
 
   echo "cleaning dir $RESULT_DIR"
-  hadoop fs -rm -r -skipTrash "$RESULT_DIR" &
+  runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "$RESULT_DIR"
 
   echo "cleaning dir $TEMP_DIR"
-  hadoop fs -rm -r -skipTrash "$TEMP_DIR" &
+  runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "$TEMP_DIR"
 
   wait
 

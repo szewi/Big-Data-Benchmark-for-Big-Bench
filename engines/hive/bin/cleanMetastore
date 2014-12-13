@@ -11,5 +11,5 @@ helpModule () {
 
 runModule () {
   echo "cleaning metastore tables"
-  runEngineCmd -f "$BIG_BENCH_CLEAN_METASTORE_FILE"
+  runCmdWithErrorCheck runEngineCmd -f "$BIG_BENCH_CLEAN_METASTORE_FILE"
 }

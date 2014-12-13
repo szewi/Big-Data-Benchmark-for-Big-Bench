@@ -40,13 +40,13 @@ runModule () {
 
   for (( i = $FIRST_QUERY; i <= $LAST_QUERY; i++ ))
   do
-    "$BIG_BENCH_BIN_DIR/bigBench" runQuery $LIST_OF_USER_OPTIONS -q $i
+    runCmdWithErrorCheck "$BIG_BENCH_BIN_DIR/bigBench" runQuery $LIST_OF_USER_OPTIONS -q $i
   done
 
   echo "==============================================="
   echo "All queries finished"
   echo "==============================================="
-  "$BIG_BENCH_BIN_DIR/bigBench" showErrors $LIST_OF_USER_OPTIONS
-  "$BIG_BENCH_BIN_DIR/bigBench" showTimes $LIST_OF_USER_OPTIONS
-  "$BIG_BENCH_BIN_DIR/bigBench" zipQueryLogs $LIST_OF_USER_OPTIONS
+  runCmdWithErrorCheck "$BIG_BENCH_BIN_DIR/bigBench" showErrors $LIST_OF_USER_OPTIONS
+  runCmdWithErrorCheck "$BIG_BENCH_BIN_DIR/bigBench" showTimes $LIST_OF_USER_OPTIONS
+  runCmdWithErrorCheck "$BIG_BENCH_BIN_DIR/bigBench" zipQueryLogs $LIST_OF_USER_OPTIONS
 }

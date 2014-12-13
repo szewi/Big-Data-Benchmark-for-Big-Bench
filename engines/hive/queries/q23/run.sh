@@ -30,40 +30,35 @@ query_run_main_method () {
 		exit 1
 	fi
 
-	#hadoop fs -rm -r -skipTrash "${RESULT_DIR}"/*
-	#hadoop fs -mkdir -p "${RESULT_DIR}"
-	#hadoop fs -chmod uga+rw "${RESULT_DIR}"
-
-
 if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 1 ]] ; then
 	echo "========================="
 	echo "$QUERY_NAME Step 1/4: make view"
 	echo "========================="
-	runEngineCmd -f "$QUERY1_SCRIPT"
+	runCmdWithErrorCheck runEngineCmd -f "$QUERY1_SCRIPT"
 fi
 
 if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 2 ]] ; then
 	echo "========================="
 	echo "$QUERY_NAME Step 2/4: make result 1"
 	echo "========================="
-	runEngineCmd -f "$QUERY2_SCRIPT"
+	runCmdWithErrorCheck runEngineCmd -f "$QUERY2_SCRIPT"
 fi
 
 if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 3 ]] ; then
 	echo "========================="
 	echo "$QUERY_NAME Step 3/4: make result 2"
 	echo "========================="
-	runEngineCmd -f "$QUERY3_SCRIPT"
+	runCmdWithErrorCheck runEngineCmd -f "$QUERY3_SCRIPT"
 fi
 
 if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 4 ]] ; then
 	echo "========================="
 	echo "$QUERY_NAME Step 4/4: cleanup"
 	echo "========================="
-	runEngineCmd -f "${QUERY_DIR}/cleanup.sql"
+	runCmdWithErrorCheck runEngineCmd -f "${QUERY_DIR}/cleanup.sql"
 fi
 }
 
 query_run_clean_method () {
-	runEngineCmd -e "DROP VIEW IF EXISTS $TEMP_TABLE; DROP TABLE IF EXISTS $RESULT_TABLE1; DROP TABLE IF EXISTS $RESULT_TABLE2;"
+	runCmdWithErrorCheck runEngineCmd -e "DROP VIEW IF EXISTS $TEMP_TABLE; DROP TABLE IF EXISTS $RESULT_TABLE1; DROP TABLE IF EXISTS $RESULT_TABLE2;"
 }

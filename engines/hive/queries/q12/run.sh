@@ -14,9 +14,9 @@ query_run_main_method () {
 		exit 1
 	fi
 
-        runEngineCmd -f "$QUERY_SCRIPT"
+        runCmdWithErrorCheck runEngineCmd -f "$QUERY_SCRIPT"
 }
 
 query_run_clean_method () {
-	runEngineCmd -e "DROP VIEW IF EXISTS $TEMP_TABLE1; DROP VIEW IF EXISTS $TEMP_TABLE2; DROP TABLE IF EXISTS $RESULT_TABLE;"
+	runCmdWithErrorCheck runEngineCmd -e "DROP VIEW IF EXISTS $TEMP_TABLE1; DROP VIEW IF EXISTS $TEMP_TABLE2; DROP TABLE IF EXISTS $RESULT_TABLE;"
 }
