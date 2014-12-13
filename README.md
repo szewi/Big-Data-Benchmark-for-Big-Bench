@@ -405,7 +405,7 @@ Your final settings for 4 threads per map task should look like this:
   export BIG_BENCH_DATAGEN_HADOOP_JVM_ENV="java -DDEBUG_PRINT_PERIODIC_THREAD_DUMPS=5000 -Xmx600m "
   export BIG_BENCH_DATAGEN_HADOOP_OPTIONS=" -workers 4 -ap 3000 " 
 
-### Hive "loading"-stage is slow,
+### Hive "loading"-stage is slow
 The hive loading stage is not only "moving" file in hdfs from the data/ dir into the hive/warehouse.
 
 Big-Bench hive does not work on the plain CSV files, but instead transforms the files into the ORC file format, more efficient and native to hive.
