@@ -46,7 +46,7 @@ FROM (
     mo.category_id,
     mo.category
   USING 'python reducer_q30.py'
-  --USING 'java ${env:BIG_BENCH_java_child_process_xmx} -cp bigbenchqueriesmr.jar de.bankmark.bigbench.queries.q30.Red'
+  --USING '${env:BIG_BENCH_JAVA} ${env:BIG_BENCH_java_child_process_xmx} -cp bigbenchqueriesmr.jar de.bankmark.bigbench.queries.q30.Red'
   AS (
     category_id,
     category,
