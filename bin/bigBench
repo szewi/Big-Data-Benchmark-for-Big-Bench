@@ -127,7 +127,7 @@ logEnvInformation
 export MODULE_NAME="$1"
 shift
 
-export LIST_OF_USER_OPTIONS=""
+export LIST_OF_USER_OPTIONS="$@"
 
 # parse remaining options
 while getopts ":d:D:e:f:hm:p:q:s:t:v:w:y:z:abc1234567" OPT; do
@@ -239,7 +239,6 @@ while getopts ":d:D:e:f:hm:p:q:s:t:v:w:y:z:abc1234567" OPT; do
       exit 1
   ;;
   esac
-  export LIST_OF_USER_OPTIONS="$LIST_OF_USER_OPTIONS -$OPT $OPTARG"
 done
 
 # remove options from parameter list
