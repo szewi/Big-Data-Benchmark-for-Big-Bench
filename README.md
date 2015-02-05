@@ -257,7 +257,7 @@ as well as a specific help for each module
 "$INSTALL_DIR/bin/bigBench" showTimes [-h]
 ```
 
-* zipQueryLogs: generates a zip file of all logs in the logs directory. It is run by the driver after each complete benchmark run. Subsequent runs override the old log files. A zip arcengine is created to save them before being overwritten.
+* zipQueryLogs: generates a zip file of all logs in the logs directory. It is run by the driver after each complete benchmark run. A zip archive is created to save them before being overwritten.
 ```
 "$INSTALL_DIR/bin/bigBench" zipQueryLogs [-h]
 ```
