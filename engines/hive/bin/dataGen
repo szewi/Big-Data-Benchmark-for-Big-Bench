@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 helpModule () {
-  echo "This module generates a dataset with PDGF using hadoop"
+  echo "This module generates a dataset with the PDGF data generator using hadoop"
   echo
   echo "Options:"
-  echo -e "-f\tscale factor for PDGF"
+  echo -e "-f\tscale factor for data set"
   echo -e "-h\tshow this help"
-  echo -e "-m\tmap tasks for PDGF"
+  echo -e "-m\tmap tasks for data generation"
 }
 
 runModule () {
