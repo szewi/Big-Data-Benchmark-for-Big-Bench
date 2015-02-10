@@ -32,14 +32,14 @@ def npath(vals):
 			ready = 0
 
 if __name__ == "__main__":
-
+	line = ''
 	try:
 		current_key = ''
 		vals = []
 		#partition by uid
 		#order by c_date, c_time
 		#The plan: create an vals[] per uid, with layout (c_date, c_time, sales_sk, wpt)
-
+		
 		for line in sys.stdin:
 			#print("line:" + line + "\n")
 			uid, c_date, c_time, sales_sk, wpt = line.strip().split("\t")
@@ -72,5 +72,6 @@ if __name__ == "__main__":
 	 ## should only happen if input format is not correct, like 4 instead of 5 tab separated values
 		logging.basicConfig(level=logging.DEBUG, filename=strftime("/tmp/bigbench_q8_reducer_%Y%m%d-%H%M%S.log"))
 		logging.info('category: ' +category )
+		logging.info("line from hive: \"" + line + "\"")
 		logging.exception("Oops:")
 		sys.exit(1)
