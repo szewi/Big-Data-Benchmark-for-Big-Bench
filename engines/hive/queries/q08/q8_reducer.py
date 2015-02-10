@@ -2,8 +2,19 @@ import sys
 import logging
 import traceback
 import os
+import time
+from time import strftime
 
 category=sys.argv[1] 
+
+'''
+To test this script exec:
+#intput format tab separated with \t: uid\tc_date\tc_time\tsales_sk\twpt
+echo -e "1\t1234\t1234\t1234\treview
+1\t1235\t1235\t1234\treview
+2\t1234\t1234\t234\treview
+2\t1235\t1235\t234\treview" | python q8_reducer.py "review"
+'''
 
 def npath(vals):
 	#vals ((int(c_date), int(c_time),sales_sk, wpt)
@@ -33,6 +44,7 @@ if __name__ == "__main__":
 			#print("line:" + line + "\n")
 			uid, c_date, c_time, sales_sk, wpt = line.strip().split("\t")
 
+			#ignore date time parsing errors
 			try:
 				c_date = int(c_date)
 				c_time = int(c_time)
@@ -43,18 +55,22 @@ if __name__ == "__main__":
 
 			if current_key == '' :
 				current_key = uid
-				vals.append((int(c_date), int(c_time),sales_sk, wpt))
+				vals.append((c_date, c_time, sales_sk, wpt))
 
 			elif current_key == uid :
-				vals.append((int(c_date), int(c_time),sales_sk, wpt))
+				vals.append((c_date, c_time, sales_sk, wpt))
 
 			elif current_key != uid :
 				npath(vals)
 				vals = []
 				current_key = uid
-				vals.append((int(c_date), int(c_time),sales_sk, wpt))
+				vals.append((c_date, c_time, sales_sk, wpt))
 
-		npath(vals)	except:
-	    logging.basicConfig(level=logging.DEBUG, filename='/tmp/q8reducerErr.log')
-	    logging.info('category: ' +category )
-	    logging.exception("Oops:")
+		npath(vals)
+
+	except:
+	 ## should only happen if input format is not correct, like 4 instead of 5 tab separated values
+		logging.basicConfig(level=logging.DEBUG, filename=strftime("/tmp/bigbench_q8_reducer_%Y%m%d-%H%M%S.log"))
+		logging.info('category: ' +category )
+		logging.exception("Oops:")
+		sys.exit(1)
