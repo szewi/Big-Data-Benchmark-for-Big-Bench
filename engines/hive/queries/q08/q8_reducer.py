@@ -21,8 +21,7 @@ def npath(vals):
 			ready = 0
 
 if __name__ == "__main__":
-	logging.basicConfig(level=logging.DEBUG, filename='/tmp/q8reducerErr.log')
-	logging.info('category: ' +category )
+
 	try:
 		current_key = ''
 		vals = []
@@ -56,4 +55,6 @@ if __name__ == "__main__":
 				vals.append((int(c_date), int(c_time),sales_sk, wpt))
 
 		npath(vals)	except:
+	    logging.basicConfig(level=logging.DEBUG, filename='/tmp/q8reducerErr.log')
+	    logging.info('category: ' +category )
 	    logging.exception("Oops:")
