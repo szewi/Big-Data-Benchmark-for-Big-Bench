@@ -28,7 +28,7 @@ HAVING SUM(sr_return_quantity) > 0
 ;
 
 
------Web returns in daterange q19_tmp_date2 ------------------------------------------------------
+-----Web returns in date range q19_tmp_date2 ------------------------------------------------------
 DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE2};
 --make ${hiveconf:TEMP_TABLE2}
 CREATE VIEW ${hiveconf:TEMP_TABLE2} AS
@@ -109,12 +109,10 @@ FROM
   FROM product_reviews pr
   LEFT SEMI JOIN ${hiveconf:TEMP_TABLE3} ri ON pr.pr_item_sk = ri.item
 ) q19_tmp_sentiment
-WHERE q19_tmp_sentiment.sentiment = 'NEG ';
+WHERE q19_tmp_sentiment.sentiment = 'NEG';
 
 
 --- cleanup---------------------------------------------------------------------------
-
-
 DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE1};
 DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE2};
 DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE3};
