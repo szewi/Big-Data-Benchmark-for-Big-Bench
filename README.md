@@ -43,7 +43,7 @@ On the SUT, clone the github repository into a folder stored in $INSTALL_DIR:
 ```
 export INSTALL_DIR="$HOME" # adapt this to your location
 cd "$INSTALL_DIR"
-git clone https://<username>@github.com/intel-hadoop/Big-Bench.git
+git clone https://github.com/intel-hadoop/Big-Bench.git
 ```
 
 ## Configuration
@@ -266,11 +266,9 @@ as well as a specific help for each module
 This benchmark does not favour any platform and we ran this benchmark on many different distributions. But you got to start somewhere.
 It is not HIVE specify as well, but hive happens to be the first engine to be implemented.
 
-This FAQ is mostly based on our experiments with Hive on Yarn with CDH 5.x)
-
+This FAQ is mostly based on our experiments with Hive on Yarn with CDH 5.x
 
 ## Where do i put my cluster specific settings?
-=============================================
 Here: Big-Bench/conf/userSettings.conf
 
 Where is my core-site.xml/hdfs-site.xml for BIG_BENCH_HADOOP_CONF (usually the one in /etc/hadoop/...):
