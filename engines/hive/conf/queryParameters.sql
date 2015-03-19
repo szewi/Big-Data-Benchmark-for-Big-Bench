@@ -151,11 +151,11 @@ set q15_store_sk=10;
 set q16_date=2001-03-16;
 
 -------- Q17 -----------
-set q17_gmt_offset=-7;
+set q17_gmt_offset=-5;
 --store_sales date
 set q17_year=2001; 
 set q17_month=12;
-set q17_i_category_IN='Jewelry';
+set q17_i_category_IN='Books', 'Music';
 
 -------- Q18 -----------
 -- store_sales date range
