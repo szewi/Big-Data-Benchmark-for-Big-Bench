@@ -173,7 +173,7 @@ set q19_store_return_limit=100;
 
 -------- Q21 -----------
 --store_sales/returns web_sales/returns date
-set q21_year=2001;
+set q21_year=2003;
 set q21_month=4;
 
 -------- Q22 -----------
