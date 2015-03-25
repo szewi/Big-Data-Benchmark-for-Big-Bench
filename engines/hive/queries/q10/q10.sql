@@ -27,7 +27,7 @@ ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}';
 
 -- the real query part
-set hive.exec.reducers.bytes.per.reducer=20000000;
+-- you may want to adapt: set hive.exec.reducers.bytes.per.reducer=xxxx;  Default Value: 1,000,000,000 prior to Hive 0.14.0; 256 MB (256,000,000) in Hive 0.14.0 and later
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
 SELECT extract_sentiment(pr_item_sk,pr_review_content) AS (pr_item_sk, review_sentence, sentiment, sentiment_word)
 FROM (
