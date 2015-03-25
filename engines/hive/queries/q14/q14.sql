@@ -39,8 +39,8 @@ JOIN (
   JOIN household_demographics hd ON ws.ws_ship_hdemo_sk = hd.hd_demo_sk
   AND hd.hd_dep_count = ${hiveconf:q14_dependents}
   JOIN time_dim td ON  td.t_time_sk =ws.ws_sold_time_sk
-  AND td.t_hour > ${hiveconf:q14_evening_startHour}
-  AND td.t_hour < ${hiveconf:q14_evening_endHour}
+  AND td.t_hour >= ${hiveconf:q14_evening_startHour}
+  AND td.t_hour <= ${hiveconf:q14_evening_endHour}
   JOIN web_page wp ON wp.wp_web_page_sk = ws.ws_web_page_sk
   AND wp.wp_char_count >= ${hiveconf:q14_content_len_min}
   AND wp.wp_char_count <= ${hiveconf:q14_content_len_max}

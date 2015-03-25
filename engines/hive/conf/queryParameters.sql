@@ -40,7 +40,7 @@ set q02_limit=300000;
 -------- Q03 -----------
 -- no results-check reduce script
 set q03_days_before_purchase=10;
-set q03_purchased_item_IN=16891;
+set q03_purchased_item_IN=5809;
 --see q1 for categories
 set q03_purchased_item_category_IN=1,2,3,4,5; 
 
@@ -151,11 +151,11 @@ set q15_store_sk=10;
 set q16_date=2001-03-16;
 
 -------- Q17 -----------
-set q17_gmt_offset=-7;
+set q17_gmt_offset=-5;
 --store_sales date
 set q17_year=2001; 
 set q17_month=12;
-set q17_i_category_IN='Jewelry';
+set q17_i_category_IN='Books', 'Music';
 
 -------- Q18 -----------
 -- store_sales date range
@@ -173,7 +173,7 @@ set q19_store_return_limit=100;
 
 -------- Q21 -----------
 --store_sales/returns web_sales/returns date
-set q21_year=2001;
+set q21_year=2003;
 set q21_month=4;
 
 -------- Q22 -----------
