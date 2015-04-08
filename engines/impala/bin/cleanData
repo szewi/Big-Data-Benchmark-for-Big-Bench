@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+helpModule () {
+  echo "This module cleans the generated dataset from HDFS"
+  echo
+  echo "Options:"
+  echo -e "-h\tshow this help"
+}
+
+runModule () {
+  echo "cleaning ${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}"
+  runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}"
+  echo "cleaning ${BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR}"
+  runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "${BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR}"
+}
