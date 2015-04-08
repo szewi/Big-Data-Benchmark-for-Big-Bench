@@ -62,7 +62,7 @@ JOIN(
 ON (wcs_user_sk = ss_customer_sk)
 -- filter 3 consecutive months: buy AFTER view on website
 WHERE wcs_click_date_sk < ss_sold_date_sk
-AND wcsView.i_category == storeView.i_category
+AND wcsView.i_category = storeView.i_category
 CLUSTER BY wcs_click_date_sk,
            wcs_item_sk,
 	   wcs_user_sk 
