@@ -32,7 +32,7 @@ FROM (
 
   ) q02_map_output
   REDUCE q02_map_output.cid, q02_map_output.pid
-  USING 'java ${env:BIG_BENCH_java_child_process_xmx} -cp bigbenchqueriesmr.jar de.bankmark.bigbench.queries.q02.Red -ITEM_SET_MAX ${hiveconf:q02_NPATH_ITEM_SET_MAX} '
+  USING '${env:BIG_BENCH_JAVA} ${env:BIG_BENCH_java_child_process_xmx} -cp bigbenchqueriesmr.jar de.bankmark.bigbench.queries.q02.Red -ITEM_SET_MAX ${hiveconf:q02_NPATH_ITEM_SET_MAX} '
   AS (pid1 BIGINT, pid2 BIGINT)
 ) q02_temp_basket
 WHERE pid1 in ( ${hiveconf:q02_pid1_IN} )
