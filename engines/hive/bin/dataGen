@@ -41,7 +41,7 @@ runModule () {
     echo "data generator EULA"
     echo "==============================================="
     echo "This is your first run of the data generation tool. Please accept the EULA."
-    $BIG_BENCH_JAVA -jar "$BIG_BENCH_DATA_GENERATOR_DIR/pdgf.jar" -ns -c
+    java -jar "$BIG_BENCH_DATA_GENERATOR_DIR/pdgf.jar" -ns -c
     if grep -q "IS_EULA_ACCEPTED=true" "$BIG_BENCH_DATA_GENERATOR_DIR/Constants.properties"
     then
       echo "OK"

@@ -36,7 +36,7 @@ FROM (
     CLUSTER BY oid
   ) q01_map_output
   REDUCE q01_map_output.oid, q01_map_output.pid
-  USING '${env:BIG_BENCH_JAVA} ${env:BIG_BENCH_java_child_process_xmx} -cp bigbenchqueriesmr.jar de.bankmark.bigbench.queries.q01.Red -ITEM_SET_MAX ${hiveconf:q01_NPATH_ITEM_SET_MAX} '
+  USING 'java ${env:BIG_BENCH_java_child_process_xmx} -cp bigbenchqueriesmr.jar de.bankmark.bigbench.queries.q01.Red -ITEM_SET_MAX ${hiveconf:q01_NPATH_ITEM_SET_MAX} '
   AS (pid1 BIGINT, pid2 BIGINT)
 ) q01_temp_basket
 GROUP BY pid1, pid2

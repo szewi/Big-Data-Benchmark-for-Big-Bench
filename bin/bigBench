@@ -44,7 +44,7 @@ logEnvInformation ()
 {
   local ENV_INFO_FILE="$BIG_BENCH_LOGS_DIR/envInfo.log"
   [ ! -d "$BIG_BENCH_LOGS_DIR" ] && mkdir -p "$BIG_BENCH_LOGS_DIR"
-  [ ! -f "$ENV_INFO_FILE" ] && ( hadoop version; hadoop classpath; $BIG_BENCH_JAVA -version; ) > "$ENV_INFO_FILE" 2>&1
+  [ ! -f "$ENV_INFO_FILE" ] && ( hadoop version; hadoop classpath; java -version; ) > "$ENV_INFO_FILE" 2>&1
 }
 
 runCmdWithErrorCheck () {
