@@ -51,8 +51,8 @@ query_run_main_method () {
 		echo "tmp result in: $SEQ_FILE_1"
 		echo "tmp result in: $SEQ_FILE_2"
 		echo "========================="
-		runCmdWithErrorCheck hadoop jar "${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar" de.bankmark.bigbench.queries.q28.ToSequenceFile "${TEMP_DIR1}" "$SEQ_FILE_1"
-		runCmdWithErrorCheck hadoop jar "${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar" de.bankmark.bigbench.queries.q28.ToSequenceFile "${TEMP_DIR2}" "$SEQ_FILE_2"
+		runCmdWithErrorCheck hadoop jar "${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar" io.bigdatabenchmark.v1.queries.q28.ToSequenceFile "${TEMP_DIR1}" "$SEQ_FILE_1"
+		runCmdWithErrorCheck hadoop jar "${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar" io.bigdatabenchmark.v1.queries.q28.ToSequenceFile "${TEMP_DIR2}" "$SEQ_FILE_2"
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 3 ]] ; then
