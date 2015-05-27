@@ -29,3 +29,6 @@ query_run_main_method () {
 query_run_clean_method () {
 	runCmdWithErrorCheck runEngineCmd -e "DROP VIEW IF EXISTS $TEMP_TABLE1; DROP VIEW IF EXISTS $TEMP_TABLE2; DROP VIEW IF EXISTS $TEMP_TABLE3; DROP TABLE IF EXISTS $RESULT_TABLE;"
 }
+
+query_run_validate_method () {
+}
