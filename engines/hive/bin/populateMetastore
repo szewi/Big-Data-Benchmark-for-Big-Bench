@@ -36,14 +36,51 @@ runModule () {
   echo "Adding/Updating generated files to hive metastore"
   echo "==============================================="
 
-  TIME_MEASUREMENT_FILE="`mktemp`"
-  echo "======= Load data into hive time =========" > "$TIME_MEASUREMENT_FILE"
-  { time populateMetastore > >(tee -a "$BIG_BENCH_LOADING_STAGE_LOG") 2>&1 ; } 2>> "$TIME_MEASUREMENT_FILE"
-  cat "$TIME_MEASUREMENT_FILE" >> "$BIG_BENCH_LOADING_STAGE_LOG"
-  rm -rf "$TIME_MEASUREMENT_FILE"
-  echo "==========================="
+ local LOG_FILE_EXEC_TIMES=${BIG_BENCH_LOGS_DIR}/times.csv
+  if [ ! -e "$LOG_FILE_EXEC_TIMES" ] ; then
+    touch "$LOG_FILE_EXEC_TIMES"
+    echo "STARTDATE_EPOCH|STOPDATE_EPOCH|DURATION_MS|STARTDATE|STOPDATE|DURATION|QUERY|BENCHMARK_PHASE|STREAM|SUCCESSFUL|EXIT_CODE" >> ${LOG_FILE_EXEC_TIMES}
+  fi
 
-  echo "==============================================="
-  echo "HIVE load finished."
-  echo "==============================================="
+  if [ ! -w "$LOG_FILE_EXEC_TIMES" ] ; then
+    echo "ERROR: cannot write to: $LOG_FILE_EXEC_TIMES, no permission"
+    return 1
+  fi
+
+   #-- time measurement of exectuion
+  local STARTDATE="`date +%Y/%m/%d:%H:%M:%S`"
+  local STARTDATE_EPOCH="`date +%s`" # seconds since epoch
+  
+
+  # Run the main method implemented in the query's run.sh
+  populateMetastore 2>&1 | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
+  local EXIT_CODE=${PIPESTATUS[0]};
+
+  local STOPDATE="`date +%Y/%m/%d:%H:%M:%S`"
+  local STOPDATE_EPOCH="`date +%s`" # seconds since epoch
+  local DIFF_s=$(($STOPDATE_EPOCH-$STARTDATE_EPOCH))
+  local DIFF_ms=$(($DIFF_s*1000))
+  local DURATION="$(($DIFF_s / 3600 ))h $((($DIFF_s % 3600) / 60))m $(($DIFF_s % 60))s"
+  
+  echo "======= Load data into hive time =========" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
+  echo "Start timestamp: $STARTDATE $STARTDATE_EPOCH" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
+  echo "Stop  timestamp: $STOPDATE $STOPDATE_EPOCH" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
+  echo "Duration:  $DURATION" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
+  echo "----- result -----" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
+  
+  local sucessStatus="SUCCESS"
+  if [[ $EXIT_CODE -ne 0 ]]
+  then
+    sucessStatus="FAILED"
+  fi
+  
+  echo "Load data ${sucessStatus} exit code: ${EXIT_CODE}" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1 
+  echo "${STARTDATE_EPOCH}|${STOPDATE_EPOCH}|${DIFF_ms}|${STARTDATE}|${STOPDATE}|${DURATION}|Load data|Load data|${BIG_BENCH_STREAM_NUMBER}|${sucessStatus}|${EXIT_CODE}" >> ${LOG_FILE_EXEC_TIMES} | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
+  
+  echo "time&status: ${LOG_FILE_EXEC_TIMES}" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
+  echo "full log: $BIG_BENCH_LOADING_STAGE_LOG" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
+  echo "===========================" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
+
+  return ${EXIT_CODE}
+
 }

@@ -56,6 +56,17 @@ runModule () {
       echo "ERROR: cannot write to: $LOG_FILE_NAME, no permission"
       return 1
   fi
+  local LOG_FILE_EXEC_TIMES=${BIG_BENCH_LOGS_DIR}/times.csv
+  if [ ! -e "$LOG_FILE_EXEC_TIMES" ] ; then
+    touch "$LOG_FILE_EXEC_TIMES"
+    echo "STARTDATE_EPOCH|STOPDATE_EPOCH|DURATION_MS|STARTDATE|STOPDATE|DURATION|QUERY|BENCHMARK_PHASE|STREAM|SUCCESSFUL|EXIT_CODE" >> ${LOG_FILE_EXEC_TIMES}
+  fi
+
+  if [ ! -w "$LOG_FILE_EXEC_TIMES" ] ; then
+    echo "ERROR: cannot write to: $LOG_FILE_EXEC_TIMES, no permission"
+    return 1
+  fi
+
 
   echo "creating folders and setting permissions"
   runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "${RESULT_DIR}"
@@ -67,25 +78,42 @@ runModule () {
   runCmdWithErrorCheck hadoop fs -chmod ugo+rw "${RESULT_DIR}"
   runCmdWithErrorCheck hadoop fs -chmod ugo+rw "${TEMP_DIR}"
 
-  # start timed execution of query. Stderr is appended to stdout and both are written into logs/q??.log and to console
-
-  # Run the main method implemented in the query's run.sh
-  local TIME_MEASUREMENT_FILE="`mktemp`"
-  echo "======= $TABLE_PREFIX time =========" > "$TIME_MEASUREMENT_FILE"
+  #-- time measurement of exectuion
   local STARTDATE="`date +%Y/%m/%d:%H:%M:%S`"
   local STARTDATE_EPOCH="`date +%s`" # seconds since epoch
-  { time "$QUERY_MAIN_METHOD" > >(tee -a "$LOG_FILE_NAME") 2>&1 ; } 2>> "$TIME_MEASUREMENT_FILE"
+ 
+  # exec query. Stderr is appended to stdout and both are written into logs/q??.log and to console
+  # Run the main method implemented in the query's run.sh
+  "$QUERY_MAIN_METHOD" 2>&1 | tee -a "$LOG_FILE_NAME" 2>&1
+  local QUERY_EXIT_CODE=${PIPESTATUS[0]};
+  
   local STOPDATE="`date +%Y/%m/%d:%H:%M:%S`"
   local STOPDATE_EPOCH="`date +%s`" # seconds since epoch
-  cat "$TIME_MEASUREMENT_FILE" >> "$LOG_FILE_NAME"
-  rm -rf "$TIME_MEASUREMENT_FILE"
-  echo "===========================" | tee -a "$LOG_FILE_NAME" 2>&1
+  local DIFF_s=$(($STOPDATE_EPOCH-$STARTDATE_EPOCH))
+  local DIFF_ms=$(($DIFF_s*1000))
+  local DURATION="$(($DIFF_s / 3600 ))h $((($DIFF_s % 3600) / 60))m $(($DIFF_s % 60))s"
 
+
+  echo "======= $TABLE_PREFIX time =======" | tee -a "$LOG_FILE_NAME" 2>&1
   echo "Start timestamp: $STARTDATE $STARTDATE_EPOCH" | tee -a "$LOG_FILE_NAME" 2>&1
-  echo "Stop timestamp: $STOPDATE $STOPDATE_EPOCH" | tee -a "$LOG_FILE_NAME" 2>&1
-
-  echo "======= $TABLE_PREFIX result =======" | tee -a "$LOG_FILE_NAME" 2>&1
-  echo "results in: $RESULT_DIR" | tee -a "$LOG_FILE_NAME" 2>&1
+  echo "Stop  timestamp: $STOPDATE $STOPDATE_EPOCH" | tee -a "$LOG_FILE_NAME" 2>&1
+  echo "Duration:  $DURATION" | tee -a "$LOG_FILE_NAME" 2>&1
+  echo "----- result -----" | tee -a "$LOG_FILE_NAME" 2>&1
+  
+  if [[ $QUERY_EXIT_CODE -ne 0 ]]
+  then
+    echo "${TABLE_PREFIX} FAILED exit code: ${QUERY_EXIT_CODE}" | tee -a "$LOG_FILE_NAME" 2>&1 
+    echo "${STARTDATE_EPOCH}|${STOPDATE_EPOCH}|${DIFF_ms}|${STARTDATE}|${STOPDATE}|${DURATION}|${QUERY_NAME}|${BIG_BENCH_BENCHMARK_PHASE}|${BIG_BENCH_STREAM_NUMBER}|FAIL|${QUERY_EXIT_CODE}" >> ${LOG_FILE_EXEC_TIMES} | tee -a "$LOG_FILE_NAME" 2>&1
+  else
+    echo "${TABLE_PREFIX} SUCCESSFUL" | tee -a "$LOG_FILE_NAME" 2>&1
+    echo "${STARTDATE_EPOCH}|${STOPDATE_EPOCH}|${DIFF_ms}|${STARTDATE}|${STOPDATE}|${DURATION}|${QUERY_NAME}|${BIG_BENCH_BENCHMARK_PHASE}|${BIG_BENCH_STREAM_NUMBER}|SUCCESS|${QUERY_EXIT_CODE}" >> ${LOG_FILE_EXEC_TIMES} | tee -a "$LOG_FILE_NAME" 2>&1
+  fi
+  
+  echo "time&status: ${LOG_FILE_EXEC_TIMES}" | tee -a "$LOG_FILE_NAME" 2>&1
+  echo "full log: $LOG_FILE_NAME" | tee -a "$LOG_FILE_NAME" 2>&1
+  echo "results in: `hadoop fs -du -s -h $RESULT_DIR`" | tee -a "$LOG_FILE_NAME" 2>&1
   echo "to display: hadoop fs -cat $RESULT_DIR/*" | tee -a "$LOG_FILE_NAME" 2>&1
   echo "=========================" | tee -a "$LOG_FILE_NAME" 2>&1
+ 
+ return ${QUERY_EXIT_CODE}
 }

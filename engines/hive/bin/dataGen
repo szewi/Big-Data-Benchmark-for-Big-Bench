@@ -106,21 +106,88 @@ runModule () {
   echo "create $BIG_BENCH_LOGS_DIR folder"
   mkdir -p "$BIG_BENCH_LOGS_DIR"
 
+  local LOG_FILE_EXEC_TIMES=${BIG_BENCH_LOGS_DIR}/times.csv
+  if [ ! -e "$LOG_FILE_EXEC_TIMES" ] ; then
+    touch "$LOG_FILE_EXEC_TIMES"
+    echo "STARTDATE_EPOCH|STOPDATE_EPOCH|DURATION_MS|STARTDATE|STOPDATE|DURATION|QUERY|BENCHMARK_PHASE|STREAM|SUCCESSFUL|EXIT_CODE" >> ${LOG_FILE_EXEC_TIMES}
+  fi
+
+  if [ ! -w "$LOG_FILE_EXEC_TIMES" ] ; then
+    echo "ERROR: cannot write to: $LOG_FILE_EXEC_TIMES, no permission"
+    return 1
+  fi
+
+
+  #=====EXEC: GENERATE BASE DATA =======
+  #-- start time measurement --
+  STARTDATE="`date +%Y/%m/%d:%H:%M:%S`"
+  STARTDATE_EPOCH="`date +%s`" # seconds since epoch
+		
+ 	# debug output of command 
   echo hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" -archives "${PDGF_ARCHIVE_PATH}" ${BIG_BENCH_DATAGEN_HADOOP_EXEC_DEBUG} -taskFailOnNonZeroReturnValue -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec ${BIG_BENCH_DATAGEN_HADOOP_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks -nn HadoopClusterExec.taskNumber -ns -c -sp REFRESH_PHASE 0 -o "'${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}/'+table.getName()+'/'" ${BIG_BENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIG_BENCH_DATAGEN_TABLES} ${PDGF_OPTIONS} "$@"
+		
+  #exec the data generation
+  runCmdWithErrorCheck hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" -archives "${PDGF_ARCHIVE_PATH}" ${BIG_BENCH_DATAGEN_HADOOP_EXEC_DEBUG} -taskFailOnNonZeroReturnValue -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec ${BIG_BENCH_DATAGEN_HADOOP_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks -nn HadoopClusterExec.taskNumber -ns -c -sp REFRESH_PHASE 0 -o "'${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}/'+table.getName()+'/'" ${BIG_BENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIG_BENCH_DATAGEN_TABLES} ${PDGF_OPTIONS} "$@" 2>&1 | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  EXIT_CODE=${PIPESTATUS[0]};
 
-  TIME_MEASUREMENT_FILE="`mktemp`"
-  echo "======= Generating base data time ============" > "$TIME_MEASUREMENT_FILE"
-  { time runCmdWithErrorCheck hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" -archives "${PDGF_ARCHIVE_PATH}" ${BIG_BENCH_DATAGEN_HADOOP_EXEC_DEBUG} -taskFailOnNonZeroReturnValue -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec ${BIG_BENCH_DATAGEN_HADOOP_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks -nn HadoopClusterExec.taskNumber -ns -c -sp REFRESH_PHASE 0 -o "'${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}/'+table.getName()+'/'" ${BIG_BENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIG_BENCH_DATAGEN_TABLES} ${PDGF_OPTIONS} "$@" > >(tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG") 2>&1 ; } 2>> "$TIME_MEASUREMENT_FILE"
-  cat "$TIME_MEASUREMENT_FILE" >> "$BIG_BENCH_DATAGEN_STAGE_LOG"
+  STOPDATE="`date +%Y/%m/%d:%H:%M:%S`"
+  STOPDATE_EPOCH="`date +%s`" # seconds since epoch
+  DIFF_s=$(($STOPDATE_EPOCH-$STARTDATE_EPOCH))
+  DIFF_ms=$(($DIFF_s*1000))
+  DURATION="$(($DIFF_s / 3600 ))h $((($DIFF_s % 3600) / 60))m $(($DIFF_s % 60))s"
+		
+  echo "======= Generating base data time ============" tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  echo "----- time -----" | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  echo "Start timestamp: $STARTDATE $STARTDATE_EPOCH" | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  echo "Stop  timestamp: $STOPDATE $STOPDATE_EPOCH" | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  echo "Duration:  $DURATION" | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  if [[ $EXIT_CODE -ne 0 ]]
+  then
+    echo "datagen_base FAILED exit code: ${EXIT_CODE}" | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1 
+    echo "${STARTDATE_EPOCH}|${STOPDATE_EPOCH}|${DIFF_ms}|${STARTDATE}|${STOPDATE}|${DURATION}|dataGen_base|${BIG_BENCH_BENCHMARK_PHASE}|${BIG_BENCH_STREAM_NUMBER}|FAIL|${EXIT_CODE}" >> ${LOG_FILE_EXEC_TIMES} | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  else
+    echo "datagen_base SUCCESSFUL" | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+    echo "${STARTDATE_EPOCH}|${STOPDATE_EPOCH}|${DIFF_ms}|${STARTDATE}|${STOPDATE}|${DURATION}|dataGen_base|${BIG_BENCH_BENCHMARK_PHASE}|${BIG_BENCH_STREAM_NUMBER}|SUCCESS|${EXIT_CODE}" >> ${LOG_FILE_EXEC_TIMES} | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  fi
+  echo "time&status: ${LOG_FILE_EXEC_TIMES}" | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  echo "full log: $BIG_BENCH_DATAGEN_STAGE_LOG" | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
 
+  #=====EXEC: GENERATE REFRESH DATA =======
+  #-- start time measurement --
+  STARTDATE="`date +%Y/%m/%d:%H:%M:%S`"
+  STARTDATE_EPOCH="`date +%s`" # seconds since epoch
+  STARTDATE="`date +%Y/%m/%d:%H:%M:%S`"
+  STARTDATE_EPOCH="`date +%s`" # seconds since epoch
+  
+		# debug output of command 
   echo hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" -archives "${PDGF_ARCHIVE_PATH}" ${BIG_BENCH_DATAGEN_HADOOP_EXEC_DEBUG} -taskFailOnNonZeroReturnValue -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec ${BIG_BENCH_DATAGEN_HADOOP_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks -nn HadoopClusterExec.taskNumber -ns -c -sp REFRESH_PHASE 1 -o "'${BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR}/'+table.getName()+'/'" ${BIG_BENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIG_BENCH_DATAGEN_TABLES} ${PDGF_OPTIONS} "$@"
+  
+  #exec the data generation
+  runCmdWithErrorCheck hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" -archives "${PDGF_ARCHIVE_PATH}" ${BIG_BENCH_DATAGEN_HADOOP_EXEC_DEBUG} -taskFailOnNonZeroReturnValue -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec ${BIG_BENCH_DATAGEN_HADOOP_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks -nn HadoopClusterExec.taskNumber -ns -c -sp REFRESH_PHASE 1 -o "'${BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR}/'+table.getName()+'/'" ${BIG_BENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIG_BENCH_DATAGEN_TABLES} ${PDGF_OPTIONS} "$@" 2>&1 | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1 
+  EXIT_CODE=${PIPESTATUS[0]};
 
-  echo "======= Generating refresh data time =========" > "$TIME_MEASUREMENT_FILE"
-  { time runCmdWithErrorCheck hadoop jar "${BIG_BENCH_TOOLS_DIR}/HadoopClusterExec.jar" -archives "${PDGF_ARCHIVE_PATH}" ${BIG_BENCH_DATAGEN_HADOOP_EXEC_DEBUG} -taskFailOnNonZeroReturnValue -execCWD "${PDGF_DISTRIBUTED_NODE_DIR}" ${HadoopClusterExecOptions} -exec ${BIG_BENCH_DATAGEN_HADOOP_JVM_ENV} -cp "${HADOOP_CP}:pdgf.jar" ${PDGF_CLUSTER_CONF} pdgf.Controller -nc HadoopClusterExec.tasks -nn HadoopClusterExec.taskNumber -ns -c -sp REFRESH_PHASE 1 -o "'${BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR}/'+table.getName()+'/'" ${BIG_BENCH_DATAGEN_HADOOP_OPTIONS} -s ${BIG_BENCH_DATAGEN_TABLES} ${PDGF_OPTIONS} "$@" > >(tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG") 2>&1 ; } 2>> "$TIME_MEASUREMENT_FILE"
-  cat "$TIME_MEASUREMENT_FILE" >> "$BIG_BENCH_DATAGEN_STAGE_LOG"
-
+  STOPDATE="`date +%Y/%m/%d:%H:%M:%S`"
+  STOPDATE_EPOCH="`date +%s`" # seconds since epoch
+  DIFF_s=$(($STOPDATE_EPOCH-$STARTDATE_EPOCH))
+  DIFF_ms=$(($DIFF_s*1000))
+  DURATION="$(($DIFF_s / 3600 ))h $((($DIFF_s % 3600) / 60))m $(($DIFF_s % 60))s"
+  
+  echo "======= Generating refresh data time =========" | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  echo "Start timestamp: $STARTDATE $STARTDATE_EPOCH" | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  echo "Stop  timestamp: $STOPDATE $STOPDATE_EPOCH" | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  echo "Duration:  $DURATION" | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  if [[ $EXIT_CODE -ne 0 ]]
+  then
+    echo "datagen_refresh FAILED exit code: ${EXIT_CODE}" | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1 
+    echo "${STARTDATE_EPOCH}|${STOPDATE_EPOCH}|${DIFF_ms}|${STARTDATE}|${STOPDATE}|${DURATION}|dataGen_refresh|${BIG_BENCH_BENCHMARK_PHASE}|${BIG_BENCH_STREAM_NUMBER}|FAIL|${EXIT_CODE}" >> ${LOG_FILE_EXEC_TIMES} | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  else
+    echo "datagen_refresh SUCCESSFUL" | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+    echo "${STARTDATE_EPOCH}|${STOPDATE_EPOCH}|${DIFF_ms}|${STARTDATE}|${STOPDATE}|${DURATION}|dataGen_refresh|${BIG_BENCH_BENCHMARK_PHASE}|${BIG_BENCH_STREAM_NUMBER}|SUCCESS|${EXIT_CODE}" >> ${LOG_FILE_EXEC_TIMES} | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  fi
+  echo "time&status: ${LOG_FILE_EXEC_TIMES}" | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  echo "full log: $BIG_BENCH_DATAGEN_STAGE_LOG" | tee -a "$BIG_BENCH_DATAGEN_STAGE_LOG" 2>&1
+  
   ##cleanup
-  rm -rf "$TIME_MEASUREMENT_FILE"
   rm -f ${PDGF_ARCHIVE_PATH}
 
   echo "==============================================="
@@ -135,4 +202,6 @@ runModule () {
   echo "View generated files: hadoop fs -ls ${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}"
   echo "View generated refresh files: hadoop fs -ls ${BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR}"
   echo "==============================================="
+  echo "==============================================="
+  return $EXIT_CODE
 }
