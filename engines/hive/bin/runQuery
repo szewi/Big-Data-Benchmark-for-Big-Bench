@@ -69,14 +69,19 @@ runModule () {
 
 
   echo "creating folders and setting permissions"
-  runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "${RESULT_DIR}"
-  runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "${TEMP_DIR}"
-  runCmdWithErrorCheck hadoop fs -mkdir -p "${RESULT_DIR}"
-  runCmdWithErrorCheck hadoop fs -mkdir -p "${TEMP_DIR}"
-  runCmdWithErrorCheck hadoop fs -chmod ugo+rw "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
-  runCmdWithErrorCheck hadoop fs -chmod ugo+rw "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
-  runCmdWithErrorCheck hadoop fs -chmod ugo+rw "${RESULT_DIR}"
-  runCmdWithErrorCheck hadoop fs -chmod ugo+rw "${TEMP_DIR}"
+		#dont delete/recreate result and temp folders if query is in debug mode: exception: step 1 of debug
+		if [ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 1  ]
+  then
+				runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "${RESULT_DIR}"
+				runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "${TEMP_DIR}"
+				runCmdWithErrorCheck hadoop fs -mkdir -p "${RESULT_DIR}"
+				runCmdWithErrorCheck hadoop fs -mkdir -p "${TEMP_DIR}"
+				runCmdWithErrorCheck hadoop fs -chmod ugo+rw "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
+				runCmdWithErrorCheck hadoop fs -chmod ugo+rw "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
+				runCmdWithErrorCheck hadoop fs -chmod ugo+rw "${RESULT_DIR}"
+				runCmdWithErrorCheck hadoop fs -chmod ugo+rw "${TEMP_DIR}"
+  fi
+  
 
   #-- time measurement of exectuion
   local STARTDATE="`date +%Y/%m/%d:%H:%M:%S`"
