@@ -36,6 +36,9 @@ query_run_main_method () {
 		echo "========================="
 		# Write input for k-means into temp table
 		runCmdWithErrorCheck runEngineCmd -f "$QUERY_SCRIPT"
+		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 2 ]] ; then
@@ -46,6 +49,8 @@ query_run_main_method () {
 		echo "========================="
 
 		runCmdWithErrorCheck mahout org.apache.mahout.clustering.conversion.InputDriver -i "${TEMP_RESULT_DIR}" -o "${TEMP_RESULT_DIR}/Vec" -v org.apache.mahout.math.RandomAccessSparseVector #-c UTF-8 
+		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 3 ]] ; then
@@ -56,6 +61,8 @@ query_run_main_method () {
 		echo "========================="
 
 		runCmdWithErrorCheck mahout kmeans --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_RESULT_DIR/Vec" -c "$TEMP_RESULT_DIR/init-clusters" -o "$TEMP_RESULT_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl
+		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 4 ]] ; then
@@ -66,6 +73,8 @@ query_run_main_method () {
 	
 		runCmdWithErrorCheck mahout clusterdump --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_RESULT_DIR"/kmeans-clusters/clusters-*-final  -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT | hadoop fs -copyFromLocal - "${RESULT_DIR}/cluster.txt"
 		#runCmdWithErrorCheck mahout seqdumper --tempDir "$MAHOUT_TEMP_DIR" -i $TEMP_RESULT_DIR/Vec/ -c $TEMP_RESULT_DIR/kmeans-clusters -o $TEMP_RESULT_DIR/results -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl
+		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 5 ]] ; then
@@ -73,10 +82,16 @@ query_run_main_method () {
 		echo "$QUERY_NAME Step 5/5: Clean up"
 		echo "========================="
 		runCmdWithErrorCheck runEngineCmd -f "${QUERY_DIR}/cleanup.sql"
+		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+		
 		runCmdWithErrorCheck hadoop fs -rm -r -f "$TEMP_RESULT_DIR"
+		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
 }
 
 query_run_clean_method () {
 	runCmdWithErrorCheck runEngineCmd -e "DROP TABLE IF EXISTS $TEMP_TABLE; DROP TABLE IF EXISTS $TEMP_RESULT_TABLE; DROP TABLE IF EXISTS $RESULT_TABLE;"
+	return $?
 }

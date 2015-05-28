@@ -24,8 +24,10 @@ query_run_main_method () {
 	local BINARY_PARAMS=" $BINARY_PARAMS"
 
 	runCmdWithErrorCheck runEngineCmd -f "$QUERY_SCRIPT"
+	return $?
 }
 
 query_run_clean_method () {
 	runCmdWithErrorCheck runEngineCmd -e "DROP VIEW IF EXISTS $TEMP_TABLE1; DROP VIEW IF EXISTS $TEMP_TABLE2; DROP VIEW IF EXISTS $TEMP_TABLE3; DROP TABLE IF EXISTS $RESULT_TABLE;"
+	return $?
 }

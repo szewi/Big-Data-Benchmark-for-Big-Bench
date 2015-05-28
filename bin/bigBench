@@ -58,14 +58,19 @@ runCmdWithErrorCheck () {
   "$@"
   for RETURN_CODE in ${PIPESTATUS[@]}
   do
-    if [[ $RETURN_CODE -ne 0 && $BIG_BENCH_STOP_AFTER_FAILURE -eq 1 ]]
+    if [[ $RETURN_CODE -ne 0 ]]
     then
-      echo "An error occured while running command:"
-      echo "=========="
-      echo "$@"
-      echo "=========="
-      echo "Please check the log files for details"
-      exit 1
+      if [[ $BIG_BENCH_STOP_AFTER_FAILURE -eq 1 ]]
+      then
+        echo "An error occured while running command:"
+        echo "=========="
+        echo "$@"
+        echo "=========="
+        echo "Please check the log files for details"
+        exit $RETURN_CODE
+      else
+        return $RETURN_CODE
+      fi
     fi
   done
 }

@@ -43,4 +43,5 @@ runModule () {
   fi
 
   runCmdWithErrorCheck $BIG_BENCH_JAVA -jar "${BIG_BENCH_TOOLS_DIR}/RunBigBench.jar"
+  return $?
 }

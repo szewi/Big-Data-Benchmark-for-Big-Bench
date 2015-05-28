@@ -17,8 +17,10 @@ query_run_main_method () {
 
 
 	runCmdWithErrorCheck runEngineCmd -f "$QUERY_SCRIPT"
+	return $?
 }
 
 query_run_clean_method () {
 	runCmdWithErrorCheck runEngineCmd -e "DROP TABLE IF EXISTS $TEMP_TABLE; DROP TABLE IF EXISTS $RESULT_TABLE;"
+	return $?
 }

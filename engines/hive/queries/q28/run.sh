@@ -34,6 +34,8 @@ query_run_main_method () {
 
 		# Write input for k-means into temp tables
 		runCmdWithErrorCheck runEngineCmd -f "$QUERY_SCRIPT"
+		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
 
 	SEQ_FILE_1="$TEMP_DIR/Seq1"
@@ -52,7 +54,11 @@ query_run_main_method () {
 		echo "tmp result in: $SEQ_FILE_2"
 		echo "========================="
 		runCmdWithErrorCheck hadoop jar "${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar" io.bigdatabenchmark.v1.queries.q28.ToSequenceFile "${TEMP_DIR1}" "$SEQ_FILE_1"
+		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 		runCmdWithErrorCheck hadoop jar "${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar" io.bigdatabenchmark.v1.queries.q28.ToSequenceFile "${TEMP_DIR2}" "$SEQ_FILE_2"
+		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 3 ]] ; then
@@ -65,7 +71,11 @@ query_run_main_method () {
 		echo "========================="
 		#runCmdWithErrorCheck mahout seq2sparse -i "$SEQ_FILE_2" -o "$VEC_FILE_2" -seq -ow -lnorm -nv -wt tfidf
 		runCmdWithErrorCheck mahout seq2sparse -i "$SEQ_FILE_1" -o "$VEC_FILE_1" -ow -lnorm -nv -wt tfidf
+		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 		runCmdWithErrorCheck mahout seq2sparse -i "$SEQ_FILE_2" -o "$VEC_FILE_2" -ow -lnorm -nv -wt tfidf
+		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 4 ]] ; then
@@ -75,6 +85,8 @@ query_run_main_method () {
 		echo "tmp result in: $TEMP_DIR/model"
 		echo "========================="
 		runCmdWithErrorCheck mahout trainnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_1/tfidf-vectors" -o "$TEMP_DIR/model" -el -li "$TEMP_DIR/labelindex" -ow
+		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 5 ]] ; then
@@ -85,6 +97,8 @@ query_run_main_method () {
 		echo "========================="
 
 		runCmdWithErrorCheck mahout testnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_2/tfidf-vectors" -m "$TEMP_DIR/model" -l "$TEMP_DIR/labelindex" -ow -o "$TEMP_DIR/result" |& tee >( grep -A 300 "Standard NB Results:" | hadoop fs  -copyFromLocal -f - "$HDFS_RESULT_FILE" )
+		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 6 ]] ; then
@@ -95,6 +109,8 @@ query_run_main_method () {
 		echo "========================="
 
 		runCmdWithErrorCheck mahout seqdumper --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR/result/part-m-00000" | hadoop fs -copyFromLocal -f - "$HDFS_RAW_RESULT_FILE"
+		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 7 ]] ; then
@@ -102,7 +118,11 @@ query_run_main_method () {
 		echo "$QUERY_NAME Step 7/7: Clean up"
 		echo "========================="
 		runCmdWithErrorCheck runEngineCmd -f "${QUERY_DIR}/cleanup.sql"
+		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 		runCmdWithErrorCheck hadoop fs -rm -r -f "$TEMP_DIR"
+		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
 
 	echo "========================="
@@ -113,4 +133,5 @@ query_run_main_method () {
 
 query_run_clean_method () {
 	runCmdWithErrorCheck runEngineCmd -e "DROP TABLE IF EXISTS $TEMP_TABLE1; DROP TABLE IF EXISTS $TEMP_TABLE2; DROP TABLE IF EXISTS $RESULT_TABLE;"
+	return $?
 }
