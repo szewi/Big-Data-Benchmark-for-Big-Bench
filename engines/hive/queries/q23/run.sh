@@ -70,6 +70,23 @@ query_run_clean_method () {
 	runCmdWithErrorCheck runEngineCmd -e "DROP VIEW IF EXISTS $TEMP_TABLE; DROP TABLE IF EXISTS $RESULT_TABLE1; DROP TABLE IF EXISTS $RESULT_TABLE2;"
 }
 
-query_run_verify_method () {
-	echo TODO
+query_run_validate_method () {
+	VALIDATION_TEMP_DIR="`mktemp -d`"
+	runCmdWithErrorCheck runEngineCmd -e "INSERT OVERWRITE LOCAL DIRECTORY '$VALIDATION_TEMP_DIR' SELECT * FROM $RESULT_TABLE1 LIMIT 10;"
+	if [ `wc -l < "$VALIDATION_TEMP_DIR/000000_0"` -ge 1 ]
+	then
+		echo "Validation passed: Query 1 returned results"
+	else
+		echo "Validation failed: Query 1 did not return results"
+	fi
+	rm -rf "$VALIDATION_TEMP_DIR/*"
+
+	runCmdWithErrorCheck runEngineCmd -e "INSERT OVERWRITE LOCAL DIRECTORY '$VALIDATION_TEMP_DIR' SELECT * FROM $RESULT_TABLE2 LIMIT 10;"
+	if [ `wc -l < "$VALIDATION_TEMP_DIR/000000_0"` -ge 1 ]
+	then
+		echo "Validation passed: Query 2 returned results"
+	else
+		echo "Validation failed: Query 2 did not return results"
+	fi
+	rm -rf "$VALIDATION_TEMP_DIR"
 }

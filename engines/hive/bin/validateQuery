@@ -39,5 +39,5 @@ runModule () {
   echo "==============================================="
 
   # Run the validate method implemented in the query's run.sh
-  runCmdWithErrorCheck "$QUERY_VALIDATE_METHOD"
+  { runCmdWithErrorCheck "$QUERY_VALIDATE_METHOD"; } > >(tee -a "$LOG_FILE_NAME") 2>&1
 }

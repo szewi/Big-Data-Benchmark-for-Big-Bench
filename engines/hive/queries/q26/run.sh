@@ -7,6 +7,8 @@
 #
 #No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
+HDFS_RESULT_FILE="${RESULT_DIR}/cluster.txt"
+
 query_run_main_method () {
 	QUERY_SCRIPT="$QUERY_DIR/$QUERY_NAME.sql"
 	if [ ! -r "$QUERY_SCRIPT" ]
@@ -55,11 +57,11 @@ query_run_main_method () {
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 4 ]] ; then
 		echo "========================="
-		echo "$QUERY_NAME Step 4/5: Converting result and store in hdfs ${RESULT_DIR}/cluster.txt"
-		echo "command: mahout clusterdump -i $TEMP_DIR/kmeans-clusters/clusters-*-final  -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT | hadoop fs -copyFromLocal - ${RESULT_DIR}/cluster.txt"
+		echo "$QUERY_NAME Step 4/5: Converting result and store in hdfs $HDFS_RESULT_FILE"
+		echo "command: mahout clusterdump -i $TEMP_DIR/kmeans-clusters/clusters-*-final  -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT | hadoop fs -copyFromLocal - $HDFS_RESULT_FILE"
 		echo "========================="
 	
-		runCmdWithErrorCheck mahout clusterdump --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR"/kmeans-clusters/clusters-*-final  -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT | hadoop fs -copyFromLocal - "${RESULT_DIR}/cluster.txt"
+		runCmdWithErrorCheck mahout clusterdump --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR"/kmeans-clusters/clusters-*-final  -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT | hadoop fs -copyFromLocal - "$HDFS_RESULT_FILE"
 		#runCmdWithErrorCheck mahout seqdump -i $TEMP_DIR/Vec/ -c $TEMP_DIR/kmeans-clusters -o $TEMP_DIR/results -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl
 	fi
 
@@ -74,8 +76,17 @@ query_run_main_method () {
 
 query_run_clean_method () {
 	runCmdWithErrorCheck runEngineCmd -e "DROP TABLE IF EXISTS $TEMP_TABLE; DROP TABLE IF EXISTS $RESULT_TABLE;"
+	runCmdWithErrorCheck hadoop fs -rm -r -f "$HDFS_RESULT_FILE"
 }
 
-query_run_verify_method () {
-	echo TODO
+query_run_validate_method () {
+	VALIDATION_TEMP_FILE="`mktemp -u`"
+	runCmdWithErrorCheck hadoop fs -copyToLocal "$HDFS_RESULT_FILE" "$VALIDATION_TEMP_FILE"
+	if [ `wc -l < "$VALIDATION_TEMP_FILE"` -ge 1 ]
+	then
+		echo "Validation passed: Query returned results"
+	else
+		echo "Validation failed: Query did not return results"
+	fi
+	rm -rf "$VALIDATION_TEMP_FILE"
 }
