@@ -385,7 +385,7 @@
 
 
 
-<!-- Each row in this table represents one calendar day. The surrogate key (d_date_sk) for a given row is derived from the julian date being described bay the row -->
+<!-- Each row in this table represents one calendar day. The surrogate key (d_date_sk) for a given row is derived from the julian date being described by the row -->
  <table name="date_dim">
   <size>${date_dim_size}</size>
   
