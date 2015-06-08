@@ -28,3 +28,15 @@ query_run_clean_method () {
 	runCmdWithErrorCheck runEngineCmd -e "DROP TABLE IF EXISTS $TEMP_TABLE1; DROP TABLE IF EXISTS $TEMP_TABLE2; DROP TABLE IF EXISTS $RESULT_TABLE;"
 	return $?
 }
+
+query_run_validate_method () {
+	VALIDATION_TEMP_DIR="`mktemp -d`"
+	runCmdWithErrorCheck runEngineCmd -e "INSERT OVERWRITE LOCAL DIRECTORY '$VALIDATION_TEMP_DIR' SELECT * FROM $RESULT_TABLE LIMIT 10;"
+	if [ `wc -l < "$VALIDATION_TEMP_DIR/000000_0"` -ge 1 ]
+	then
+		echo "Validation passed: Query returned results"
+	else
+		echo "Validation failed: Query did not return results"
+	fi
+	rm -rf "$VALIDATION_TEMP_DIR"
+}

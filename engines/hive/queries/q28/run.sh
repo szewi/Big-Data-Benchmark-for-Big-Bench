@@ -14,6 +14,9 @@ TEMP_DIR2="$TEMP_DIR/$TEMP_TABLE2"
 
 BINARY_PARAMS="$BINARY_PARAMS --hiveconf TEMP_TABLE1=$TEMP_TABLE1 --hiveconf TEMP_DIR1=$TEMP_DIR1 --hiveconf TEMP_TABLE2=$TEMP_TABLE2 --hiveconf TEMP_DIR2=$TEMP_DIR2"
 
+HDFS_RESULT_FILE="${RESULT_DIR}/classifierResult.txt"
+HDFS_RAW_RESULT_FILE="${RESULT_DIR}/classifierResult_raw.txt"
+
 query_run_main_method () {
 	QUERY_SCRIPT="$QUERY_DIR/$QUERY_NAME.sql"
 	if [ ! -r "$QUERY_SCRIPT" ]
@@ -21,9 +24,6 @@ query_run_main_method () {
 		echo "SQL file $QUERY_SCRIPT can not be read."
 		exit 1
 	fi
-
-	HDFS_RESULT_FILE="${RESULT_DIR}/classifierResult.txt"
-	HDFS_RAW_RESULT_FILE="${RESULT_DIR}/classifierResult_raw.txt"
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 1 ]] ; then
 		echo "========================="
@@ -133,5 +133,19 @@ query_run_main_method () {
 
 query_run_clean_method () {
 	runCmdWithErrorCheck runEngineCmd -e "DROP TABLE IF EXISTS $TEMP_TABLE1; DROP TABLE IF EXISTS $TEMP_TABLE2; DROP TABLE IF EXISTS $RESULT_TABLE;"
+	runCmdWithErrorCheck hadoop fs -rm -r -f "$HDFS_RESULT_FILE"
+	runCmdWithErrorCheck hadoop fs -rm -r -f "$HDFS_RAW_RESULT_FILE"
 	return $?
+}
+
+query_run_validate_method () {
+	VALIDATION_TEMP_FILE="`mktemp -u`"
+	runCmdWithErrorCheck hadoop fs -copyToLocal "$HDFS_RESULT_FILE" "$VALIDATION_TEMP_FILE"
+	if [ `wc -l < "$VALIDATION_TEMP_FILE"` -ge 1 ]
+	then
+		echo "Validation passed: Query returned results"
+	else
+		echo "Validation failed: Query did not return results"
+	fi
+	rm -rf "$VALIDATION_TEMP_FILE"
 }
