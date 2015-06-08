@@ -25,6 +25,7 @@ helpModule () {
   echo -e "-a\tpretend command execution"
   echo -e "-b\tprint stdout of called bash scripts during execution"
   echo -e "-c\tcleaning mode"
+  echo -e "-x\tperform query result verification"
   echo -e "-1\tskip data generation phase"
   echo -e "-2\tskip load test"
   echo -e "-3\tskip power test"
