@@ -33,7 +33,8 @@ query_run_main_method () {
 		runCmdWithErrorCheck runEngineCmd -f "$QUERY_SCRIPT"
 		RETURN_CODE=$?
 		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-
+	fi
+	
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 2 ]] ; then
 	
 		echo "========================="
