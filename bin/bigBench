@@ -26,7 +26,6 @@ showGlobalHelp () {
   echo -e "-t\tstream number for query run (default: $BIG_BENCH_DEFAULT_STREAM_NUMBER)"
   echo -e "-v\tsql script for metastore population (default: $BIG_BENCH_POPULATE_METASTORE_FILE)"
   echo -e "-w\tsql script for metastore refresh (default: $BIG_BENCH_REFRESH_METASTORE_FILE)"
-  echo -e "-x\tperform query result verification"
   echo -e "-y\tfile with additional user defined query parameters (global: $BIG_BENCH_QUERY_PARAMS_FILE)"
   echo -e "-z\tfile with additional user defined engine settings (global: $BIG_BENCH_ENGINE_SETTINGS_FILE)"
   echo
@@ -34,6 +33,7 @@ showGlobalHelp () {
   echo -e "-a\tpretend command execution"
   echo -e "-b\tprint stdout of called bash scripts during execution"
   echo -e "-c\tcleaning mode"
+  echo -e "-x\tperform query result verification"
   echo -e "-1\tskip data generation phase"
   echo -e "-2\tskip load test"
   echo -e "-3\tskip power test"
@@ -143,7 +143,7 @@ shift
 export LIST_OF_USER_OPTIONS="$@"
 
 # parse remaining options
-while getopts ":d:D:e:f:hm:p:q:s:t:v:w:xy:z:abc1234567" OPT; do
+while getopts ":d:D:e:f:hm:p:q:s:t:v:w:y:z:abcx1234567" OPT; do
   case "$OPT" in
     # script options
     d)
@@ -194,10 +194,6 @@ while getopts ":d:D:e:f:hm:p:q:s:t:v:w:xy:z:abc1234567" OPT; do
       #echo "-w was triggered, Parameter: $OPTARG" >&2
       USER_REFRESH_FILE="$OPTARG"
     ;;
-    x)
-      #echo "-x was triggered, Parameter: $OPTARG" >&2
-      USER_PERFORM_QUERY_RESULT_VERIFICATION="1"
-    ;;
     y)
       #echo "-y was triggered, Parameter: $OPTARG" >&2
       USER_QUERY_PARAMS_FILE="$OPTARG"
@@ -218,6 +214,10 @@ while getopts ":d:D:e:f:hm:p:q:s:t:v:w:xy:z:abc1234567" OPT; do
     c)
       #echo "-c was triggered, Parameter: $OPTARG" >&2
       export CLEAN_MODE="1"
+    ;;
+    x)
+      #echo "-x was triggered, Parameter: $OPTARG" >&2
+      USER_PERFORM_QUERY_RESULT_VERIFICATION="1"
     ;;
     1)
       #echo "-1 was triggered, Parameter: $OPTARG" >&2
