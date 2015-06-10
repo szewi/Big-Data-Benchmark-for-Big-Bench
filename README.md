@@ -47,7 +47,7 @@ On the SUT, clone the github repository into a folder stored in $INSTALL_DIR:
 ```
 export INSTALL_DIR="$HOME" # adapt this to your location
 cd "$INSTALL_DIR"
-git clone https://github.com/intel-hadoop/Big-Bench.git
+git clone https://github.com/intel-hadoop/Big-Data-Benchmark-for-Big-Bench.git
 ```
 
 ## Configuration
@@ -120,13 +120,18 @@ So a complete benchmark run with all stages can be done by running (e.g., 4 map 
 "$INSTALL_DIR/bin/bigBench runBenchmark -m 4 -f 100 -s 2
 ```
 
-If one of the options is omitted, the script uses the default values defined in $INSTALL_DIR/conf/userSettings.conf (BIG_BENCH_DEFAULT_MAP_TASKS, BIG_BENCH_DEFAULT_SCALE_FACTOR, BIG_BENCH_DEFAULT_NUMBER_OF_PARALLEL_STREAMS).
+To perform sanity checks on the query results, enable the query result validation code with the option "-x":
+```
+"$INSTALL_DIR/bin/bigBench runBenchmark -m 4 -f 100 -s 2 -x
+```
+
+If one of the options is omitted, the script uses the default values defined in $INSTALL_DIR/conf/userSettings.conf (BIG_BENCH_DEFAULT_MAP_TASKS, BIG_BENCH_DEFAULT_SCALE_FACTOR, BIG_BENCH_DEFAULT_NUMBER_OF_PARALLEL_STREAMS, BIG_BENCH_PERFORM_QUERY_RESULT_VERIFICATION).
 
 After the benchmark finished, two log files are written: BigBenchResult.txt (which contains the driver's sysout messages) as well as BigBenchTimes.csv (which contains all measured timestamps/durations).
 
 ### More detailed explanation
 
-There are four phases the driver traverses (only three are benchmarked though): data generation, load test, power test and throughput test. The driver has a clean option (-c) which does not run the benchmark but rather cleans the environment from previous runs (if for some reason all generated data should be cleaned).
+There are five phases the driver traverses (only three are benchmarked though): data generation, load test, power test, throughput test and query result validation. The driver has a clean option (-c) which does not run the benchmark but rather cleans the environment from previous runs (if for some reason all generated data should be cleaned).
 
 #### Data generation
 
@@ -143,6 +148,10 @@ This is the second phase that is benchmarked by BigBench. All queries run sequen
 #### Throughput test
 
 The throughput test is the last benchmark phase. All queries run in parallel streams in different order. The complete phase can be skipped with "-4". If this phase is not skipped, "-s" can be set specifying the number of parallel streams used in this phase. As in the other phases, setting "-c" (and not "-4") cleans the thoughput-test's results in the engine metastore and the HDFS directories. Furthermore, the three sub-phases of the throughput test (first query run, dataset maintenance, second query run) can be skipped individually, using "-5", "-6" or "-7" as command line options.
+
+#### Query result validation
+
+The query result validation phase is not benchmarked by BigBench. The driver can skip this phase when "-x" is not provided as an option and BIG_BENCH_PERFORM_QUERY_RESULT_VERIFICATION is set to 0 in conf/userSettings.conf. This phase performs basic sanity checks on the query results.
 
 ## Using the bigBench bash script
 
@@ -186,6 +195,7 @@ as well as a specific help for each module
 * -a: Only pretend command execution.
 * -b: Print stdout of called bash scripts during execution.
 * -c: Clean data/metatore instead of running workload.
+* -x: Run query result verification.
 * -1: Skip data generation phase.
 * -2: Skip load test.
 * -3: Skip power test.
@@ -233,7 +243,7 @@ as well as a specific help for each module
 
 * runBenchmark: runs the driver.
 ```
-"$INSTALL_DIR/bin/bigBench" runBenchmark [-d <database name>] [-e <engine name>] [-f <scale factor>] [-h] [-m <map tasks>] [-s <number of parallel streams>] [-v <population script>] [-w <refresh script>] [-y <query parameters>] [-z <engine settings>] [-a] [-b] [-c] [-1] [-2] [-3] [-4] [-5] [-6] [-7]
+"$INSTALL_DIR/bin/bigBench" runBenchmark [-d <database name>] [-e <engine name>] [-f <scale factor>] [-h] [-m <map tasks>] [-s <number of parallel streams>] [-v <population script>] [-w <refresh script>] [-y <query parameters>] [-z <engine settings>] [-a] [-b] [-c] [-x] [-1] [-2] [-3] [-4] [-5] [-6] [-7]
 ```
 
 * runQueries: runs all 30 queries sequentially. This module works as a wrapper for runQuery and does not work if "-q" is set as option.
@@ -253,12 +263,17 @@ as well as a specific help for each module
 
 * showErrors: parses query errors in the log files after query runs.
 ```
-"$INSTALL_DIR/bin/bigBench" showErrors [-h]
+"$INSTALL_DIR/bin/bigBench" showErrors [-h] [-q]
 ```
 
 * showTimes: parses execution times in the log files after query runs.
 ```
-"$INSTALL_DIR/bin/bigBench" showTimes [-h]
+"$INSTALL_DIR/bin/bigBench" showTimes [-h] [-q]
+```
+
+* showValidation: parses query validation results in the log files after query runs.
+```
+"$INSTALL_DIR/bin/bigBench" showValidation [-h] [-q]
 ```
 
 * zipQueryLogs: generates a zip file of all logs in the logs directory. It is run by the driver after each complete benchmark run. A zip archive is created to save them before being overwritten.
