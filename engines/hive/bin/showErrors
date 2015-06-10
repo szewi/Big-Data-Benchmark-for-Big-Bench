@@ -12,6 +12,7 @@ helpModule () {
   echo
   echo "Options:"
   echo -e "-h\tshow this help"
+  echo -e "-q\tquery number to run"
 }
 
 runModule () {
