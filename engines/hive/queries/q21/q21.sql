@@ -5,7 +5,7 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
-
+--based on tpc-ds q29
 --Get all items that were sold in stores in a given month
 --and year and which were returned in the next six months and re-purchased by
 --the returning customer afterwards through the web sales channel in the following
@@ -84,5 +84,6 @@ ON d3.d_date_sk = ws.ws_sold_date_sk
 JOIN item i ON i.i_item_sk = ss.ss_item_sk
 JOIN store s ON s.s_store_sk = ss.ss_store_sk
 GROUP BY i.i_item_id, i.i_item_desc, s.s_store_id, s.s_store_name
+--original was ORDER BY item_id, ... , but CLUSTER BY is hives cluster scale counter part
 CLUSTER BY item_id, item_desc, store_id, store_name
 ;

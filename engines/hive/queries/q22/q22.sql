@@ -5,7 +5,7 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
-
+--based on tpc-ds q21
 --For all items whose price was changed on a given date,
 --compute the percentage change in inventory between the 30-day period BEFORE
 --the price change and the 30-day period AFTER the change. Group this
@@ -68,9 +68,10 @@ FROM (
 WHERE inv_before > 0
 AND inv_after / inv_before >= 2.0 / 3.0
 AND inv_after / inv_before <= 3.0 / 2.0
-CLUSTER BY
-  w_warehouse_name,
-  i_item_id
+--original was ORDER BY w_warehouse_name, i_item_id , but CLUSTER BY is hives cluster scale counter part
+CLUSTER BY w_warehouse_name,
+           i_item_id
+LIMIT 100
 ;
 
 

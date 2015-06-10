@@ -5,7 +5,7 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
-
+--based on tpc-ds q39
 --This query contains multiple, related iterations: Iteration 1: Calculate the coeficient of variation 
 --and mean of every item and warehouse of two consecutive months Iteration 2: Find items that had a coeficient
 --of variation in the first months of 1.5 or larger
@@ -54,6 +54,7 @@ JOIN ${hiveconf:TEMP_TABLE} inv2 ON (
   AND inv1.d_moy = ${hiveconf:q23_month}
   AND inv2.d_moy = ${hiveconf:q23_month} + 1
 )
+--original was ORDER BY, but CLUSTER BY is hives cluster scale counter part
 CLUSTER BY
   inv1_w_warehouse_sk,
   inv1_i_item_sk,

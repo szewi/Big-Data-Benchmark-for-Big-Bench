@@ -5,7 +5,7 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
-
+--based on tpc-ds q90
 --What is the ratio between the number of items sold over
 --the internet in the morning (8 to 9am) to the number of items sold in the evening
 --(7 to 8pm) of customers with a specified number of dependents. Consider only
@@ -29,6 +29,8 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 -- Begin: the real query part
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
 SELECT CAST(amc as double) / CAST(pmc as double) am_pm_ratio
+-- hive decimal with precission support as of hive 0.13.0. Keep "double" for now till <0.13 is outdated in production use
+--SELECT cast(amc as decimal(15,4))/cast(pmc as decimal(15,4)) am_pm_ratio
 FROM (
   SELECT COUNT(*) amc
   FROM web_sales ws
@@ -53,5 +55,6 @@ JOIN (
   AND wp.wp_char_count >= ${hiveconf:q14_content_len_min}
   AND wp.wp_char_count <= ${hiveconf:q14_content_len_max}
 ) pt
+--original was ORDER BY am_pm_ratio , but CLUSTER BY is hives cluster scale counter part
 CLUSTER BY am_pm_ratio
 ;

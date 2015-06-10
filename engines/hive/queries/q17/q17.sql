@@ -5,7 +5,7 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
-
+--based on tpc-ds q61
 --Find the ratio of items sold with and without promotions
 --in a given month and year. Only items in certain categories sold to customers
 --living in a specific time zone are considered.
@@ -32,8 +32,8 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 
 -- the real query part
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
+--no need to cast promotions or total to double : SUM(COL) already returned a DOUBLE
 SELECT promotions, total, promotions / total * 100
---no need to cast promotions/total: SUM(COL) returns DOUBLE
 FROM (
   SELECT SUM(ss_ext_sales_price) promotions
   FROM store_sales ss
@@ -65,6 +65,8 @@ JOIN (
   AND d_year = ${hiveconf:q17_year}
   AND d_moy = ${hiveconf:q17_month}
 ) all_sales
--- we dont need a 'ON' join condition. result is just two numbers.
+-- we don't need a 'ON' join condition. result is just two numbers.
+--original was ORDER BY  promotions, total , but CLUSTER BY is hives cluster scale counter part
 CLUSTER BY promotions, total
+LIMIT 100 -- kinda useless, result is one line with two numbers, but original tpc-ds query has it too.
 ;

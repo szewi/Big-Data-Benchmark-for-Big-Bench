@@ -6,6 +6,7 @@
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
 
+--based on tpc-ds q6
 --List all the stores with at least 10 customers who during
 --a given month bought products with the price tag at least 20% higher than the
 --average price of products in the same category.
@@ -40,7 +41,7 @@ JOIN (
   AND d_moy = ${hiveconf:q07_MONTH}
 ) q07_month --subquery alias
 ON q07_month.d_month_seq = d.d_month_seq
-JOIN (
+LEFT SEMI JOIN (
   SELECT
     i_category AS i_category,
     AVG(i_current_price) * ${hiveconf:q07_HIGHER_PRICE_RATIO} AS avg_price
@@ -52,6 +53,7 @@ ON q07_cat_avg_price.i_category = i.i_category
 WHERE i.i_current_price > q07_cat_avg_price.avg_price
 GROUP BY a.ca_state
 HAVING COUNT(*) >= ${hiveconf:q07_HAVING_COUNT_GE}
+--original was ORDER BY cnt , but CLUSTER BY is hives cluster scale counter part
 CLUSTER BY cnt
 LIMIT ${hiveconf:q07_LIMIT}
 ;

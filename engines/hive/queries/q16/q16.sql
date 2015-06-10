@@ -5,7 +5,7 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
-
+--based on tpc-ds q40
 --Compute the impact of an item price change on the
 --store sales by computing the total sales for items in a 30 day period before and
 --after the price change. Group the items by location of warehouse where they
@@ -13,7 +13,6 @@
 
 -- Resources
 
---TODO More testing needed
 
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 --Result  --------------------------------------------------------------------
@@ -53,9 +52,10 @@ FROM (
 JOIN item i ON a1.ws_item_sk = i.i_item_sk
 JOIN warehouse w ON a1.ws_warehouse_sk = w.w_warehouse_sk
 JOIN date_dim d ON a1.ws_sold_date_sk = d.d_date_sk
-AND unix_timestamp(d.d_date, 'yyyy-MM-dd') >= unix_timestamp('${hiveconf:q16_date}', 'yyyy-MM-dd') - 30*24*60*60 --substract 30 days in secconds
-AND unix_timestamp(d.d_date, 'yyyy-MM-dd') <= unix_timestamp('${hiveconf:q16_date}', 'yyyy-MM-dd') + 30*24*60*60 --add 30 days in secconds
+AND unix_timestamp(d.d_date, 'yyyy-MM-dd') >= unix_timestamp('${hiveconf:q16_date}', 'yyyy-MM-dd') - 30*24*60*60 --subtract 30 days in seconds
+AND unix_timestamp(d.d_date, 'yyyy-MM-dd') <= unix_timestamp('${hiveconf:q16_date}', 'yyyy-MM-dd') + 30*24*60*60 --add 30 days in seconds
 GROUP BY w_state,i_item_id
+--original was ORDER BY w_state,i_item_id , but CLUSTER BY is hives cluster scale counter part
 CLUSTER BY w_state,i_item_id
 ;
 
