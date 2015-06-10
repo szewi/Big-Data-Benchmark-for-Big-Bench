@@ -276,6 +276,16 @@ as well as a specific help for each module
 "$INSTALL_DIR/bin/bigBench" showValidation [-h] [-q]
 ```
 
+* validateQueries: validates all 30 queries sequentially. This module works as a wrapper for validateQuery and does not work if "-q" is set as option.
+```
+"$INSTALL_DIR/bin/bigBench" validateQueries [-d <database name>] [-h] [-p <benchmark phase>] [-t <stream number] [-z <engine settings>]
+```
+
+* validateQuery: validates one query. Needs the query number to be set.
+```
+"$INSTALL_DIR/bin/bigBench" validateQuery [-d <database name>] [-D <debug query part] [-h] [-p <benchmark phase>] -q <query number> [-t <stream number] [-y <query parameters>] [-z <engine settings>]
+```
+
 * zipQueryLogs: generates a zip file of all logs in the logs directory. It is run by the driver after each complete benchmark run. A zip archive is created to save them before being overwritten.
 ```
 "$INSTALL_DIR/bin/bigBench" zipQueryLogs [-h]
