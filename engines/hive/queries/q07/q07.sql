@@ -41,7 +41,7 @@ JOIN (
   AND d_moy = ${hiveconf:q07_MONTH}
 ) q07_month --subquery alias
 ON q07_month.d_month_seq = d.d_month_seq
-LEFT SEMI JOIN (
+JOIN (
   SELECT
     i_category AS i_category,
     AVG(i_current_price) * ${hiveconf:q07_HIGHER_PRICE_RATIO} AS avg_price
