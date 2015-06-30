@@ -10,8 +10,7 @@
 # define used temp tables
 TEMP_TABLE1="${TEMP_TABLE}_1"
 
-
-BINARY_PARAMS="$BINARY_PARAMS --hiveconf TEMP_TABLE1=$TEMP_TABLE1 "
+BINARY_PARAMS+=(--hiveconf TEMP_TABLE1=$TEMP_TABLE1)
 
 query_run_main_method () {
 	QUERY_SCRIPT="$QUERY_DIR/$QUERY_NAME.sql"
