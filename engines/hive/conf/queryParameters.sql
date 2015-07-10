@@ -1,6 +1,6 @@
-!echo ============================;
-!echo <settings from queryParameters.sql>;
-!echo ============================;
+-- !echo ============================;
+-- !echo <settings from queryParameters.sql>;
+-- !echo ============================;
 --new (dates all Mondays, dateranges complete weeks):
 --store: 2000-01-03, 2004-01-05 (1463 days, 209 weeks)
 --item: 2000-01-03, 2004-01-05 (1463 days, 209 weeks)
@@ -210,6 +210,6 @@ set q27_pr_item_sk=10653;
 
 -------- Q30 -----------
 --no params
-!echo ============================;
-!echo </settings from queryParameters.sql>;
-!echo ============================;
+-- !echo ============================;
+-- !echo </settings from queryParameters.sql>;
+-- !echo ============================;

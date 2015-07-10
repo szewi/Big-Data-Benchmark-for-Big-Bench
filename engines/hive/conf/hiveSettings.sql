@@ -1,6 +1,6 @@
-!echo ============================;
-!echo <settings from hiveSettings.sql>;
-!echo ============================;
+-- !echo ============================;
+-- !echo <settings from hiveSettings.sql>;
+-- !echo ============================;
 
 -- ###########################
 -- output and itermediate table settings 
@@ -49,7 +49,7 @@ set hive.exec.reducers.bytes.per.reducer=256000000;
 -- set hive.auto.convert.join=true;
 -- set hive.optimize.mapjoin.mapreduce=true;
 -- set hive.mapred.local.mem=1024;
---default:25MB, max size of tables considered for local in memory map join. Beware! ORC files have only little file size but huge in memory data size! a 25MB ORC easily consumes 512MB.. related: https://issues.apache.org/jira/browse/HIVE-2601
+-- default:25MB, max size of tables considered for local in memory map join. Beware! ORC files have only little file size but huge in memory data size! a 25MB ORC easily consumes 512MB.. related: https://issues.apache.org/jira/browse/HIVE-2601
 set hive.mapjoin.smalltable.filesize=5000000; 
 -- set hive.mapjoin.localtask.max.memory.usage=0.90;
 
@@ -78,9 +78,9 @@ set hive.mapjoin.smalltable.filesize=5000000;
 
 
 
-!echo ============================;
-!echo Print most important properties;
-!echo ============================;
+-- !echo ============================;
+-- !echo Print most important properties;
+-- !echo ============================;
 
 set hive.exec.parallel;
 set hive.exec.parallel.thread.number;
@@ -113,13 +113,7 @@ set hive.groupby.skewindata;
 CREATE DATABASE IF NOT EXISTS ${env:BIG_BENCH_DATABASE};
 use ${env:BIG_BENCH_DATABASE};
 
---!echo ============================;
---!echo <dump Complete settings>;
---!echo ============================;
---set -v;
---!echo ============================;
---!echo </dump Complete settings>;
---!echo ============================;
-!echo ============================;
-!echo </settings from hiveSettings.sql>;
-!echo ============================;
+
+-- !echo ============================;
+-- !echo </settings from hiveSettings.sql>;
+-- !echo ============================;
