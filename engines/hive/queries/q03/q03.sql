@@ -34,17 +34,17 @@ SELECT lastviewed_item, purchased_item, count(*)
 FROM (
   FROM (
     SELECT
-      wcs_user_sk       AS user,
+      wcs_user_sk       AS u_sk,
       wcs_click_date_sk AS lastviewed_date,
       wcs_item_sk       AS lastviewed_item,
       wcs_sales_sk      AS lastviewed_sale
     FROM web_clickstreams w
     -- only select clickstreams resulting in a purchase user_sk = null -> only non buying visitor
     WHERE wcs_user_sk IS NOT NULL
-    CLUSTER BY user
+    CLUSTER BY u_sk
   ) q03_map_output
   REDUCE
-  q03_map_output.user,
+  q03_map_output.u_sk,
   q03_map_output.lastviewed_date,
   q03_map_output.lastviewed_item,
   q03_map_output.lastviewed_sale

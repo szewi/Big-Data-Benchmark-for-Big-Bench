@@ -67,19 +67,71 @@ runModule () {
     return 1
   fi
 
-  echo "creating folders and setting permissions"
   #dont delete/recreate result and temp folders if query is in debug mode: exception: step 1 of debug
   if [ -z "$DEBUG_QUERY_PART" ] || [ $DEBUG_QUERY_PART -eq 1 ]
   then
-    #cannot run this hdfs commands in parallel, because it would break error handling
-    runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "${RESULT_DIR}"
-    runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "${TEMP_DIR}"
-    runCmdWithErrorCheck hadoop fs -mkdir -p "${RESULT_DIR}"
-    runCmdWithErrorCheck hadoop fs -mkdir -p "${TEMP_DIR}"
-    runCmdWithErrorCheck hadoop fs -chmod ugo+rw "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
-    runCmdWithErrorCheck hadoop fs -chmod ugo+rw "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
-    runCmdWithErrorCheck hadoop fs -chmod ugo+rw "${RESULT_DIR}"
-    runCmdWithErrorCheck hadoop fs -chmod ugo+rw "${TEMP_DIR}"
+    echo "creating/cleaning/set permissions for hdfs tmp and result folders for this query"
+
+    local STARTDATE2="`date +%Y/%m/%d:%H:%M:%S`"
+    local STARTDATE_EPOCH2="`date +%s`" # seconds since epoch
+
+
+
+    #cannot run this hdfs commands in parallel, because they depend on each other and it would break error handling
+    if [[ $BIG_BENCH_USE_SNAKEBITE_HDFSCLIENT -ne 0 ]]
+    then
+      echo "hdfs client: snakebite"
+
+      echo "snakebite rm -R -S ${RESULT_DIR}"
+      runCmdWithErrorCheck snakebite rm -R -S "${RESULT_DIR}"
+
+      echo "runCmdWithErrorCheck snakebite rm -R -S ${TEMP_DIR}"
+      runCmdWithErrorCheck snakebite rm -R -S "${TEMP_DIR}"
+
+      echo "runCmdWithErrorCheck snakebite mkdirp ${RESULT_DIR}"
+      runCmdWithErrorCheck snakebite mkdirp "${RESULT_DIR}"
+
+      echo "runCmdWithErrorCheck snakebite mkdirp ${TEMP_DIR}"
+      runCmdWithErrorCheck snakebite mkdirp "${TEMP_DIR}"
+
+      echo "runCmdWithErrorCheck snakebite mkdirp ${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
+      runCmdWithErrorCheck snakebite mkdirp "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
+
+      echo "runCmdWithErrorCheck snakebite mkdirp ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
+      runCmdWithErrorCheck snakebite mkdirp "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
+
+      echo "runCmdWithErrorCheck snakebite chmod 0666 ${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
+      runCmdWithErrorCheck snakebite chmod 0777 "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
+
+      echo "runCmdWithErrorCheck snakebite chmod 0666 ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
+      runCmdWithErrorCheck snakebite chmod 0777 "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
+
+      echo "runCmdWithErrorCheck snakebite chmod 0666 ${RESULT_DIR}"
+      runCmdWithErrorCheck snakebite chmod 0777 "${RESULT_DIR}"
+
+      echo "runCmdWithErrorCheck snakebite chmod 0666 ${TEMP_DIR}"
+      runCmdWithErrorCheck snakebite chmod 0777 "${TEMP_DIR}"
+
+    else
+      echo "hdfs client: hadoop fs"
+      runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "${RESULT_DIR}"
+      runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "${TEMP_DIR}"
+      runCmdWithErrorCheck hadoop fs -mkdir -p "${RESULT_DIR}"
+      runCmdWithErrorCheck hadoop fs -mkdir -p "${TEMP_DIR}"
+      runCmdWithErrorCheck hadoop fs -chmod ugo+rwx "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
+      runCmdWithErrorCheck hadoop fs -chmod ugo+rwx "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
+      runCmdWithErrorCheck hadoop fs -chmod ugo+rwx "${RESULT_DIR}"
+      runCmdWithErrorCheck hadoop fs -chmod ugo+rwx "${TEMP_DIR}"
+   fi
+
+
+   local STOPDATE2="`date +%Y/%m/%d:%H:%M:%S`"
+   local STOPDATE_EPOCH2="`date +%s`" # seconds since epoch
+   local DIFF_s2=$(($STOPDATE_EPOCH2-$STARTDATE_EPOCH2))
+   local DIFF_ms2=$(($DIFF_s2*1000))
+   local DURATION2="$(($DIFF_s2 / 3600 ))h $((($DIFF_s2 % 3600) / 60))m $(($DIFF_s2 % 60))s"
+   echo "Duration for hdfs prepare:  $DURATION2" 
+
   fi
 
   #-- time measurement of execution
@@ -115,7 +167,13 @@ runModule () {
   
   echo "time&status: ${LOG_FILE_EXEC_TIMES}" | tee -a "$LOG_FILE_NAME" 2>&1
   echo "full log: $LOG_FILE_NAME" | tee -a "$LOG_FILE_NAME" 2>&1
-  echo "results in: `hadoop fs -du -s -h $RESULT_DIR`" | tee -a "$LOG_FILE_NAME" 2>&1
+  if [[ $BIG_BENCH_USE_SNAKEBITE_HDFSCLIENT -ne 0 ]]
+  then
+    echo "results in: `snakebite du -s -h $RESULT_DIR`" | tee -a "$LOG_FILE_NAME" 2>&1
+  else
+    echo "results in: `hadoop fs -du -s -h $RESULT_DIR`" | tee -a "$LOG_FILE_NAME" 2>&1
+
+  fi
   echo "to display: hadoop fs -cat $RESULT_DIR/*" | tee -a "$LOG_FILE_NAME" 2>&1
   echo "=========================" | tee -a "$LOG_FILE_NAME" 2>&1
  

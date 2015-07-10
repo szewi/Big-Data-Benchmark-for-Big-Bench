@@ -42,13 +42,21 @@ runModule () {
 
   # Run the clean method implemented in the query's run.sh
   runCmdWithErrorCheck "$QUERY_CLEAN_METHOD"
+  
+  if [[ $BIG_BENCH_USE_SNAKEBITE_HDFSCLIENT -ne 0 ]]
+  then
+    echo "cleaning dir $RESULT_DIR"
+    runCmdWithErrorCheck snakebite rm -R -S "$RESULT_DIR"
 
-  echo "cleaning dir $RESULT_DIR"
-  runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "$RESULT_DIR"
+    echo "cleaning dir $TEMP_DIR"
+    runCmdWithErrorCheck snakebite rm -R -S "$TEMP_DIR"  
+  else
+    echo "cleaning dir $RESULT_DIR"
+    runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "$RESULT_DIR"
 
-  echo "cleaning dir $TEMP_DIR"
-  runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "$TEMP_DIR"
-
+    echo "cleaning dir $TEMP_DIR"
+    runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "$TEMP_DIR"
+  fi
   wait
 
   echo "cleaning log $LOG_FILE_NAME"
