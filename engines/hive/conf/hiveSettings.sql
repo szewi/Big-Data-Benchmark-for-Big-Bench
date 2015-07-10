@@ -22,8 +22,8 @@
 -- The number of physical files a table consists of is irrelevant for hives metric for estimating number of mappers. (Hive uses HiveCombineInputFormat, joining the files)
 -- the following two parameters are most effective in influencing hives estimation of mappers. To low settings may result in to many map tasks, while to high size settings result in to few map tasks and underutilization of the cluster.
 -- both extremes are harmful to the performance. For small data set sizes of 1-100GB a good value  for max.split.size may be 134217728 (128MB). As an estimation, take a medium sized table and divide its size by the number of map tasks you need to utilize your cluster.
-set mapred.max.split.size=67108864;
-set mapred.min.split.size=1;
+-- set mapred.max.split.size=67108864;
+-- set mapred.min.split.size=1;
 
 -- ###########################
 -- reducer settings 
@@ -31,7 +31,7 @@ set mapred.min.split.size=1;
 -- Number of reducers used by HIVE
 -- hives metric for estimating reducers is mostly controlled by the following settings. Node: Some Query functions like count(*) or Distinct will lead to hive always using only 1 reducer
 -- 1GB default
-set hive.exec.reducers.bytes.per.reducer=256000000;
+-- set hive.exec.reducers.bytes.per.reducer=256000000;
 -- set hive.exec.reducers.max=99999;
 
 -- ###########################
@@ -50,12 +50,12 @@ set hive.exec.reducers.bytes.per.reducer=256000000;
 -- set hive.optimize.mapjoin.mapreduce=true;
 -- set hive.mapred.local.mem=1024;
 -- default:25MB, max size of tables considered for local in memory map join. Beware! ORC files have only little file size but huge in memory data size! a 25MB ORC easily consumes 512MB.. related: https://issues.apache.org/jira/browse/HIVE-2601
-set hive.mapjoin.smalltable.filesize=5000000; 
+-- set hive.mapjoin.smalltable.filesize=5000000; 
 -- set hive.mapjoin.localtask.max.memory.usage=0.90;
 
 -- set hive.auto.convert.sortmerge.join=true;
 -- set hive.auto.convert.sortmerge.join.noconditionaltask=true;
--- set hive.auto.convert.join.noconditionaltask.size=10000;
+-- set hive.auto.convert.join.noconditionaltask.size=100000;
 -- set hive.optimize.bucketmapjoin=true;
 -- set hive.optimize.bucketmapjoin.sortedmerge=false;
 -- set hive.optimize.skewjoin=true; --READ FIRST: https://issues.apache.org/jira/browse/HIVE-5888
