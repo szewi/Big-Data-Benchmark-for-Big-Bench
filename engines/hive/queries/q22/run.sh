@@ -30,13 +30,45 @@ query_run_clean_method () {
 }
 
 query_run_validate_method () {
-	VALIDATION_TEMP_DIR="`mktemp -d`"
-	runCmdWithErrorCheck runEngineCmd -e "INSERT OVERWRITE LOCAL DIRECTORY '$VALIDATION_TEMP_DIR' SELECT * FROM $RESULT_TABLE LIMIT 10;"
-	if [ `wc -l < "$VALIDATION_TEMP_DIR/000000_0"` -ge 1 ]
+	# perform exact result validation if using SF 1, else perform general sanity check
+	if [ "$BIG_BENCH_SCALE_FACTOR" -eq 1 ]
 	then
-		echo "Validation passed: Query returned results"
+		local VALIDATION_PASSED="1"
+
+		for file in "$VALIDATION_RESULTS_DIR"/*
+		do
+			local CURRENT_RESULT_FILENAME="`basename "$file"`"
+			if ! hadoop fs -test -e "$RESULT_DIR/$CURRENT_RESULT_FILENAME"
+			then
+				echo "File $RESULT_DIR/$CURRENT_RESULT_FILENAME not found in HDFS."
+				VALIDATION_PASSED="0"
+				continue
+			fi
+			if diff "$file" <(hadoop fs -cat "$RESULT_DIR/$CURRENT_RESULT_FILENAME")
+			then
+				echo "Validation of $CURRENT_RESULT_FILENAME passed: Query returned correct results"
+			else
+				echo "Validation of $CURRENT_RESULT_FILENAME failed: Query returned incorrect results"
+				VALIDATION_PASSED="0"
+			fi
+		done
+		if [ "$VALIDATION_PASSED" -eq 1 ]
+		then
+			echo "Validation passed: Query results are OK"
+		else
+			echo "Validation failed: Query results are not OK"
+		fi
 	else
-		echo "Validation failed: Query did not return results"
+		if hadoop fs -test -e "$RESULT_DIR/000000_0"
+		then
+			if [ `hadoop fs -cat "$RESULT_DIR/000000_0" | head -n 10 | wc -l` -ge 1 ]
+			then
+				echo "Validation passed: Query returned results"
+			else
+				echo "Validation failed: Query did not return results"
+			fi
+		else
+			echo "File $RESULT_DIR/000000_0 not found in HDFS."
+		fi
 	fi
-	rm -rf "$VALIDATION_TEMP_DIR"
 }
