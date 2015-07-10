@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #"INTEL CONFIDENTIAL"
-#Copyright 2015  Intel Corporation All Rights Reserved. 
+#Copyright 2015  Intel Corporation All Rights Reserved.
 #
 #The source code contained or described herein and all documents related to the source code ("Material") are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with Intel Corporation or its suppliers and licensors. The Material contains trade secrets and proprietary and confidential information of Intel or its suppliers and licensors. The Material is protected by worldwide copyright and trade secret laws and treaty provisions. No part of the Material may be used, copied, reproduced, modified, published, uploaded, posted, transmitted, distributed, or disclosed in any way without Intel's prior express written permission.
 #
@@ -56,13 +56,15 @@ runModule () {
       echo "ERROR: cannot write to: $LOG_FILE_NAME, no permission"
       return 1
   fi
-  local LOG_FILE_EXEC_TIMES=${BIG_BENCH_LOGS_DIR}/times.csv
-  if [ ! -e "$LOG_FILE_EXEC_TIMES" ] ; then
+  local LOG_FILE_EXEC_TIMES="${BIG_BENCH_LOGS_DIR}/times.csv"
+  if [ ! -e "$LOG_FILE_EXEC_TIMES" ]
+  then
     touch "$LOG_FILE_EXEC_TIMES"
-    echo "STARTDATE_EPOCH|STOPDATE_EPOCH|DURATION_MS|STARTDATE|STOPDATE|DURATION|QUERY|SCALE_FACTOR|BENCHMARK_PHASE|STREAM|SUCCESSFUL|EXIT_CODE|HAS_RESULT|HDFS_SIZE" >> ${LOG_FILE_EXEC_TIMES}
+    echo "STARTDATE_EPOCH|STOPDATE_EPOCH|DURATION_MS|STARTDATE|STOPDATE|DURATION|QUERY|SCALE_FACTOR|BENCHMARK_PHASE|STREAM|SUCCESSFUL|EXIT_CODE|HAS_RESULT|HDFS_SIZE" >> "${LOG_FILE_EXEC_TIMES}"
   fi
 
-  if [ ! -w "$LOG_FILE_EXEC_TIMES" ] ; then
+  if [ ! -w "$LOG_FILE_EXEC_TIMES" ]
+  then
     echo "ERROR: cannot write to: $LOG_FILE_EXEC_TIMES, no permission"
     return 1
   fi
@@ -75,10 +77,8 @@ runModule () {
     local STARTDATE2="`date +%Y/%m/%d:%H:%M:%S`"
     local STARTDATE_EPOCH2="`date +%s`" # seconds since epoch
 
-
-
     #cannot run this hdfs commands in parallel, because they depend on each other and it would break error handling
-    if [[ $BIG_BENCH_USE_SNAKEBITE_HDFSCLIENT -ne 0 ]]
+    if [ "$BIG_BENCH_USE_SNAKEBITE_HDFSCLIENT" -ne 0 ]
     then
       echo "hdfs client: snakebite"
 
@@ -100,16 +100,16 @@ runModule () {
       echo " snakebite mkdirp ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
       snakebite mkdirp "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
 
-      echo " snakebite chmod 0666 ${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
+      echo " snakebite chmod 0777 ${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
       snakebite chmod 0777 "${BIG_BENCH_HDFS_ABSOLUTE_TEMP_DIR}"
 
-      echo " snakebite chmod 0666 ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
+      echo " snakebite chmod 0777 ${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
       snakebite chmod 0777 "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
 
-      echo " snakebite chmod 0666 ${RESULT_DIR}"
+      echo " snakebite chmod 0777 ${RESULT_DIR}"
       snakebite chmod 0777 "${RESULT_DIR}"
 
-      echo " snakebite chmod 0666 ${TEMP_DIR}"
+      echo " snakebite chmod 0777 ${TEMP_DIR}"
       snakebite chmod 0777 "${TEMP_DIR}"
 
     else
@@ -122,63 +122,58 @@ runModule () {
        hadoop fs -chmod ugo+rwx "${BIG_BENCH_HDFS_ABSOLUTE_QUERY_RESULT_DIR}"
        hadoop fs -chmod ugo+rwx "${RESULT_DIR}"
        hadoop fs -chmod ugo+rwx "${TEMP_DIR}"
-   fi
+    fi
 
-
-   local STOPDATE2="`date +%Y/%m/%d:%H:%M:%S`"
-   local STOPDATE_EPOCH2="`date +%s`" # seconds since epoch
-   local DIFF_s2=$(($STOPDATE_EPOCH2-$STARTDATE_EPOCH2))
-   local DIFF_ms2=$(($DIFF_s2*1000))
-   local DURATION2="$(($DIFF_s2 / 3600 ))h $((($DIFF_s2 % 3600) / 60))m $(($DIFF_s2 % 60))s"
-   echo "Duration for hdfs prepare:  $DURATION2" 
-
+    local STOPDATE2="`date +%Y/%m/%d:%H:%M:%S`"
+    local STOPDATE_EPOCH2="`date +%s`" # seconds since epoch
+    local DIFF_s2=$(($STOPDATE_EPOCH2-$STARTDATE_EPOCH2))
+    local DIFF_ms2=$(($DIFF_s2*1000))
+    local DURATION2="$(($DIFF_s2 / 3600 ))h $((($DIFF_s2 % 3600) / 60))m $(($DIFF_s2 % 60))s"
+    echo "Duration for hdfs prepare:  $DURATION2" 
   fi
 
- 
   #################
-  # exec query. 
+  # exec query.
   #################
   
    # time measurement of execution
   local STARTDATE="`date +%Y/%m/%d:%H:%M:%S`"
   local STARTDATE_EPOCH="`date +%s`" # seconds since epoch
-  
   # Run the main method implemented in the query's run.sh
   #Stderr is appended to stdout and both are written into logs/q??.log and to console
   "$QUERY_MAIN_METHOD" 2>&1 | tee -a "$LOG_FILE_NAME" 2>&1
+  local QUERY_EXIT_CODE=${PIPESTATUS[0]}
   
-  local QUERY_EXIT_CODE=${PIPESTATUS[0]};
-  
-  local successOrFail
-  if [[ $QUERY_EXIT_CODE -ne 0 ]]
+  if [ "$QUERY_EXIT_CODE" -ne 0 ]
   then
-	local successOrFail="FAILED"
+    local successOrFail="FAILED"
   else
-	local successOrFail="SUCCESS"
+    local successOrFail="SUCCESS"
   fi
   
   local STOPDATE="`date +%Y/%m/%d:%H:%M:%S`"
   local STOPDATE_EPOCH="`date +%s`" # seconds since epoch
-  local DIFF_s=$(($STOPDATE_EPOCH-$STARTDATE_EPOCH))
-  local DIFF_ms=$(($DIFF_s*1000))
+  local DIFF_s="$(($STOPDATE_EPOCH - $STARTDATE_EPOCH))"
+  local DIFF_ms="$(($DIFF_s * 1000))"
   local DURATION="$(($DIFF_s / 3600 ))h $((($DIFF_s % 3600) / 60))m $(($DIFF_s % 60))s"
 
   #evaluate results
-  if [[ $BIG_BENCH_USE_SNAKEBITE_HDFSCLIENT -ne 0 ]]
+  if [ "$BIG_BENCH_USE_SNAKEBITE_HDFSCLIENT" -ne 0 ]
   then
-    local RESULT_FOLDER_HDFS_SIZE=`snakebite du -s -h $RESULT_DIR |  cut -d ' ' -f 1`
+    local RESULT_FOLDER_HDFS_SIZE=`snakebite du -s -h $RESULT_DIR | cut -d ' ' -f 1`
   else
-    local RESULT_FOLDER_HDFS_SIZE=`hadoop fs -du -s -h $RESULT_DIR |  cut -d ' ' -f 1`
+    local RESULT_FOLDER_HDFS_SIZE=`hadoop fs -du -s -h $RESULT_DIR | cut -d ' ' -f 1`
   fi
-  if [[ $RESULT_FOLDER_HDFS_SIZE != "0" ]]
+
+  if [ "$RESULT_FOLDER_HDFS_SIZE" -ne 0 ]
   then
     local QUERY_HAS_RESULT="HAS_RESULT"
   else
     local QUERY_HAS_RESULT="EMPTY"
   fi
-  
+
   # log query statistics to times.csv file
-  echo "${STARTDATE_EPOCH}|${STOPDATE_EPOCH}|${DIFF_ms}|${STARTDATE}|${STOPDATE}|${DURATION}|${QUERY_NAME}|${BIG_BENCH_SCALE_FACTOR}|${BIG_BENCH_BENCHMARK_PHASE}|${BIG_BENCH_STREAM_NUMBER}|${successOrFail}|${QUERY_EXIT_CODE}|${QUERY_HAS_RESULT}|${RESULT_FOLDER_HDFS_SIZE}" >> ${LOG_FILE_EXEC_TIMES} 
+  echo "${STARTDATE_EPOCH}|${STOPDATE_EPOCH}|${DIFF_ms}|${STARTDATE}|${STOPDATE}|${DURATION}|${QUERY_NAME}|${BIG_BENCH_SCALE_FACTOR}|${BIG_BENCH_BENCHMARK_PHASE}|${BIG_BENCH_STREAM_NUMBER}|${successOrFail}|${QUERY_EXIT_CODE}|${QUERY_HAS_RESULT}|${RESULT_FOLDER_HDFS_SIZE}" >> ${LOG_FILE_EXEC_TIMES}
 
   # log query statistics to console and query log
   echo "======= $TABLE_PREFIX time =======" | tee -a "$LOG_FILE_NAME" 2>&1
@@ -187,12 +182,27 @@ runModule () {
   echo "Duration:  $DURATION" | tee -a "$LOG_FILE_NAME" 2>&1
   echo "${TABLE_PREFIX} ${successOrFail} exit code: ${QUERY_EXIT_CODE} result:  ${QUERY_HAS_RESULT} " | tee -a "$LOG_FILE_NAME" 2>&1 
   echo "----- result -----" | tee -a "$LOG_FILE_NAME" 2>&1
+
+  if [ "$QUERY_EXIT_CODE" -eq 0 ]
+  then
+    local successOrFail="SUCCESS"
+  else
+    local successOrFail="FAILED"
+  fi
+
+  # log query statistics
+  echo "${TABLE_PREFIX} ${successOrFail} exit code: ${QUERY_EXIT_CODE}" | tee -a "$LOG_FILE_NAME" 2>&1 
+  echo "${STARTDATE_EPOCH}|${STOPDATE_EPOCH}|${DIFF_ms}|${STARTDATE}|${STOPDATE}|${DURATION}|${QUERY_NAME}|${BIG_BENCH_SCALE_FACTOR}|${BIG_BENCH_BENCHMARK_PHASE}|${BIG_BENCH_STREAM_NUMBER}|${successOrFail}|${QUERY_EXIT_CODE}|${QUERY_HAS_RESULT}|${RESULT_FOLDER_HDFS_SIZE}" >> "${LOG_FILE_EXEC_TIMES}"
+
+  echo "time&status: ${LOG_FILE_EXEC_TIMES}" | tee -a "$LOG_FILE_NAME" 2>&1
+  echo "full log: $LOG_FILE_NAME" | tee -a "$LOG_FILE_NAME" 2>&1
+
   echo "results size (bytes): ${RESULT_FOLDER_HDFS_SIZE}" | tee -a "$LOG_FILE_NAME" 2>&1
   echo "to display: hadoop fs -cat $RESULT_DIR/*" | tee -a "$LOG_FILE_NAME" 2>&1
   echo "----- logs -----" | tee -a "$LOG_FILE_NAME" 2>&1
   echo "time&status: ${LOG_FILE_EXEC_TIMES}" | tee -a "$LOG_FILE_NAME" 2>&1
   echo "full log: $LOG_FILE_NAME" | tee -a "$LOG_FILE_NAME" 2>&1
   echo "=========================" | tee -a "$LOG_FILE_NAME" 2>&1
- 
- return ${QUERY_EXIT_CODE}
+
+ return "${QUERY_EXIT_CODE}"
 }

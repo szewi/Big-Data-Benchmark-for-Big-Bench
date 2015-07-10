@@ -1,72 +1,36 @@
-7,6,Toys & Games,Tools & Home Improvement,21777
-6,7,Tools & Home Improvement,Toys & Games,21777
-7,9,Toys & Games,Sports & Outdoors,24329
-9,7,Sports & Outdoors,Toys & Games,24329
-9,6,Sports & Outdoors,Tools & Home Improvement,24706
-6,9,Tools & Home Improvement,Sports & Outdoors,24706
-1,7,Home & Kitchen,Toys & Games,24983
-7,1,Toys & Games,Home & Kitchen,24983
-1,6,Home & Kitchen,Tools & Home Improvement,25006
-6,1,Tools & Home Improvement,Home & Kitchen,25006
-1,9,Home & Kitchen,Sports & Outdoors,27951
-9,1,Sports & Outdoors,Home & Kitchen,27951
-4,7,Clothing & Accessories,Toys & Games,30203
-7,4,Toys & Games,Clothing & Accessories,30203
-6,4,Tools & Home Improvement,Clothing & Accessories,30546
-4,6,Clothing & Accessories,Tools & Home Improvement,30546
-5,7,Electronics,Toys & Games,33206
-7,5,Toys & Games,Electronics,33206
-6,5,Tools & Home Improvement,Electronics,33443
-5,6,Electronics,Tools & Home Improvement,33443
-4,9,Clothing & Accessories,Sports & Outdoors,33883
-9,4,Sports & Outdoors,Clothing & Accessories,33883
-4,1,Clothing & Accessories,Home & Kitchen,34437
-1,4,Home & Kitchen,Clothing & Accessories,34437
-5,9,Electronics,Sports & Outdoors,36976
-9,5,Sports & Outdoors,Electronics,36976
-1,5,Home & Kitchen,Electronics,37750
-5,1,Electronics,Home & Kitchen,37750
-4,5,Clothing & Accessories,Electronics,46258
-5,4,Electronics,Clothing & Accessories,46258
-8,7,Movies & TV,Toys & Games,49640
-7,8,Toys & Games,Movies & TV,49640
-6,8,Tools & Home Improvement,Movies & TV,50032
-8,6,Movies & TV,Tools & Home Improvement,50032
-9,8,Sports & Outdoors,Movies & TV,55582
-8,9,Movies & TV,Sports & Outdoors,55582
-8,1,Movies & TV,Home & Kitchen,56619
-1,8,Home & Kitchen,Movies & TV,56619
-4,8,Clothing & Accessories,Movies & TV,69483
-8,4,Movies & TV,Clothing & Accessories,69483
-7,3,Toys & Games,Books,74805
-3,7,Books,Toys & Games,74805
-6,3,Tools & Home Improvement,Books,75341
-3,6,Books,Tools & Home Improvement,75341
-7,2,Toys & Games,Music,75617
-2,7,Music,Toys & Games,75617
-8,5,Movies & TV,Electronics,76075
-5,8,Electronics,Movies & TV,76075
-6,2,Tools & Home Improvement,Music,76285
-2,6,Music,Tools & Home Improvement,76285
-3,9,Books,Sports & Outdoors,83848
-9,3,Sports & Outdoors,Books,83848
-2,9,Music,Sports & Outdoors,84859
-9,2,Sports & Outdoors,Music,84859
-1,3,Home & Kitchen,Books,85365
-3,1,Books,Home & Kitchen,85365
-1,2,Home & Kitchen,Music,86382
-2,1,Music,Home & Kitchen,86382
-3,4,Books,Clothing & Accessories,104077
-4,3,Clothing & Accessories,Books,104077
-2,4,Music,Clothing & Accessories,105392
-4,2,Clothing & Accessories,Music,105392
-3,5,Books,Electronics,114116
-5,3,Electronics,Books,114116
-5,2,Electronics,Music,115508
-2,5,Music,Electronics,115508
-8,3,Movies & TV,Books,170909
-3,8,Books,Movies & TV,170909
-2,8,Music,Movies & TV,173121
-8,2,Movies & TV,Music,173121
-3,2,Books,Music,262009
-2,3,Music,Books,262009
+2,3,88360
+2,8,76966
+3,8,76802
+2,5,64196
+3,5,64085
+2,4,61222
+3,4,61123
+5,8,57811
+4,8,55224
+1,2,54313
+1,3,54228
+2,9,53688
+3,9,53610
+1,8,49185
+2,6,49120
+3,6,49025
+2,7,48786
+8,9,48727
+3,7,48707
+4,5,47231
+6,8,44722
+7,8,44368
+1,5,42216
+5,9,41934
+1,4,40615
+4,9,40093
+5,6,38602
+5,7,38335
+4,6,37058
+4,7,36720
+1,9,36179
+1,6,33199
+1,7,33088
+6,9,32988
+7,9,32719
+6,7,30197

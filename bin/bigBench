@@ -23,7 +23,10 @@ showGlobalHelp () {
   echo -e "-p\tbenchmark phase to use (default: $BIG_BENCH_DEFAULT_BENCHMARK_PHASE)"
   echo -e "-q\tquery number to run"
   echo -e "-s\tnumber of parallel streams (default: $BIG_BENCH_DEFAULT_NUMBER_OF_PARALLEL_STREAMS)"
-  echo -e "-t\tstream number for query run (default: $BIG_BENCH_DEFAULT_STREAM_NUMBER)"
+  # INTERNAL USE only
+  # The driver uses it to set the stream number of this run.
+  # option is recognized and works, but will not be shown in the help
+  #echo -e "-t\tstream number for query run (default: $BIG_BENCH_DEFAULT_STREAM_NUMBER)"
   echo -e "-v\tsql script for metastore population (default: $BIG_BENCH_POPULATE_METASTORE_FILE)"
   echo -e "-w\tsql script for metastore refresh (default: $BIG_BENCH_REFRESH_METASTORE_FILE)"
   echo -e "-y\tfile with additional user defined query parameters (global: $BIG_BENCH_QUERY_PARAMS_FILE)"
@@ -32,19 +35,11 @@ showGlobalHelp () {
   echo "Driver specific options:"
   echo -e "-a\tpretend command execution"
   echo -e "-b\tprint stdout of called bash scripts during execution"
-  echo -e "-c\tcleaning mode"
-  echo -e "-x\tperform query result verification"
-  echo -e "-1\tskip data generation phase"
-  echo -e "-2\tskip load test"
-  echo -e "-3\tskip power test"
-  echo -e "-4\tskip throughput test"
-  echo -e "-5\tskip first query run of throughput test"
-  echo -e "-6\tskip data refresh of throughput test"
-  echo -e "-7\tskip second query run of throughput test"
+  echo -e "-i\tphases the driver performs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
+  echo -e "-j\tqueries the driver runs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
   echo
   echo "List of available modules:"
   ls -1 "$BIG_BENCH_ENGINE_BIN_DIR"
-  #find "$BIG_BENCH_ENGINE_BIN_DIR" -type f -exec basename {} \;
   exit 0
 }
 
@@ -52,7 +47,7 @@ logEnvInformation ()
 {
   local ENV_INFO_FILE="$BIG_BENCH_LOGS_DIR/envInfo.log"
   [ ! -d "$BIG_BENCH_LOGS_DIR" ] && mkdir -p "$BIG_BENCH_LOGS_DIR"
-  [ ! -f "$ENV_INFO_FILE" ] && ( hadoop version; hadoop classpath; $BIG_BENCH_JAVA -version; ) > "$ENV_INFO_FILE" 2>&1
+  [ ! -f "$ENV_INFO_FILE" ] && ( hadoop version; hadoop classpath; "$BIG_BENCH_JAVA" -version; ) > "$ENV_INFO_FILE" 2>&1
 }
 
 runCmdWithErrorCheck () {
@@ -91,8 +86,6 @@ export BIG_BENCH_CONF_DIR="$BIG_BENCH_HOME/conf"
 export BIG_BENCH_DATA_GENERATOR_DIR="$BIG_BENCH_HOME/data-generator"
 export BIG_BENCH_TOOLS_DIR="$BIG_BENCH_HOME/tools"
 export BIG_BENCH_LOGS_DIR="$BIG_BENCH_HOME/logs"
-export BIG_BENCH_LOADING_STAGE_LOG="$BIG_BENCH_LOGS_DIR/populateMetastore.log"
-export BIG_BENCH_DATAGEN_STAGE_LOG="$BIG_BENCH_LOGS_DIR/dataGeneration.log"
 
 ## ===================================================
 ## Data generation options
@@ -144,7 +137,7 @@ shift
 export LIST_OF_USER_OPTIONS="$@"
 
 # parse remaining options
-while getopts ":d:D:e:f:hm:p:q:s:t:v:w:y:z:abcx1234567" OPT; do
+while getopts ":d:D:e:f:hm:p:q:s:t:v:w:y:z:abi:j:" OPT; do
   case "$OPT" in
     # script options
     d)
@@ -206,47 +199,19 @@ while getopts ":d:D:e:f:hm:p:q:s:t:v:w:y:z:abcx1234567" OPT; do
     # driver options
     a)
       #echo "-a was triggered, Parameter: $OPTARG" >&2
-      export PRETEND_MODE="1"
+      export USER_PRETEND_MODE="1"
     ;;
     b)
       #echo "-b was triggered, Parameter: $OPTARG" >&2
-      export PRINT_STD_OUT="1"
+      export USER_PRINT_STD_OUT="1"
     ;;
-    c)
-      #echo "-c was triggered, Parameter: $OPTARG" >&2
-      export CLEAN_MODE="1"
+    i)
+      #echo "-i was triggered, Parameter: $OPTARG" >&2
+      export USER_DRIVER_WORKLOAD="$OPTARG"
     ;;
-    x)
-      #echo "-x was triggered, Parameter: $OPTARG" >&2
-      USER_PERFORM_QUERY_RESULT_VERIFICATION="1"
-    ;;
-    1)
-      #echo "-1 was triggered, Parameter: $OPTARG" >&2
-      export SKIP_DATA_GENERATION="1"
-    ;;
-    2)
-      #echo "-2 was triggered, Parameter: $OPTARG" >&2
-      export SKIP_LOAD_TEST="1"
-    ;;
-    3)
-      #echo "-3 was triggered, Parameter: $OPTARG" >&2
-      export SKIP_POWER_TEST="1"
-    ;;
-    4)
-      #echo "-4 was triggered, Parameter: $OPTARG" >&2
-      export SKIP_THROUGHPUT_TEST="1"
-    ;;
-    5)
-      #echo "-5 was triggered, Parameter: $OPTARG" >&2
-      export SKIP_THROUGHPUT_TEST_FIRST_QUERY_RUN="1"
-    ;;
-    6)
-      #echo "-6 was triggered, Parameter: $OPTARG" >&2
-      export SKIP_THROUGHPUT_TEST_REFRESH="1"
-    ;;
-    7)
-      #echo "-7 was triggered, Parameter: $OPTARG" >&2
-      export SKIP_THROUGHPUT_TEST_SECOND_QUERY_RUN="1"
+    j)
+      #echo "-j was triggered, Parameter: $OPTARG" >&2
+      export USER_DRIVER_QUERIES_TO_RUN="$OPTARG"
     ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -262,8 +227,6 @@ done
 # remove options from parameter list
 shift $((OPTIND-1))
 
-#TODO test numbers
-
 # global shared variables
 export BIG_BENCH_DATABASE="${USER_DATABASE:-"$BIG_BENCH_DEFAULT_DATABASE"}"
 export BIG_BENCH_ENGINE="${USER_ENGINE:-"$BIG_BENCH_DEFAULT_ENGINE"}"
@@ -271,10 +234,10 @@ export BIG_BENCH_MAP_TASKS="${USER_MAP_TASKS:-"$BIG_BENCH_DEFAULT_MAP_TASKS"}"
 export BIG_BENCH_SCALE_FACTOR="${USER_SCALE_FACTOR:-"$BIG_BENCH_DEFAULT_SCALE_FACTOR"}"
 export BIG_BENCH_NUMBER_OF_PARALLEL_STREAMS="${USER_NUMBER_OF_PARALLEL_STREAMS:-"$BIG_BENCH_DEFAULT_NUMBER_OF_PARALLEL_STREAMS"}"
 export BIG_BENCH_BENCHMARK_PHASE="${USER_BENCHMARK_PHASE:-"$BIG_BENCH_DEFAULT_BENCHMARK_PHASE"}"
-export BIG_BENCH_STREAM_NUMBER="${USER_STREAM_NUMBER:-"$BIG_BENCH_DEFAULT_STREAM_NUMBER"}"
+export BIG_BENCH_STREAM_NUMBER="${USER_STREAM_NUMBER:-"0"}"
+
 export BIG_BENCH_ENGINE_DIR="$BIG_BENCH_HOME/engines/$BIG_BENCH_ENGINE"
 export BIG_BENCH_ENGINE_CONF_DIR="$BIG_BENCH_ENGINE_DIR/conf"
-export BIG_BENCH_QUERY_RESULT_VERIFICATION="${USER_PERFORM_QUERY_RESULT_VERIFICATION:-"$BIG_BENCH_PERFORM_QUERY_RESULT_VERIFICATION"}"
 
 # test if numeric values are indeed numeric
 if [ -n "`echo "$BIG_BENCH_MAP_TASKS" | sed -e 's/[0-9]*//g'`" ]
@@ -297,16 +260,8 @@ then
   echo "$BIG_BENCH_STREAM_NUMBER is not a number"
 fi
 
-[ -z "$PRETEND_MODE" ] && export PRETEND_MODE="0"
-[ -z "$PRINT_STD_OUT" ] && export PRINT_STD_OUT="0"
-[ -z "$CLEAN_MODE" ] && export CLEAN_MODE="0"
-[ -z "$SKIP_DATA_GENERATION" ] && export SKIP_DATA_GENERATION="0"
-[ -z "$SKIP_LOAD_TEST" ] && export SKIP_LOAD_TEST="0"
-[ -z "$SKIP_POWER_TEST" ] && export SKIP_POWER_TEST="0"
-[ -z "$SKIP_THROUGHPUT_TEST" ] && export SKIP_THROUGHPUT_TEST="0"
-[ -z "$SKIP_THROUGHPUT_TEST_FIRST_QUERY_RUN" ] && export SKIP_THROUGHPUT_TEST_FIRST_QUERY_RUN="0"
-[ -z "$SKIP_THROUGHPUT_TEST_REFRESH" ] && export SKIP_THROUGHPUT_TEST_REFRESH="0"
-[ -z "$SKIP_THROUGHPUT_TEST_SECOND_QUERY_RUN" ] && export SKIP_THROUGHPUT_TEST_SECOND_QUERY_RUN="0"
+export BIG_BENCH_LOADING_STAGE_LOG="$BIG_BENCH_LOGS_DIR/populateMetastore-${BIG_BENCH_BENCHMARK_PHASE}.log"
+export BIG_BENCH_DATAGEN_STAGE_LOG="$BIG_BENCH_LOGS_DIR/dataGeneration-${BIG_BENCH_BENCHMARK_PHASE}.log"
 
 ## ===================================================
 ## check for engine existence

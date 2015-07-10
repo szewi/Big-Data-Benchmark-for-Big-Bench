@@ -24,15 +24,8 @@ helpModule () {
   echo
   echo -e "-a\tpretend command execution"
   echo -e "-b\tprint stdout of called bash scripts during execution"
-  echo -e "-c\tcleaning mode"
-  echo -e "-x\tperform query result verification"
-  echo -e "-1\tskip data generation phase"
-  echo -e "-2\tskip load test"
-  echo -e "-3\tskip power test"
-  echo -e "-4\tskip throughput test"
-  echo -e "-5\tskip first query run of throughput test"
-  echo -e "-6\tskip data refresh of throughput test"
-  echo -e "-7\tskip second query run of throughput test"
+  echo -e "-i\tphases the driver performs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
+  echo -e "-j\tqueries the driver runs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
 }
 
 runModule () {
@@ -43,6 +36,6 @@ runModule () {
     return 1
   fi
 
-  runCmdWithErrorCheck $BIG_BENCH_JAVA -jar "${BIG_BENCH_TOOLS_DIR}/RunBigBench.jar"
+  runCmdWithErrorCheck "$BIG_BENCH_JAVA" -jar "${BIG_BENCH_TOOLS_DIR}/RunBigBench.jar"
   return $?
 }
