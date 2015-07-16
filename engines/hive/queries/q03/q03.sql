@@ -1,4 +1,3 @@
---"INTEL CONFIDENTIAL"
 --Copyright 2015  Intel Corporation All Rights Reserved.
 --
 --The source code contained or described herein and all documents related to the source code ("Material") are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with Intel Corporation or its suppliers and licensors. The Material contains trade secrets and proprietary and confidential information of Intel or its suppliers and licensors. The Material is protected by worldwide copyright and trade secret laws and treaty provisions. No part of the Material may be used, copied, reproduced, modified, published, uploaded, posted, transmitted, distributed, or disclosed in any way without Intel's prior express written permission.
@@ -34,17 +33,17 @@ SELECT lastviewed_item, purchased_item, count(*)
 FROM (
   FROM (
     SELECT
-      wcs_user_sk       AS user,
+      wcs_user_sk       AS u_sk,
       wcs_click_date_sk AS lastviewed_date,
       wcs_item_sk       AS lastviewed_item,
       wcs_sales_sk      AS lastviewed_sale
     FROM web_clickstreams w
     -- only select clickstreams resulting in a purchase user_sk = null -> only non buying visitor
     WHERE wcs_user_sk IS NOT NULL
-    CLUSTER BY user
+    CLUSTER BY u_sk
   ) q03_map_output
   REDUCE
-  q03_map_output.user,
+  q03_map_output.u_sk,
   q03_map_output.lastviewed_date,
   q03_map_output.lastviewed_item,
   q03_map_output.lastviewed_sale
