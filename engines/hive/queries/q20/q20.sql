@@ -41,13 +41,14 @@ STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}';
 INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
 SELECT
   cid,
-  100.0 * COUNT(distinct (CASE WHEN r_date IS NOT NULL THEN oid ELSE 0L END)) / COUNT(distinct oid) AS r_order_ratio,
+  CASE WHEN SUM(r_date_is_null_flag)=0 THEN (100.0 * COUNT(distinct (CASE WHEN r_date IS NOT NULL THEN oid ELSE 0L END))/ COUNT(distinct oid)) ELSE (100.0 * (COUNT(distinct (CASE WHEN r_date IS NOT NULL THEN oid ELSE 0L END)) - 1)/ COUNT(distinct oid)) END AS r_order_ratio,
   SUM(CASE WHEN r_date IS NOT NULL THEN 1 ELSE 0 END) / COUNT(item) * 100 AS r_item_ratio,
   CASE WHEN SUM(s_amount)=0.0 THEN 0.0 ELSE (SUM(CASE WHEN r_date IS NOT NULL THEN r_amount ELSE 0.0 END) / SUM(s_amount) * 100) END AS r_amount_ratio,
-  COUNT(distinct (CASE WHEN r_date IS NOT NULL THEN r_date ELSE 0L END)) AS r_freq
+  CASE WHEN SUM(r_date_is_null_flag)=0 THEN (COUNT(distinct (CASE WHEN r_date IS NOT NULL THEN r_date ELSE 0L END))) ELSE ((COUNT(distinct (CASE WHEN r_date IS NOT NULL THEN r_date ELSE 0L END))) - 1) END AS r_freq
 FROM (
   SELECT --s.ss_sold_date_sk AS s_date, --
     r.sr_returned_date_sk AS r_date,
+    CASE WHEN r.sr_returned_date_sk IS NULL THEN 1 ELSE 0 END AS r_date_is_null_flag,
     s.ss_item_sk AS item,
     s.ss_ticket_number AS oid,
     s.ss_net_paid AS s_amount,
