@@ -24,8 +24,8 @@ DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
   w_state      STRING,
   i_item_id    STRING,
-  sales_before DOUBLE,
-  sales_after  DOUBLE
+  sales_before decimal(15,2),
+  sales_after  decimal(15,2)
 )
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}';
