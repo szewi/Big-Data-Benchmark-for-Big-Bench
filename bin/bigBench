@@ -111,6 +111,7 @@ export BIG_BENCH_DATAGEN_HDFS_SITE="$BIG_BENCH_HADOOP_CONF/hdfs-site.xml"
 ## ===================================================
 find "$BIG_BENCH_HOME" -name '*.sh' -exec chmod 755 {} +
 find "$BIG_BENCH_HOME" -name '*.jar' -exec chmod 755 {} +
+find "$BIG_BENCH_HOME" -name '*.py' -exec chmod 755 {} +
 
 ## ===================================================
 ## source user configurable settings
