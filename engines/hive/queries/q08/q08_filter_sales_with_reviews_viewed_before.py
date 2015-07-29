@@ -13,67 +13,35 @@ import time
 from time import strftime
 
 category=sys.argv[1] 
-
-'''
-To test this script exec:
-#intput format tab separated with \t: uid\tc_date\tc_time\tsales_sk\twpt
-echo -e "1\t1234\t1234\t1234\treview
-1\t1235\t1235\t1234\treview
-2\t1234\t1234\t234\treview
-2\t1235\t1235\t234\treview" | python q8_reducer.py "review"
-'''
-
-def npath(vals):
-	#vals ((int(c_date), int(c_time),sales_sk, wpt)
-	vals.sort()
-	ready = 0
-	for val in vals:
-		if ready == 0 and val[3] == category:
-			ready = 1
-			continue
-		
-		if ready == 1 and val[2] != '\N':
-			c_date = val[0]
-			sales_sk= val[2]
-			print "%s\t%s" % (c_date, sales_sk)
-			ready = 0
+days_before_sale = long(sys.argv[2])
+	
 
 if __name__ == "__main__":
 	line = ''
 	try:
 		current_key = ''
-		vals = []
-		#partition by uid
-		#order by c_date, c_time
-		#The plan: create an vals[] per uid, with layout (c_date, c_time, sales_sk, wpt)
+		last_review_date=-1
+		#expects input to be partitioned by uid and sorted by date_sk (and timestamp) ascending
+
 		
 		for line in sys.stdin:
-			#print("line:" + line + "\n")
-			uid, c_date, c_time, sales_sk, wpt = line.strip().split("\t")
+			uid, date_sk_str, sales_sk, wpt = line.strip().split("\t")
 
-			#ignore date time parsing errors
-			try:
-				c_date = int(c_date)
-				c_time = int(c_time)
-			except ValueError:
-				c_date = -1
-				c_time = -1
+			#reset on partition change
+			if current_key != uid :
+				current_key = uid
+				last_review_date = -1
+				
+			date_sk = int(date_sk_str)
+				
+			#found review before purchase, save last review date
+			if wpt == category:
+				last_review_date = date_sk
 				continue
-
-			if current_key == '' :
-				current_key = uid
-				vals.append((c_date, c_time, sales_sk, wpt))
-
-			elif current_key == uid :
-				vals.append((c_date, c_time, sales_sk, wpt))
-
-			elif current_key != uid :
-				npath(vals)
-				vals = []
-				current_key = uid
-				vals.append((c_date, c_time, sales_sk, wpt))
-
-		npath(vals)
+			
+			if last_review_date > 0  and sales_sk != '\N' and (date_sk - last_review_date) <= days_before_sale :
+				print sales_sk
+				last_review_date = -1
 
 	except:
 	 ## should only happen if input format is not correct, like 4 instead of 5 tab separated values
@@ -81,4 +49,5 @@ if __name__ == "__main__":
 		logging.info('category: ' +category )
 		logging.info("line from hive: \"" + line + "\"")
 		logging.exception("Oops:")
+		raise
 		sys.exit(1)

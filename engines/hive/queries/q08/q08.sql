@@ -7,13 +7,14 @@
 
 
 --For online sales, compare the total sales in which customers checked
---online reviews before making the purchase and that of sales in which customers
+--online reviews 10 days before making the purchase and that of sales in which customers
 --did not read reviews. Consider only online sales for a specific category in a given
 --year.
 
 -- Resources
-ADD FILE ${hiveconf:QUERY_DIR}/q8_reducer.py;
+ADD FILE ${hiveconf:QUERY_DIR}/q08_filter_sales_with_reviews_viewed_before.py;
 
+--DateFilter
 CREATE VIEW IF NOT EXISTS ${hiveconf:TEMP_TABLE1} AS
 SELECT d_date_sk
 FROM date_dim d
@@ -25,33 +26,30 @@ AND   d.d_date <= '${hiveconf:q08_endDate}'
 --PART 1 - sales that users have viewed the review pages--------------------------------------------------------
 DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE2};
 CREATE VIEW IF not exists ${hiveconf:TEMP_TABLE2} AS
-SELECT DISTINCT s_sk
+SELECT DISTINCT wcs_sales_sk
 FROM (
   FROM (
-    SELECT
-      c.wcs_user_sk       AS uid,
-      c.wcs_click_date_sk AS c_date,
-      c.wcs_click_time_sk AS c_time,
-      c.wcs_sales_sk      AS sales_sk,
-      w.wp_type           AS wpt
-    FROM web_clickstreams c
-    JOIN ${hiveconf:TEMP_TABLE1} d ON (c.wcs_click_date_sk = d.d_date_sk)
-    INNER JOIN web_page w ON c.wcs_web_page_sk = w.wp_web_page_sk
-    WHERE c.wcs_user_sk IS NOT NULL
-    CLUSTER BY uid
+    SELECT  wcs_user_sk     , 
+            wcs_click_date_sk,  
+            wcs_sales_sk     ,
+            wp_type          
+    FROM web_clickstreams 
+    JOIN ${hiveconf:TEMP_TABLE1} d ON (wcs_click_date_sk = d.d_date_sk)
+    INNER JOIN web_page w ON wcs_web_page_sk = w.wp_web_page_sk
+    WHERE wcs_user_sk IS NOT NULL
+    DISTRIBUTE BY wcs_user_sk SORT BY wcs_click_date_sk --ignore time, wcs_click_time_sk -- cluster by uid and sort by tstamp required by follwing python script
   ) q08_map_output
-  REDUCE q08_map_output.uid,
-    q08_map_output.c_date,
-    q08_map_output.c_time,
-    q08_map_output.sales_sk,
-    q08_map_output.wpt
-  USING 'python q8_reducer.py ${hiveconf:q08_category}'
-  AS (s_date BIGINT, s_sk BIGINT)
-) q08npath
+  REDUCE  wcs_user_sk,
+          wcs_click_date_sk,
+          wcs_sales_sk,
+          wp_type
+  USING 'python q08_filter_sales_with_reviews_viewed_before.py ${hiveconf:q08_category} ${hiveconf:q08_days_before_purchase}'
+  AS (wcs_sales_sk BIGINT)
+) sales_which_read_reviews
 ;
 
 
---PART 2 - helper table: sales within one year starting 1999-09-02  ---------------------------------------
+--PART 2 - helper table: sales within one year  ---------------------------------------
 DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE3};
 CREATE VIEW IF NOT EXISTS ${hiveconf:TEMP_TABLE3} AS
 SELECT ws_net_paid, ws_order_number
@@ -68,8 +66,8 @@ set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
-  q08_review_sales_amount    DOUBLE,
-  no_q08_review_sales_amount DOUBLE
+  q08_review_sales_amount    decimal(15,2),
+  no_q08_review_sales_amount decimal(15,2)
 )
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}';
@@ -81,12 +79,12 @@ SELECT
   q08_all_sales.amount - q08_review_sales.amount AS no_q08_review_sales_amount
 FROM (
   SELECT 1 AS id, SUM(ws_net_paid) as amount
-  FROM ${hiveconf:TEMP_TABLE3} ws
-  INNER JOIN ${hiveconf:TEMP_TABLE2} sr ON ws.ws_order_number = sr.s_sk
+  FROM ${hiveconf:TEMP_TABLE3} webSalesInDateRange
+  INNER JOIN ${hiveconf:TEMP_TABLE2} reviewedBeforePurchase ON webSalesInDateRange.ws_order_number = reviewedBeforePurchase.wcs_sales_sk
 ) q08_review_sales
 JOIN (
   SELECT 1 AS id, SUM(ws_net_paid) as amount
-  FROM ${hiveconf:TEMP_TABLE3} ws
+  FROM ${hiveconf:TEMP_TABLE3} webSalesInDateRange
 )  q08_all_sales
 ON q08_review_sales.id = q08_all_sales.id
 ;
