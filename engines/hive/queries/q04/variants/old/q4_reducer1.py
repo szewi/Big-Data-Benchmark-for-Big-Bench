@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 #"INTEL CONFIDENTIAL"
 #Copyright 2015  Intel Corporation All Rights Reserved. 
 #
@@ -7,38 +5,41 @@
 #
 #No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
-# define used temp tables
-TEMP_TABLE1="${TEMP_TABLE}_1"
+import sys
+
+timeout = long(sys.argv[1])
+
+def sessionize(vals):
+	session = 1
+	vals.sort()
+	cur_time = vals[0][0]
+	for tup in vals:
+		if tup[0] - cur_time > timeout:
+			session += 1
+		cur_time = tup[0]
+		print "%s\t%s\t%s\t%s\t%s" % (tup[1], tup[2], tup[3], tup[0], tup[1]+'_'+str(session))
 
 
-BINARY_PARAMS="$BINARY_PARAMS --hiveconf TEMP_TABLE1=$TEMP_TABLE1 "
+if __name__ == "__main__":
+	
+	current_key = ''
+	vals = []
 
-query_run_main_method () {
-	QUERY_SCRIPT="$QUERY_DIR/$QUERY_NAME.sql"
-	if [ ! -r "$QUERY_SCRIPT" ]
-	then
-		echo "SQL file $QUERY_SCRIPT can not be read."
-		exit 1
-	fi
+	for line in sys.stdin:
+		key, val1, val2, val3 = line.strip().split("\t")
 
-	runCmdWithErrorCheck runEngineCmd -f "$QUERY_SCRIPT"
-	return $?
-}
+		if current_key == '' :
+			current_key = key
+			vals.append((int(val3), key, val1, val2))
 
-query_run_clean_method () {
-	runCmdWithErrorCheck runEngineCmd -e "DROP VIEW IF EXISTS $TEMP_TABLE1; DROP TABLE IF EXISTS $RESULT_TABLE;"
-	return $?
+		elif current_key == key:
+			vals.append((int(val3), key, val1, val2))
 
-}
+		elif current_key != key:
+			sessionize(vals)
+			vals = []
+			current_key = key
+			vals.append((int(val3), key, val1, val2))
 
-query_run_validate_method () {
-	VALIDATION_TEMP_DIR="`mktemp -d`"
-	runCmdWithErrorCheck runEngineCmd -e "INSERT OVERWRITE LOCAL DIRECTORY '$VALIDATION_TEMP_DIR' SELECT * FROM $RESULT_TABLE LIMIT 10;"
-	if [ `wc -l < "$VALIDATION_TEMP_DIR/000000_0"` -ge 1 ]
-	then
-		echo "Validation passed: Query returned results"
-	else
-		echo "Validation failed: Query did not return results"
-	fi
-	rm -rf "$VALIDATION_TEMP_DIR"
-}
+	sessionize(vals)	
+	

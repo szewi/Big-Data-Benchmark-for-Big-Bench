@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 #"INTEL CONFIDENTIAL"
 #Copyright 2015  Intel Corporation All Rights Reserved. 
 #
@@ -7,38 +5,42 @@
 #
 #No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
-# define used temp tables
-TEMP_TABLE1="${TEMP_TABLE}_1"
+import sys
 
+def npath(vals):
+	vals.sort()
+	last_order = -1
+	last_dynamic = -1
+	for i in range(len(vals)):
+		if vals[i][3] == 'order':
+			last_order = i
+		if vals[i][3] == 'dynamic':
+			last_dynamic = i 
+	
+	if last_dynamic > last_order:	
+		print "%s\t%s\t%s" % (vals[last_order+1][4], str(vals[last_order+1][0]), str(vals[-1][0]))
+	
 
-BINARY_PARAMS="$BINARY_PARAMS --hiveconf TEMP_TABLE1=$TEMP_TABLE1 "
+if __name__ == "__main__":
+	
+	current_key = ''
+	vals = []
 
-query_run_main_method () {
-	QUERY_SCRIPT="$QUERY_DIR/$QUERY_NAME.sql"
-	if [ ! -r "$QUERY_SCRIPT" ]
-	then
-		echo "SQL file $QUERY_SCRIPT can not be read."
-		exit 1
-	fi
+	for line in sys.stdin:
+		val1, val2, val3, val4, key = line.strip().split("\t")
 
-	runCmdWithErrorCheck runEngineCmd -f "$QUERY_SCRIPT"
-	return $?
-}
+		if current_key == '' :
+			current_key = key
+			vals.append((int(val4), val1, val2, val3, key))
 
-query_run_clean_method () {
-	runCmdWithErrorCheck runEngineCmd -e "DROP VIEW IF EXISTS $TEMP_TABLE1; DROP TABLE IF EXISTS $RESULT_TABLE;"
-	return $?
+		elif current_key == key:
+			vals.append((int(val4), val1, val2, val3, key))
 
-}
+		elif current_key != key:
+			npath(vals)
+			vals = []
+			current_key = key
+			vals.append((int(val4), val1, val2, val3, key))
 
-query_run_validate_method () {
-	VALIDATION_TEMP_DIR="`mktemp -d`"
-	runCmdWithErrorCheck runEngineCmd -e "INSERT OVERWRITE LOCAL DIRECTORY '$VALIDATION_TEMP_DIR' SELECT * FROM $RESULT_TABLE LIMIT 10;"
-	if [ `wc -l < "$VALIDATION_TEMP_DIR/000000_0"` -ge 1 ]
-	then
-		echo "Validation passed: Query returned results"
-	else
-		echo "Validation failed: Query did not return results"
-	fi
-	rm -rf "$VALIDATION_TEMP_DIR"
-}
+	npath(vals)	
+	

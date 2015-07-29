@@ -11,16 +11,7 @@
 --number of pages they visited during their sessions.
 
 --IMPLEMENTATION NOTICE
--- The difficulty is to reconstruct a users browsing session from the web_clickstreams  table
--- There are are several ways to to "sessionize", common to all is the creation of a unique virtual time stamp from the date and time serial
--- key's as we know they are both strictly monotonic increasing in order of time: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk implemented is way A)
--- Implemented is way B)
--- A) sessionizeusing SQL-windowing functions => partition by user and  sort by virtual time stamp. 
---    Step1: compute time difference to preceding click_session
---    Step2: compute session id per user by defining a session as: clicks no father apart then q02_session_timeout_inSec
---    Step3: make unique session identifier <user_sk>_<user_session_ID>
--- B) sessionize by clustering on user_sk and sorting by virtual time stamp then feeding the output through a external reducer script
---    which linearly iterates over the rows,  keeps track of session id's per user based on the specified session timeout and makes the unique session identifier <user_sk>_<user_seesion_ID>
+
 
 -- Resources
 ADD FILE ${hiveconf:QUERY_DIR}/q4_abandonedShoppingCarts.py;
@@ -44,7 +35,7 @@ FROM
 	WHERE c.wcs_web_page_sk = w.wp_web_page_sk  
 	AND   c.wcs_web_page_sk IS NOT NULL
 	AND   c.wcs_user_sk     IS NOT NULL
-	DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec -- "sessionize" reducer script requires the cluster by wcs_user_sk and sort by tstamp
+	DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec -- "q4_sessionize" reducer script requires the cluster by wcs_user_sk and sort by tstamp
   ) clicksAnWebPageType
   REDUCE
     wcs_user_sk,
@@ -53,10 +44,10 @@ FROM
   USING 'python q4_sessionize.py ${hiveconf:q04_session_timeout_inSec}'
   AS (
     wp_type STRING,
-    --tstamp BIGINT,
+    tstamp BIGINT,
     sessionid STRING)
 ) q04_tmp_sessionize
-DISTRIBUTE BY sessionid SORT BY sessionid  --required by "abandonment analysis script"
+DISTRIBUTE BY sessionid SORT BY sessionid, tstamp  --required by "abandonment analysis script"
 ;
 
 

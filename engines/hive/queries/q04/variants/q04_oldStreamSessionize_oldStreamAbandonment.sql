@@ -11,20 +11,11 @@
 --number of pages they visited during their sessions.
 
 --IMPLEMENTATION NOTICE
--- The difficulty is to reconstruct a users browsing session from the web_clickstreams  table
--- There are are several ways to to "sessionize", common to all is the creation of a unique virtual time stamp from the date and time serial
--- key's as we know they are both strictly monotonic increasing in order of time: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk implemented is way A)
--- Implemented is way B)
--- A) sessionizeusing SQL-windowing functions => partition by user and  sort by virtual time stamp. 
---    Step1: compute time difference to preceding click_session
---    Step2: compute session id per user by defining a session as: clicks no father apart then q02_session_timeout_inSec
---    Step3: make unique session identifier <user_sk>_<user_session_ID>
--- B) sessionize by clustering on user_sk and sorting by virtual time stamp then feeding the output through a external reducer script
---    which linearly iterates over the rows,  keeps track of session id's per user based on the specified session timeout and makes the unique session identifier <user_sk>_<user_seesion_ID>
+
 
 -- Resources
-ADD FILE ${hiveconf:QUERY_DIR}/q4_abandonedShoppingCarts.py;
-ADD FILE ${hiveconf:QUERY_DIR}/q4_sessionize.py;
+ADD FILE ${hiveconf:QUERY_DIR}/q4_reducer1.py;
+ADD FILE ${hiveconf:QUERY_DIR}/q4_reducer2.py;
 --set hive.exec.parallel = true;
 
 
@@ -50,13 +41,13 @@ FROM
     wcs_user_sk,
     tstamp_inSec,
     wp_type
-  USING 'python q4_sessionize.py ${hiveconf:q04_session_timeout_inSec}'
+  USING 'python q4_reducer1.py ${hiveconf:q04_session_timeout_inSec}'
   AS (
     wp_type STRING,
-    --tstamp BIGINT,
+    tstamp BIGINT,
     sessionid STRING)
 ) q04_tmp_sessionize
-DISTRIBUTE BY sessionid SORT BY sessionid  --required by "abandonment analysis script"
+DISTRIBUTE BY sessionid SORT BY sessionid, tstamp  --required by "abandonment analysis script"
 ;
 
 
@@ -80,12 +71,9 @@ FROM (
   FROM ${hiveconf:TEMP_TABLE1} abbandonedSessions
   REDUCE 
     wp_type,
-    --tstamp, --allready sorted by timestamp
-    sessionid -- but we still need the sessionid within the script to identify session boundaries
-	
-  -- script requires input tuples to be grouped by sessionid and ordered by timestamp ascencding.
-  -- output one tuple: <pagecount> if a session's shopping cart is abandoned, else: nothing
-  USING 'python q4_abandonedShoppingCarts.py' AS ( pagecount BIGINT)
+    tstamp,
+    sessionid
+  USING 'python q4_reducer2.py' AS (sessionid STRING, pagecount BIGINT)
 )  abandonedShoppingCartsPageCounts
 ;
 

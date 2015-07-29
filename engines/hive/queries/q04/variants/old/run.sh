@@ -8,10 +8,10 @@
 #No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
 # define used temp tables
-TEMP_TABLE1="${TEMP_TABLE}_1"
+TEMP_TABLE1="${TEMP_TABLE}_sessions"
+TEMP_TABLE2="${TEMP_TABLE}_cart_abandon"
 
-
-BINARY_PARAMS="$BINARY_PARAMS --hiveconf TEMP_TABLE1=$TEMP_TABLE1 "
+BINARY_PARAMS="$BINARY_PARAMS --hiveconf TEMP_TABLE1=$TEMP_TABLE1 --hiveconf TEMP_TABLE2=$TEMP_TABLE2"
 
 query_run_main_method () {
 	QUERY_SCRIPT="$QUERY_DIR/$QUERY_NAME.sql"
@@ -26,7 +26,7 @@ query_run_main_method () {
 }
 
 query_run_clean_method () {
-	runCmdWithErrorCheck runEngineCmd -e "DROP VIEW IF EXISTS $TEMP_TABLE1; DROP TABLE IF EXISTS $RESULT_TABLE;"
+	runCmdWithErrorCheck runEngineCmd -e "DROP VIEW IF EXISTS $TEMP_TABLE1; DROP VIEW IF EXISTS $TEMP_TABLE2; DROP TABLE IF EXISTS $RESULT_TABLE;"
 	return $?
 
 }
