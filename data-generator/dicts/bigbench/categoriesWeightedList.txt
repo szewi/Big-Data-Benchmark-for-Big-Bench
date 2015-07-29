@@ -22,6 +22,19 @@ add ("Toys & Games", "7": 1 , 53600);
 add ("Movies & TV", "8": 1 , 212836);
 add ("Sports & Outdoors", "9": 1 , 68293);
 
+
+
+--accumulated weights per major categories in subcategories -- different from list "maincategories"
+--Home & Kitchen            78493
+--Music                   1280336
+--Books                    849342
+--Clothing & Accessories   102710
+--Electronics              112194
+--Tools & Home Improvement  62626
+--Toys & Games              60509
+--Movies & TV              213030
+--Sports & Outdoor          73584
+
 create subcategories;
 set types = (varchar, int, varchar, int, varchar);
 set weights = 2;
