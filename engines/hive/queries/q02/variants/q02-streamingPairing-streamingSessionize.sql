@@ -13,7 +13,7 @@
 --IMPLEMENTATION NOTICE:
 -- "Market basket analysis"   
 -- First difficult part is to create pairs of "viewed together" items within one sale
--- There are are several ways to to "basketing", implemented is way A)
+-- There are are several ways to to "basketing", implemented is way B)
 -- A) collect all pairs per session (same sales_sk) in list and employ a UDF'S to produce pairwise combinations of all list elements
 -- B) distribute by sales_sk end employ reducer streaming script to aggregate all items per session and produce the pairs
 -- C) pure SQL: produce pairings by self joining on sales_sk and filtering out left.item_sk < right.item_sk
@@ -31,8 +31,7 @@
 
 
 -- Resources
-ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
-CREATE TEMPORARY FUNCTION makePairs AS 'io.bigdatabenchmark.v1.queries.udf.PairwiseUDTF';
+ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
 ADD FILE ${hiveconf:QUERY_DIR}/q2-sessionize.py;
 
 
@@ -64,7 +63,6 @@ FROM
     wcs_item_sk BIGINT,
     sessionid STRING)
 ) q02_tmp_sessionize
-Cluster by sessionid
 ;
 
 
@@ -87,17 +85,15 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
 SELECT  item_sk_1, item_sk_2, COUNT (*) AS cnt
 FROM (
-  --Make item "viewed together" pairs
-	-- combining collect_set + sorting + makepairs(array, noSelfParing) 
-	-- ensuers we get no pairs with swapped places like: (12,24),(24,12). 
+    -- no pairs with swapped places like: (12,24),(24,12). 
 	-- We only produce tuples (12,24) ensuring that the smaller number is allways on the left side
-    SELECT makePairs(sort_array(itemArray), false) AS (item_sk_1,item_sk_2)
-	FROM (
-		SELECT collect_set(wcs_item_sk) as itemArray --(_list= with dupplicates, _set = distinct)
-		FROM  ${hiveconf:TEMP_TABLE}
-		GROUP BY sessionid
-		HAVING array_contains(itemArray,  cast(${hiveconf:q02_item_sk} as BIGINT) ) -- eager filter out groups that dont contain the searched item
-	) collectedList
+    SELECT wcs_item_sk,sessionid
+    FROM ${hiveconf:TEMP_TABLE}
+    DISTRIBUTE BY sessionid SORT BY sessionid, wcs_item_sk --reducer scripts requires "partitioning by cid" NOTE: we dont care for dupplicates. If we did, we would have to re-construct the session first and only remove dupplicates within a session. Also we dont distinguisch between "purchased" and viewed, as we assume that a purchased items counts as viewed
+  ) q02_map_output
+  REDUCE sessionid, wcs_item_sk
+  USING '${env:BIG_BENCH_JAVA} ${env:BIG_BENCH_java_child_process_xmx} -cp bigbenchqueriesmr.jar io.bigdatabenchmark.v1.queries.q02.Red -ITEM_SET_MAX ${hiveconf:q02_MAX_ITEMS_PER_BASKET} '
+  AS (item_sk_1 BIGINT, item_sk_2 BIGINT)
 ) pairs
 WHERE (   item_sk_1 = ${hiveconf:q02_item_sk}  --Note that the order of products viewed does not matter,
        OR item_sk_2 = ${hiveconf:q02_item_sk}

@@ -21,7 +21,7 @@
 -- The second difficulty is to reconstruct a users browsing session from the web_clickstreams  table
 -- There are are several ways to to "sessionize", common to all is the creation of a unique virtual time stamp from the date and time serial
 -- key's as we know they are both strictly monotonic increasing in order of time: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk implemented is way A)
--- Implemented is way B)
+-- Implemented is way A)
 -- A) sessionizeusing SQL-windowing functions => partition by user and  sort by virtual time stamp. 
 --    Step1: compute time difference to preceding click_session
 --    Step2: compute session id per user by defining a session as: clicks no father apart then q02_session_timeout_inSec
@@ -33,39 +33,38 @@
 -- Resources
 ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
 CREATE TEMPORARY FUNCTION makePairs AS 'io.bigdatabenchmark.v1.queries.udf.PairwiseUDTF';
-ADD FILE ${hiveconf:QUERY_DIR}/q2-sessionize.py;
 
 
--- SESSIONZIE by streaming
+
+
+-- SESSIONZIE by emplyoing windowing functions. 
 -- Step1: compute time difference to preceeding click_session
 -- Step2: compute session id per user by defining a session as: clicks no father apppart then q02_session_timeout_inSec
 -- Step3: make unique session identifier <user_sk>_<user_seesion_ID>
-DROP view IF EXISTS ${hiveconf:TEMP_TABLE};
-CREATE view ${hiveconf:TEMP_TABLE} AS
-SELECT *
-FROM 
-(
-  FROM 
-  (
-	SELECT 	wcs_user_sk ,
-			wcs_item_sk, 
-			(wcs_click_date_sk*24*60*60 + wcs_click_time_sk) AS tstamp_inSec 
-	FROM web_clickstreams
-	WHERE wcs_item_sk IS NOT NULL 
-	AND   wcs_user_sk IS NOT NULL
-	DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec -- "sessionize" reducer script requires the cluster by uid and sort by tstamp
-  ) clicksAnWebPageType
-  REDUCE
-    wcs_user_sk,
-    tstamp_inSec,
-    wcs_item_sk
-  USING 'python q2-sessionize.py ${hiveconf:q02_session_timeout_inSec}'
-  AS (
-    wcs_item_sk BIGINT,
-    sessionid STRING)
-) q02_tmp_sessionize
-Cluster by sessionid
+drop view if exists ${hiveconf:TEMP_TABLE};
+create  view  ${hiveconf:TEMP_TABLE} AS
+--step 3:
+select 	wcs_item_sk,
+		concat(wcs_user_sk, '-', s_sum) AS sessionid
+from 
+(	--step2:
+	select *, sum( (case when timediff > ${hiveconf:q02_session_timeout_inSec} then 1 else 0 end) ) over (partition by wcs_user_sk order by tstamp_inSec asc rows between unbounded preceding and current row) AS s_sum
+	from 
+	(	-- step1:
+		select	*, tstamp_inSec - lag(tstamp_inSec, 1, 0) over (partition by wcs_user_sk	order by tstamp_inSec asc)  AS timediff
+		from 
+		(		-- make timestamp and select valid user sessions			
+				SELECT 	wcs_user_sk ,
+						wcs_item_sk, 
+						(wcs_click_date_sk*24*60*60 + wcs_click_time_sk) AS tstamp_inSec 
+				FROM web_clickstreams
+				WHERE wcs_item_sk IS NOT NULL 
+				AND   wcs_user_sk IS NOT NULL
+		) clicks_and_timestamp
+	) clicks_and_timestamp_diff_timeout 
+)clicks_and_timestamp_create_sessionid
 ;
+
 
 
 --Result -------------------------------------------------------------------------
@@ -97,7 +96,7 @@ FROM (
 		FROM  ${hiveconf:TEMP_TABLE}
 		GROUP BY sessionid
 		HAVING array_contains(itemArray,  cast(${hiveconf:q02_item_sk} as BIGINT) ) -- eager filter out groups that dont contain the searched item
-	) collectedList
+	) viewedItemsArray
 ) pairs
 WHERE (   item_sk_1 = ${hiveconf:q02_item_sk}  --Note that the order of products viewed does not matter,
        OR item_sk_2 = ${hiveconf:q02_item_sk}

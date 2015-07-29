@@ -64,8 +64,7 @@ FROM
     wcs_item_sk BIGINT,
     sessionid STRING)
 ) q02_tmp_sessionize
-Cluster by sessionid
-;
+Cluster by sessionid;
 
 
 --Result -------------------------------------------------------------------------
@@ -97,7 +96,7 @@ FROM (
 		FROM  ${hiveconf:TEMP_TABLE}
 		GROUP BY sessionid
 		HAVING array_contains(itemArray,  cast(${hiveconf:q02_item_sk} as BIGINT) ) -- eager filter out groups that dont contain the searched item
-	) collectedList
+	) viewedItemsArray
 ) pairs
 WHERE (   item_sk_1 = ${hiveconf:q02_item_sk}  --Note that the order of products viewed does not matter,
        OR item_sk_2 = ${hiveconf:q02_item_sk}
