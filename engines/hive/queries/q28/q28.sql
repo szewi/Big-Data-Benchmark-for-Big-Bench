@@ -42,6 +42,7 @@ SELECT
   pr_review_content
 FROM product_reviews
 WHERE pmod(pr_review_sk, 5) IN (1,2,3)
+CLUSTER BY pr_review_sk
 --limit 10000
 ;
 
@@ -73,5 +74,6 @@ SELECT
   pr_review_content
 FROM product_reviews
 WHERE pmod(pr_review_sk, 5) in (0,4)
+CLUSTER BY pr_review_sk
 --limit 10000
 ;
