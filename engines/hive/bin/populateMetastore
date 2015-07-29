@@ -36,10 +36,10 @@ runModule () {
   echo "Adding/Updating generated files to hive metastore"
   echo "==============================================="
 
- local LOG_FILE_EXEC_TIMES=${BIG_BENCH_LOGS_DIR}/times.csv
+  local LOG_FILE_EXEC_TIMES=${BIG_BENCH_LOGS_DIR}/times.csv
   if [ ! -e "$LOG_FILE_EXEC_TIMES" ] ; then
     touch "$LOG_FILE_EXEC_TIMES"
-    echo "STARTDATE_EPOCH|STOPDATE_EPOCH|DURATION_MS|STARTDATE|STOPDATE|DURATION|QUERY|BENCHMARK_PHASE|STREAM|SUCCESSFUL|EXIT_CODE" >> ${LOG_FILE_EXEC_TIMES}
+    echo "STARTDATE_EPOCH|STOPDATE_EPOCH|DURATION_MS|STARTDATE|STOPDATE|DURATION|QUERY|SCALE_FACTOR|BENCHMARK_PHASE|STREAM|SUCCESSFUL|EXIT_CODE|HAS_RESULT|HDFS_SIZE" >> ${LOG_FILE_EXEC_TIMES}
   fi
 
   if [ ! -w "$LOG_FILE_EXEC_TIMES" ] ; then
@@ -56,6 +56,12 @@ runModule () {
   populateMetastore 2>&1 | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
   local EXIT_CODE=${PIPESTATUS[0]};
 
+  local successOrFail="SUCCESS"
+  if [[ $EXIT_CODE -ne 0 ]]
+  then
+    successOrFail="FAILED"
+  fi
+  
   local STOPDATE="`date +%Y/%m/%d:%H:%M:%S`"
   local STOPDATE_EPOCH="`date +%s`" # seconds since epoch
   local DIFF_s=$(($STOPDATE_EPOCH-$STARTDATE_EPOCH))
@@ -67,16 +73,10 @@ runModule () {
   echo "Stop  timestamp: $STOPDATE $STOPDATE_EPOCH" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
   echo "Duration:  $DURATION" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
   echo "----- result -----" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
-  
-  local sucessStatus="SUCCESS"
-  if [[ $EXIT_CODE -ne 0 ]]
-  then
-    sucessStatus="FAILED"
-  fi
-  
-  echo "Load data ${sucessStatus} exit code: ${EXIT_CODE}" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1 
-  echo "${STARTDATE_EPOCH}|${STOPDATE_EPOCH}|${DIFF_ms}|${STARTDATE}|${STOPDATE}|${DURATION}|Load data|Load data|${BIG_BENCH_STREAM_NUMBER}|${sucessStatus}|${EXIT_CODE}" >> ${LOG_FILE_EXEC_TIMES} | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
-  
+
+  echo "Load data ${successOrFail} exit code: ${EXIT_CODE}" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1 
+  echo "${STARTDATE_EPOCH}|${STOPDATE_EPOCH}|${DIFF_ms}|${STARTDATE}|${STOPDATE}|${DURATION}|Load data|${BIG_BENCH_SCALE_FACTOR}|Load data|${BIG_BENCH_STREAM_NUMBER}|${successOrFail}|${EXIT_CODE}||" >> ${LOG_FILE_EXEC_TIMES} | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
+
   echo "time&status: ${LOG_FILE_EXEC_TIMES}" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
   echo "full log: $BIG_BENCH_LOADING_STAGE_LOG" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
   echo "===========================" | tee -a "$BIG_BENCH_LOADING_STAGE_LOG" 2>&1
