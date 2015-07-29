@@ -21,7 +21,7 @@ CREATE TABLE ${hiveconf:TEMP_TABLE} (
   cid     BIGINT,
   oid     BIGINT,
   dateid  BIGINT,
-  amount  DOUBLE
+  amount  decimal(15,2)
 );
 
 INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
