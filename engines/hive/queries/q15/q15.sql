@@ -20,8 +20,8 @@ set hive.exec.compress.output;
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
   cat       INT,
-  slope     DOUBLE,
-  intercept DOUBLE
+  slope      decimal(15,7),
+  intercept  decimal(15,7)
 )
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}';
@@ -30,22 +30,29 @@ INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
 SELECT *
 FROM (
   SELECT
-    temp.cat,
-    --SUM(temp.x)as sumX,
-    --SUM(temp.y)as sumY,
-    --SUM(temp.xy)as sumXY,
-    --SUM(temp.xx)as sumXSquared,
-    --count(temp.x) as N,
+    cat,
+	--input:
+    --SUM(x)as sumX,
+    --SUM(y)as sumY,
+    --SUM(xy)as sumXY,
+    --SUM(xx)as sumXSquared,
+    --count(x) as N,
+	--
+	-- formula stage1 (logical):
     --N * sumXY - sumX * sumY AS numerator,
     --N * sumXSquared - sumX*sumX AS denom
     --numerator / denom as slope,
     --(sumY - slope * sumX) / N as intercept
-    --(count(temp.x) * SUM(temp.xy) - SUM(temp.x) * SUM(temp.y)) AS numerator,
-    --(count(temp.x) * SUM(temp.xx) - SUM(temp.x) * SUM(temp.x)) AS denom
+	--
+	--formaula stage2(inserted hive aggregations): 
+    --(count(x) * SUM(xy) - SUM(x) * SUM(y)) AS numerator,
+    --(count(x) * SUM(xx) - SUM(x) * SUM(x)) AS denom
     --numerator / denom as slope,
-    --(sumY - slope * sumX) / N as intercept
-    ((count(temp.x) * SUM(temp.xy) - SUM(temp.x) * SUM(temp.y)) / (count(temp.x) * SUM(temp.xx) - SUM(temp.x) * SUM(temp.x)) ) as slope,
-    (SUM(temp.y) - ((count(temp.x) * SUM(temp.xy) - SUM(temp.x) * SUM(temp.y)) / (count(temp.x) * SUM(temp.xx) - SUM(temp.x)*SUM(temp.x)) ) * SUM(temp.x)) / count(temp.x) as intercept
+    --(sum(y) - slope * sum(x)) / count(X) as intercept
+	--
+	--Formula stage 3: (insert numerator and denom into slop and intercept function)
+    ((count(x) * SUM(xy) - SUM(x) * SUM(y)) / (count(x) * SUM(xx) - SUM(x) * SUM(x)) ) as slope,
+    (SUM(y) - ((count(x) * SUM(xy) - SUM(x) * SUM(y)) / (count(x) * SUM(xx) - SUM(x)*SUM(x)) ) * SUM(x)) / count(x) as intercept
   FROM (
     SELECT
       i.i_category_id AS cat, -- ranges from 1 to 10
@@ -66,7 +73,7 @@ FROM (
     AND s.ss_store_sk = ${hiveconf:q15_store_sk} -- for a given store ranges from 1 to 12
     GROUP BY i.i_category_id, s.ss_sold_date_sk
   ) temp
-  GROUP BY temp.cat
+  GROUP BY cat
 ) regression
-WHERE slope < 0
+WHERE slope <= 0
 ;
