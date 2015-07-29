@@ -78,6 +78,8 @@ set q08_category=review;
 set q08_startDate=2001-09-02;
 -- + 1year
 set q08_endDate=2002-09-02;
+set q08_days_before_purchase=1;
+
 
 -------- Q09 -----------
 --store_sales date
