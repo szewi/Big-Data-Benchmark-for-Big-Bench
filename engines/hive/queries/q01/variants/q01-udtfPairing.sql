@@ -11,14 +11,12 @@
 --and "sold together frequently" means at least 50 customers bought these products 
 --together in a transaction.
 
---IMPLEMENTATION NOTICE:
--- "Market basket analysis"   
--- create pairs of "viewed together" items within one sale
--- There are are several ways to to "basketing". Implemented is way A)
+--IMPLEMENTATION NOTICE: 
+-- "Market basket analyis"	Difficult part is to create pairs of "sold together" items within one sale
+-- There are are several ways to to "basekting", implemented is way A)
 -- A) collect all pairs per session (same sales_sk) in list and employ a UDF'S to produce pairwise combinations of all list elements
--- B) distribute by sales_sk end employ reducer streaming script to aggregate all items per session and produce the pairs
+-- B) distribute by sales_sk end epmploy reducer streaming script to aggregate all items per session and produce the pairs
 -- C) pure SQL: produce pairings by self joining on sales_sk and filtering out left.item_sk < right.item_sk
-
 
 -- Resources
 ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
@@ -63,6 +61,6 @@ GROUP BY item_sk_1,item_sk_2
 -- 'frequently'
 HAVING cnt > ${hiveconf:q01_viewed_together_count}
 ORDER BY cnt DESC, item_sk_1 ,item_sk_2
-LIMIT  ${hiveconf:q01_limit};	
+LIMIT  ${hiveconf:q02_limit};	
 ;
 
