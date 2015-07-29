@@ -31,46 +31,36 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 
 -- the real query part
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
-SELECT *
-FROM (
-  SELECT
-    w_warehouse_name,
-    i_item_id,
-    SUM(
-      CASE WHEN datediff(d_date, '${hiveconf:q22_date}') < 0
-      THEN inv_quantity_on_hand
-      ELSE 0 END
-    ) AS inv_before,
-    SUM(
-      CASE WHEN datediff(d_date, '${hiveconf:q22_date}') >= 0
-      THEN inv_quantity_on_hand
-      ELSE 0 END
-    ) AS inv_after
-  FROM (
-    SELECT *
-    FROM inventory inv
-    JOIN (
-      SELECT
-        i_item_id,
-        i_item_sk
-      FROM item
-      WHERE i_current_price > ${hiveconf:q22_i_current_price_min}
-      AND i_current_price < ${hiveconf:q22_i_current_price_max}
-    ) items
-    ON inv.inv_item_sk = items.i_item_sk
-    JOIN warehouse w ON inv.inv_warehouse_sk = w.w_warehouse_sk
-    JOIN date_dim d ON inv.inv_date_sk = d.d_date_sk
-    WHERE datediff(d_date, '${hiveconf:q22_date}') >= -30
-    AND datediff(d_date, '${hiveconf:q22_date}') <= 30
-  ) q22_coalition_22
-  GROUP BY w_warehouse_name, i_item_id
-) name
-WHERE inv_before > 0
+SELECT
+	w_warehouse_name,
+	i_item_id,
+	SUM(  CASE WHEN datediff(d_date, '${hiveconf:q22_date}') < 0
+		  THEN inv_quantity_on_hand
+		  ELSE 0 END
+	) AS inv_before,
+	SUM(  CASE WHEN datediff(d_date, '${hiveconf:q22_date}') >= 0
+		  THEN inv_quantity_on_hand
+		  ELSE 0 END
+	) AS inv_after
+FROM inventory inv, 
+		item i, 
+		warehouse w, 
+		date_dim d  	
+WHERE i_current_price BETWEEN ${hiveconf:q22_i_current_price_min} AND  ${hiveconf:q22_i_current_price_max}
+AND i_item_sk         = inv_item_sk
+AND inv_warehouse_sk  = w_warehouse_sk
+AND inv_date_sk       = d_date_sk
+AND datediff(d_date, '${hiveconf:q22_date}') >= -30
+AND datediff(d_date, '${hiveconf:q22_date}') <= 30
+
+GROUP BY w_warehouse_name, i_item_id
+
+HAVING inv_before > 0
 AND inv_after / inv_before >= 2.0 / 3.0
 AND inv_after / inv_before <= 3.0 / 2.0
---original was ORDER BY w_warehouse_name, i_item_id , but CLUSTER BY is hives cluster scale counter part
-CLUSTER BY w_warehouse_name,
-           i_item_id
+ORDER BY w_warehouse_name 
+         ,i_item_id
+		 
 LIMIT 100
 ;
 
