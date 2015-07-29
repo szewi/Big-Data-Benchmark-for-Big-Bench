@@ -10,6 +10,10 @@
 --inventory: 2001-01-01, 2006-01-02 (1820 days, 261 weeks)
 
 
+-- READ ME
+-- ITEM_SK
+-- Datagenerator ensures that item_sk's 10000-10002 are very frequent accross all scalefactors
+
 -------- Q01 -----------
 --category_ids:
 --1 Home & Kitchen
@@ -24,28 +28,29 @@
 set q01_i_category_id_IN=1, 2 ,3;
 -- sf1 -> 11 stores, 90k sales in 820k lines
 set q01_ss_store_sk_IN=10, 20, 33, 40, 50;
-set q01_COUNT_pid1_greater=49;
-set q01_NPATH_ITEM_SET_MAX=500;
-
+set q01_viewed_together_count=50;
+set q01_limit=100;
 
 -------- Q02 -----------
 -- q02_pid1_IN=<pid>, <pid>, ..
 --pid == item_sk
---sf 1 item count: 17999
-set q02_pid1_IN=1415;
-set q02_NPATH_ITEM_SET_MAX=500;
-set q02_limit=300000;
+--sf 1 item count: 17999c
+set q02_item_sk=10001;
+set q02_MAX_ITEMS_PER_BASKET=5000000;
+set q02_limit=30;
+set q02_session_timeout_inSec=3600;
 
 
 -------- Q03 -----------
--- no results-check reduce script
 set q03_days_before_purchase=10;
-set q03_purchased_item_IN=5809;
+set q03_views_before_purchase=5;
+set q03_purchased_item_IN=10000;
 --see q1 for categories
-set q03_purchased_item_category_IN=1,2,3,4,5; 
+set q03_purchased_item_category_IN=2,3; 
+set q03_limit=30;
 
 -------- Q04 -----------
-set q04_timeout=300;
+set q04_session_timeout_inSec=3600;
 
 -------- Q05 -----------
 set q05_i_category='Books';
@@ -136,7 +141,7 @@ set q14_morning_endHour=8;
 set q14_evening_startHour=19;
 set q14_evening_endHour=20;
 set q14_content_len_min=5000;
-set q14_content_len_max=5200;
+set q14_content_len_max=6000;
 
 -------- Q15 -----------
 --store_sales date range
@@ -164,8 +169,8 @@ set q18_startDate=2001-05-02;
 set q18_endDate=2001-09-02; 
 
 -------- Q19 -----------
-set q19_storeReturns_date_IN='2001-01-02','2001-10-15','2001-11-10';
-set q19_webReturns_date_IN='2004-03-10' ,'2004-08-04' ,'2004-11-14';
+set q19_storeReturns_date_IN='2004-03-8' ,'2004-08-02' ,'2004-11-15', '2004-12-20';
+set q19_webReturns_date_IN='2004-03-8' ,'2004-08-02' ,'2004-11-15', '2004-12-20';
 set q19_store_return_limit=100;
 
 -------- Q20 -----------
@@ -173,8 +178,12 @@ set q19_store_return_limit=100;
 
 -------- Q21 -----------
 --store_sales/returns web_sales/returns date
+-- ss_date_sk range at SF 1
+--36890   2001-01-01
+--38697   2005-12-13
 set q21_year=2003;
-set q21_month=4;
+set q21_month=1;
+set q21_limit=100;
 
 -------- Q22 -----------
 --inventory date
@@ -189,7 +198,7 @@ set q23_month=1;
 set q23_coeficient=1.5;
 
 -------- Q24 -----------
-set q24_i_item_sk_IN=7, 17;
+set q24_i_item_sk_IN=10000, 10001;
 
 -------- Q25 -----------
 -- store_sales and web_sales date
@@ -200,16 +209,21 @@ set q26_i_category_IN='Books';
 set q26_count_ss_item_sk=5;
 
 -------- Q27 -----------
-set q27_pr_item_sk=10653;
+set q27_pr_item_sk=10002;
 
 -------- Q28 -----------
 --no params
 
 -------- Q29 -----------
---no params
+set q29_limit=100;
+set q29_session_timeout_inSec=3600;
+
 
 -------- Q30 -----------
---no params
+set q30_limit=100;
+set q30_session_timeout_inSec=3600;
+
+
 -- !echo ============================;
 -- !echo </settings from queryParameters.sql>;
 -- !echo ============================;
