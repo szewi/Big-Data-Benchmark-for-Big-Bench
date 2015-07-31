@@ -59,26 +59,26 @@ runModule () {
   fi
 
   # delete any previously generated data
-  echo "==============================================="
-  echo "Deleting any previously generated data."
-  echo "==============================================="
+  #echo "==============================================="
+  #echo "Deleting any previously generated data."
+  #echo "==============================================="
   #runCmdWithErrorCheck "${BIG_BENCH_BIN_DIR}/bigBench" cleanData $LIST_OF_USER_OPTIONS
   #"${BIG_BENCH_BIN_DIR}/bigBench" cleanData $LIST_OF_USER_OPTIONS
   echo "OK"
   echo "==============================================="
-  echo "make hdfs benchmark data dir: "${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}
+  echo "make hdfs benchmark data dir: ${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}"
   echo "==============================================="
   runCmdWithErrorCheck hadoop fs -mkdir -p "${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}"
-  runCmdWithErrorCheck hadoop fs -chmod -R 777 "${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}"
+  runCmdWithErrorCheck hadoop fs -chmod 777 "${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}"
 
   hadoop fs -ls "${BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR}"
 
   echo "OK"
   echo "==============================================="
-  echo "make hdfs benchmark data dir: "${BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR}
+  echo "make hdfs benchmark data dir: ${BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR}"
   echo "==============================================="
   runCmdWithErrorCheck hadoop fs -mkdir -p "${BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR}"
-  runCmdWithErrorCheck hadoop fs -chmod -R 777 "${BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR}"
+  runCmdWithErrorCheck hadoop fs -chmod 777 "${BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR}"
 
   hadoop fs -ls "${BIG_BENCH_HDFS_ABSOLUTE_REFRESH_DATA_DIR}"
   echo "OK"
