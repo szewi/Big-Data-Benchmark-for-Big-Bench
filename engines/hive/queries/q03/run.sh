@@ -25,13 +25,36 @@ query_run_clean_method () {
 }
 
 query_run_validate_method () {
-	VALIDATION_TEMP_DIR="`mktemp -d`"
-	runCmdWithErrorCheck runEngineCmd -e "INSERT OVERWRITE LOCAL DIRECTORY '$VALIDATION_TEMP_DIR' SELECT * FROM $RESULT_TABLE LIMIT 10;"
-	if [ `wc -l < "$VALIDATION_TEMP_DIR/000000_0"` -ge 1 ]
+	# perform exact result validation if using SF 1, else perform general sanity check
+	if [ "$BIG_BENCH_SCALE_FACTOR" -eq 1 ]
 	then
-		echo "Validation passed: Query returned results"
+		local VALIDATION_PASSED="1"
+
+		if [ ! -f "$VALIDATION_RESULTS_FILENAME" ]
+		then
+			echo "Golden result set file $VALIDATION_RESULTS_FILENAME not found"
+			VALIDATION_PASSED="0"
+		fi
+
+		if diff -q "$VALIDATION_RESULTS_FILENAME" <(hadoop fs -cat "$RESULT_DIR/*")
+		then
+			echo "Validation of $VALIDATION_RESULTS_FILENAME passed: Query returned correct results"
+		else
+			echo "Validation of $VALIDATION_RESULTS_FILENAME failed: Query returned incorrect results"
+			VALIDATION_PASSED="0"
+		fi
+		if [ "$VALIDATION_PASSED" -eq 1 ]
+		then
+			echo "Validation passed: Query results are OK"
+		else
+			echo "Validation failed: Query results are not OK"
+		fi
 	else
-		echo "Validation failed: Query did not return results"
+		if [ `hadoop fs -cat "$RESULT_DIR/*" | head -n 10 | wc -l` -ge 1 ]
+		then
+			echo "Validation passed: Query returned results"
+		else
+			echo "Validation failed: Query did not return results"
+		fi
 	fi
-	rm -rf "$VALIDATION_TEMP_DIR"
 }

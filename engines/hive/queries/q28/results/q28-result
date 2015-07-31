@@ -1,7 +1,35 @@
+15/07/31 05:08:49 INFO test.TestNaiveBayesDriver: Standard NB Results: 
+=======================================================
+Summary
+-------------------------------------------------------
+Correctly Classified Instances          :      26077	   72.4442%
+Incorrectly Classified Instances        :       9919	   27.5558%
+Total Classified Instances              :      35996
+
+=======================================================
+Confusion Matrix
+-------------------------------------------------------
+a    	b    	c    	<--Classified as
+268  	234  	3668 	 |  4170  	a     = NEG
+186  	163  	2627 	 |  2976  	b     = NEU
+1770 	1434 	25646	 |  28850 	c     = POS
+
+=======================================================
+Statistics
+-------------------------------------------------------
+Kappa                                       0.0074
+Accuracy                                   72.4442%
+Reliability                                25.1996%
+Reliability (standard deviation)            0.4256
+Weighted precision                          0.6648
+Weighted recall                             0.7244
+Weighted F1 score                           0.6916
+
+15/07/31 05:08:49 INFO driver.MahoutDriver: Program took 15614 ms (Minutes: 0.2602333333333333)
 MAHOUT_LOCAL is not set; adding HADOOP_CONF_DIR to classpath.
 Running on hadoop, using /usr/hdp/2.3.0.0-2525/hadoop/bin/hadoop and HADOOP_CONF_DIR=/usr/hdp/2.3.0.0-2525/hadoop/conf
 MAHOUT-JOB: /usr/hdp/2.3.0.0-2525/mahout/mahout-examples-0.9.0.2.3.0.0-2525-job.jar
-Input Path: /user/ec2-user/benchmarks/bigbench/temp/q28_hive_RUN_QUERY_0_temp/result/part-m-00000
+Input Path: /user/manuel/benchmarks/bigbench/temp/q28_hive_power_test_0_temp/result/part-m-00000
 Key class: class org.apache.hadoop.io.Text Value Class: class org.apache.mahout.math.VectorWritable
 Key: NEG: Value: {0:-1763.7149770081676,1:-1757.6762749131876,2:-1685.596263140973}
 Key: NEG: Value: {0:-765.4602507697032,1:-825.3064160443789,2:-786.1232915396115}

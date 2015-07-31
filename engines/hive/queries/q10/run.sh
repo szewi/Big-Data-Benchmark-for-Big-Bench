@@ -31,23 +31,19 @@ query_run_validate_method () {
 	then
 		local VALIDATION_PASSED="1"
 
-		for file in "$VALIDATION_RESULTS_DIR"/*
-		do
-			local CURRENT_RESULT_FILENAME="`basename "$file"`"
-			if ! hadoop fs -test -e "$RESULT_DIR/$CURRENT_RESULT_FILENAME"
-			then
-				echo "File $RESULT_DIR/$CURRENT_RESULT_FILENAME not found in HDFS."
-				VALIDATION_PASSED="0"
-				continue
-			fi
-			if diff "$file" <(hadoop fs -cat "$RESULT_DIR/$CURRENT_RESULT_FILENAME")
-			then
-				echo "Validation of $CURRENT_RESULT_FILENAME passed: Query returned correct results"
-			else
-				echo "Validation of $CURRENT_RESULT_FILENAME failed: Query returned incorrect results"
-				VALIDATION_PASSED="0"
-			fi
-		done
+		if [ ! -f "$VALIDATION_RESULTS_FILENAME" ]
+		then
+			echo "Golden result set file $VALIDATION_RESULTS_FILENAME not found"
+			VALIDATION_PASSED="0"
+		fi
+
+		if diff -q "$VALIDATION_RESULTS_FILENAME" <(hadoop fs -cat "$RESULT_DIR/*")
+		then
+			echo "Validation of $VALIDATION_RESULTS_FILENAME passed: Query returned correct results"
+		else
+			echo "Validation of $VALIDATION_RESULTS_FILENAME failed: Query returned incorrect results"
+			VALIDATION_PASSED="0"
+		fi
 		if [ "$VALIDATION_PASSED" -eq 1 ]
 		then
 			echo "Validation passed: Query results are OK"
@@ -55,16 +51,11 @@ query_run_validate_method () {
 			echo "Validation failed: Query results are not OK"
 		fi
 	else
-		if hadoop fs -test -e "$RESULT_DIR/000000_0"
+		if [ `hadoop fs -cat "$RESULT_DIR/*" | head -n 10 | wc -l` -ge 1 ]
 		then
-			if [ `hadoop fs -cat "$RESULT_DIR/000000_0" | head -n 10 | wc -l` -ge 1 ]
-			then
-				echo "Validation passed: Query returned results"
-			else
-				echo "Validation failed: Query did not return results"
-			fi
+			echo "Validation passed: Query returned results"
 		else
-			echo "File $RESULT_DIR/000000_0 not found in HDFS."
+			echo "Validation failed: Query did not return results"
 		fi
 	fi
 }
