@@ -210,8 +210,8 @@ as well as a specific help for each module
 #### Driver specific options
 * -a: Only pretend command execution.
 * -b: Print stdout of called bash scripts during execution.
-* -i phases the driver performs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format
-* -j queries the driver runs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format
+* -i phases the driver performs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)
+* -j queries the driver runs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)
 
 ### Modules usage examples
 
