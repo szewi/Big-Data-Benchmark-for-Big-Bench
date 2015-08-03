@@ -38,9 +38,9 @@ STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}';
 INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
 SELECT
   ss_customer_sk AS user_sk,
-  IF ( (returns_count IS NULL) OR (orders_count  IS NULL) OR ((orders_count / returns_count) IS NULL) , 0 , (orders_count / returns_count) ) AS orderRatio,
-  IF ( (returns_items IS NULL) OR (orders_items  IS NULL) OR ((orders_items / returns_items) IS NULL) , 0 , (orders_items / returns_items) ) AS itemsRatio,
-  IF ( (returns_money IS NULL) OR (orders_money  IS NULL) OR ((orders_money / returns_money) IS NULL) , 0 , (orders_money / returns_money) ) AS monetaryRatio,
+  IF ( (returns_count IS NULL) OR (orders_count  IS NULL) OR ((returns_count / orders_count) IS NULL) , 0 , (returns_count / orders_count) ) AS orderRatio,
+  IF ( (returns_items IS NULL) OR (orders_items  IS NULL) OR ((returns_items / orders_items) IS NULL) , 0 , (returns_items / orders_items) ) AS itemsRatio,
+  IF ( (returns_money IS NULL) OR (orders_money  IS NULL) OR ((returns_money / orders_money) IS NULL) , 0 , (returns_money / orders_money) ) AS monetaryRatio,
   IF ( returns_count  IS NULL                                                                         , 0 ,  returns_count                 ) AS frequency
 FROM
   (
