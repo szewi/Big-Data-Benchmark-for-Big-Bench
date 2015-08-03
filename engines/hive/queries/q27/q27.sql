@@ -35,10 +35,14 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 
 -- the real query part
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
-SELECT find_company(pr_review_sk, pr_item_sk, pr_review_content) AS (pr_review_sk, pr_item_sk, company_name, review_sentence)
+SELECT pr_review_sk, pr_item_sk, company_name, review_sentence
 FROM (
-  SELECT pr_review_sk, pr_item_sk, pr_review_content
-  FROM product_reviews
-  WHERE pr_item_sk = ${hiveconf:q27_pr_item_sk}
-) subtable
+  SELECT find_company(pr_review_sk, pr_item_sk, pr_review_content) AS (pr_review_sk, pr_item_sk, company_name, review_sentence)
+  FROM (
+    SELECT pr_review_sk, pr_item_sk, pr_review_content
+    FROM product_reviews
+    WHERE pr_item_sk = ${hiveconf:q27_pr_item_sk}
+  ) subtable
+)extracted
+CLUSTER BY  pr_review_sk, company_name
 ;

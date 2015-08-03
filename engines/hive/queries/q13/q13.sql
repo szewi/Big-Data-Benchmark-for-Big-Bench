@@ -17,7 +17,7 @@ CREATE TABLE ${hiveconf:TEMP_TABLE} (
   customer_id         STRING,
   customer_first_name STRING,
   customer_last_name  STRING,
-  year_total          DOUBLE,
+  year_total          decimal(15,2),
   year                INT,
   sale_type           STRING
 )
@@ -116,8 +116,8 @@ CREATE TABLE ${hiveconf:RESULT_TABLE} (
   customer_id         STRING,
   customer_first_name STRING,
   customer_last_name  STRING,
-  cnt1                DOUBLE,
-  cnt2                DOUBLE
+  cnt1                decimal(15,2),
+  cnt2                decimal(15,2)
 )
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}';

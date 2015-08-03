@@ -5,12 +5,68 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
+-- TASK:
+-- Find the top 30 products that are mostly viewed together with a given
+-- product in online store. Note that the order of products viewed does not matter,
+-- and "viewed together" relates to a click_session of a user with a session timeout of 60min.
 
---Find the top 30 products that are mostly viewed together with a given
---product in online store. Note that the order of products viewed does not matter.
+--IMPLEMENTATION NOTICE:
+-- "Market basket analysis"   
+-- First difficult part is to create pairs of "viewed together" items within one sale
+-- There are are several ways to to "basketing", implemented is way A)
+-- A) collect all pairs per session (same sales_sk) in list and employ a UDF'S to produce pairwise combinations of all list elements
+-- B) distribute by sales_sk end employ reducer streaming script to aggregate all items per session and produce the pairs
+-- C) pure SQL: produce pairings by self joining on sales_sk and filtering out left.item_sk < right.item_sk
+--
+-- The second difficulty is to reconstruct a users browsing session from the web_clickstreams  table
+-- There are are several ways to to "sessionize", common to all is the creation of a unique virtual time stamp from the date and time serial
+-- key's as we know they are both strictly monotonic increasing in order of time: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk implemented is way A)
+-- Implemented is way B)
+-- A) sessionizeusing SQL-windowing functions => partition by user and  sort by virtual time stamp. 
+--    Step1: compute time difference to preceding click_session
+--    Step2: compute session id per user by defining a session as: clicks no father apart then q02_session_timeout_inSec
+--    Step3: make unique session identifier <user_sk>_<user_session_ID>
+-- B) sessionize by clustering on user_sk and sorting by virtual time stamp then feeding the output through a external reducer script
+--    which linearly iterates over the rows,  keeps track of session id's per user based on the specified session timeout and makes the unique session identifier <user_sk>_<user_seesion_ID>
+
 
 -- Resources
-ADD FILE ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
+ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
+CREATE TEMPORARY FUNCTION makePairs AS 'io.bigdatabenchmark.v1.queries.udf.PairwiseUDTF';
+ADD FILE ${hiveconf:QUERY_DIR}/q2-sessionize.py;
+
+
+-- SESSIONZIE by streaming
+-- Step1: compute time difference to preceeding click_session
+-- Step2: compute session id per user by defining a session as: clicks no father apppart then q02_session_timeout_inSec
+-- Step3: make unique session identifier <user_sk>_<user_seesion_ID>
+DROP view IF EXISTS ${hiveconf:TEMP_TABLE};
+CREATE view ${hiveconf:TEMP_TABLE} AS
+SELECT *
+FROM 
+(
+  FROM 
+  (
+	SELECT 	wcs_user_sk ,
+			wcs_item_sk, 
+			(wcs_click_date_sk*24*60*60 + wcs_click_time_sk) AS tstamp_inSec 
+	FROM web_clickstreams
+	WHERE wcs_item_sk IS NOT NULL 
+	AND   wcs_user_sk IS NOT NULL
+	DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec -- "sessionize" reducer script requires the cluster by uid and sort by tstamp
+  ) clicksAnWebPageType
+  REDUCE
+    wcs_user_sk,
+    tstamp_inSec,
+    wcs_item_sk
+  USING 'python q2-sessionize.py ${hiveconf:q02_session_timeout_inSec}'
+  AS (
+    wcs_item_sk BIGINT,
+    sessionid STRING)
+) q02_tmp_sessionize
+Cluster by sessionid
+;
+
 
 --Result -------------------------------------------------------------------------
 --keep result human readable
@@ -19,32 +75,37 @@ set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
-  pid1 BIGINT,
-  pid2 BIGINT,
+  item_sk_1 BIGINT,
+  item_sk_2 BIGINT,
   cnt  BIGINT
 )
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}';
 
+
 -- the real query part
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
-SELECT  pid1, pid2, COUNT (*) AS cnt
+SELECT  item_sk_1, item_sk_2, COUNT (*) AS cnt
 FROM (
-  --Make items basket
-  FROM (
-    -- Select predicate
-    SELECT wcs_user_sk AS cid , wcs_item_sk AS pid
-    FROM web_clickstreams
-    WHERE wcs_item_sk IS NOT NULL AND wcs_user_sk IS NOT NULL
-    CLUSTER BY cid
+  --Make item "viewed together" pairs
+	-- combining collect_set + sorting + makepairs(array, noSelfParing) 
+	-- ensuers we get no pairs with swapped places like: (12,24),(24,12). 
+	-- We only produce tuples (12,24) ensuring that the smaller number is allways on the left side
+    SELECT makePairs(sort_array(itemArray), false) AS (item_sk_1,item_sk_2)
+	FROM (
+		SELECT collect_set(wcs_item_sk) as itemArray --(_list= with dupplicates, _set = distinct)
+		FROM  ${hiveconf:TEMP_TABLE}
+		GROUP BY sessionid
+		HAVING array_contains(itemArray,  cast(${hiveconf:q02_item_sk} as BIGINT) ) -- eager filter out groups that dont contain the searched item
+	) collectedList
+) pairs
+WHERE (   item_sk_1 = ${hiveconf:q02_item_sk}  --Note that the order of products viewed does not matter,
+       OR item_sk_2 = ${hiveconf:q02_item_sk}
+	  )
+GROUP BY item_sk_1, item_sk_2
+ORDER BY cnt DESC, item_sk_1 ,item_sk_2
+LIMIT  ${hiveconf:q02_limit};		
 
-  ) q02_map_output
-  REDUCE q02_map_output.cid, q02_map_output.pid
-  USING '${env:BIG_BENCH_JAVA} ${env:BIG_BENCH_java_child_process_xmx} -cp bigbenchqueriesmr.jar io.bigdatabenchmark.v1.queries.q02.Red -ITEM_SET_MAX ${hiveconf:q02_NPATH_ITEM_SET_MAX} '
-  AS (pid1 BIGINT, pid2 BIGINT)
-) q02_temp_basket
-WHERE pid1 in ( ${hiveconf:q02_pid1_IN} )
-GROUP BY pid1, pid2
-CLUSTER BY pid1 ,cnt ,pid2
-LIMIT  ${hiveconf:q02_limit}
-;
+-- cleanup		
+drop view if exists ${hiveconf:TEMP_TABLE};
+

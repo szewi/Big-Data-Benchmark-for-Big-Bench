@@ -10,7 +10,7 @@
 TEMP_RESULT_TABLE="${TABLE_PREFIX}_temp_result"
 TEMP_RESULT_DIR="$TEMP_DIR/$TEMP_RESULT_TABLE"
 
-BINARY_PARAMS="$BINARY_PARAMS --hiveconf TEMP_RESULT_TABLE=$TEMP_RESULT_TABLE --hiveconf TEMP_RESULT_DIR=$TEMP_RESULT_DIR"
+BINARY_PARAMS+=(--hiveconf TEMP_RESULT_TABLE=$TEMP_RESULT_TABLE --hiveconf TEMP_RESULT_DIR=$TEMP_RESULT_DIR)
 
 HDFS_RESULT_FILE="${RESULT_DIR}/cluster.txt"
 
@@ -58,11 +58,11 @@ query_run_main_method () {
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 3 ]] ; then
 		echo "========================="
 		echo "$QUERY_NAME Step 3/5: Calculating k-means"
-		echo "Command "mahout kmeans -i "$TEMP_RESULT_DIR/Vec" -c "$TEMP_RESULT_DIR/init-clusters" -o "$TEMP_RESULT_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl
+		echo "Command "mahout kmeans -i "$TEMP_RESULT_DIR/Vec" -c "$TEMP_RESULT_DIR/init-clusters" -o "$TEMP_RESULT_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl  -xm $BIG_BENCH_ENGINE_HIVE_MAHOUT_EXECUTION
 		echo "tmp output: $TEMP_RESULT_DIR/kmeans-clusters"
 		echo "========================="
 
-		runCmdWithErrorCheck mahout kmeans --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_RESULT_DIR/Vec" -c "$TEMP_RESULT_DIR/init-clusters" -o "$TEMP_RESULT_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl
+		runCmdWithErrorCheck mahout kmeans --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_RESULT_DIR/Vec" -c "$TEMP_RESULT_DIR/init-clusters" -o "$TEMP_RESULT_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl  -xm $BIG_BENCH_ENGINE_HIVE_MAHOUT_EXECUTION
 		RETURN_CODE=$?
 		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
@@ -105,23 +105,19 @@ query_run_validate_method () {
 	then
 		local VALIDATION_PASSED="1"
 
-		for file in "$VALIDATION_RESULTS_DIR"/*
-		do
-			local CURRENT_RESULT_FILENAME="`basename "$file"`"
-			if ! hadoop fs -test -e "$RESULT_DIR/$CURRENT_RESULT_FILENAME"
-			then
-				echo "File $RESULT_DIR/$CURRENT_RESULT_FILENAME not found in HDFS."
-				VALIDATION_PASSED="0"
-				continue
-			fi
-			if diff "$file" <(hadoop fs -cat "$RESULT_DIR/$CURRENT_RESULT_FILENAME")
-			then
-				echo "Validation of $CURRENT_RESULT_FILENAME passed: Query returned correct results"
-			else
-				echo "Validation of $CURRENT_RESULT_FILENAME failed: Query returned incorrect results"
-				VALIDATION_PASSED="0"
-			fi
-		done
+		if [ ! -f "$VALIDATION_RESULTS_FILENAME" ]
+		then
+			echo "Golden result set file $VALIDATION_RESULTS_FILENAME not found"
+			VALIDATION_PASSED="0"
+		fi
+
+		if diff -q "$VALIDATION_RESULTS_FILENAME" <(hadoop fs -cat "$RESULT_DIR/*")
+		then
+			echo "Validation of $VALIDATION_RESULTS_FILENAME passed: Query returned correct results"
+		else
+			echo "Validation of $VALIDATION_RESULTS_FILENAME failed: Query returned incorrect results"
+			VALIDATION_PASSED="0"
+		fi
 		if [ "$VALIDATION_PASSED" -eq 1 ]
 		then
 			echo "Validation passed: Query results are OK"
@@ -129,16 +125,11 @@ query_run_validate_method () {
 			echo "Validation failed: Query results are not OK"
 		fi
 	else
-		if hadoop fs -test -e "$HDFS_RESULT_FILE"
+		if [ `hadoop fs -cat "$RESULT_DIR/*" | head -n 10 | wc -l` -ge 1 ]
 		then
-			if [ `hadoop fs -cat "$HDFS_RESULT_FILE" | head -n 10 | wc -l` -ge 1 ]
-			then
-				echo "Validation passed: Query returned results"
-			else
-				echo "Validation failed: Query did not return results"
-			fi
+			echo "Validation passed: Query returned results"
 		else
-			echo "File $HDFS_RESULT_FILE not found in HDFS."
+			echo "Validation failed: Query did not return results"
 		fi
 	fi
 }

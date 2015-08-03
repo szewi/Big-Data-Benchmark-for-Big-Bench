@@ -95,9 +95,13 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 
 -- the real query
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
-SELECT extract_NegSentiment( s_store_name, pr_review_date, pr_review_content) AS ( s_store_name, review_date, review_sentence, sentiment, sentiment_word )
---select product_reviews containing the name of a store. Consider only stores with flat or declining sales in 3 consecutive months.
-FROM ${hiveconf:TEMP_TABLE}
+SELECT s_store_name, review_date, review_sentence, sentiment, sentiment_word
+FROM (
+  SELECT extract_NegSentiment( s_store_name, pr_review_date, pr_review_content) AS ( s_store_name, review_date, review_sentence, sentiment, sentiment_word )
+  --select product_reviews containing the name of a store. Consider only stores with flat or declining sales in 3 consecutive months.
+  FROM ${hiveconf:TEMP_TABLE}
+) extracted
+CLUSTER BY s_store_name, review_date, review_sentence, sentiment, sentiment_word
 ;
 
 

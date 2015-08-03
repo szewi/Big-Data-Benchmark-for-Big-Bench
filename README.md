@@ -10,7 +10,7 @@ https://github.com/intel-hadoop/PAT
 
 ======
 
-This document is a development version and describes the BigBench installation and execution on our AWS machines.
+This document is a development version and describes the BigBench installation and execution on our test machines.
 
 # Preparation
 
@@ -20,6 +20,7 @@ This document is a development version and describes the BigBench installation a
 
 * Initially developed and tested on Cloudera CDH 5.0.0
 + Re-tested on Cloudera CDH 5.2.0
+* Re-tested on HDP 2.3
 
 **Java**
 
@@ -39,6 +40,7 @@ Java 1.7 is required. 64 bit is recommended. A suitable JDK is installed along w
 * grep
 * tar
 * zip
+* snakebite (optional)
 
 ## Installation
 
@@ -70,7 +72,7 @@ BIG_BENCH_DATAGEN_HADOOP_JVM_ENV   -Xmx300m is sufficient for one worker per map
 ```
 # Run the workload
 
-There are two different methods for running the workload: use the driver to simply perform a complete benchmark run or use the bash scripts to do partial tests. As the driver calls the bash scripts internally, both methods yield the same results.
+There are two different methods for running the workload: use the driver to simply perform a complete benchmark run or use the bash scripts to do atomic tasks. As the driver calls the bash scripts internally, both methods yield the same results. Using the bash scripts directly is for experts, only use it if you know what you are doing.
 
 ## Common hints
 
@@ -80,6 +82,15 @@ There is a configuration file with variables set by the user. This file is locat
 ```
 
 Apart from specific environment settings, the user can also specify default values for most benchmark options in this file.
+
+
+There is a second configuration file,
+```
+"$INSTALL_DIR/conf/bigBench.properties"
+```
+which configures the driver. This file has lots of comments about the differnt options, so please look into it for a detailed explanation of its options.
+
+
 
 ### Accept license
 
@@ -110,7 +121,7 @@ The BigBench driver is started with a script. To show all available options, you
 If a complete benchmark run should be performed and no data were generated previously, this is the command which should be executed:
 
 ```
-"$INSTALL_DIR/bin/bigBench" runBenchmark [-m <number of map tasks for data generation>] [-f <scale factor of dataset>] [-s <number of parallel streams in the throughput test>]
+"$INSTALL_DIR/bin/bigBench" runBenchmark [-m <number of map tasks for data generation>] [-f <scale factor of dataset>] [-s <number of parallel streams in the throughput test>] [-i <benchmark phases to perform>] [-j <queries to run>]
 ```
 
 This command will generate data, run the load-, power- and throughput-test and calculate the BigBench result.
@@ -120,42 +131,48 @@ So a complete benchmark run with all stages can be done by running (e.g., 4 map 
 "$INSTALL_DIR/bin/bigBench runBenchmark -m 4 -f 100 -s 2
 ```
 
-To perform sanity checks on the query results, enable the query result validation code with the option "-x":
+For the format and valid options of the benchmark phases and the query definition, take a look into the driver's properties file:
 ```
-"$INSTALL_DIR/bin/bigBench runBenchmark -m 4 -f 100 -s 2 -x
+"$INSTALL_DIR/conf/bigBench.properties"
 ```
 
-If one of the options is omitted, the script uses the default values defined in $INSTALL_DIR/conf/userSettings.conf (BIG_BENCH_DEFAULT_MAP_TASKS, BIG_BENCH_DEFAULT_SCALE_FACTOR, BIG_BENCH_DEFAULT_NUMBER_OF_PARALLEL_STREAMS, BIG_BENCH_PERFORM_QUERY_RESULT_VERIFICATION).
+
+If one of the options is omitted, the script uses the default values defined in $INSTALL_DIR/conf/userSettings.conf (BIG_BENCH_DEFAULT_MAP_TASKS, BIG_BENCH_DEFAULT_SCALE_FACTOR, BIG_BENCH_DEFAULT_NUMBER_OF_PARALLEL_STREAMS).
 
 After the benchmark finished, two log files are written: BigBenchResult.txt (which contains the driver's sysout messages) as well as BigBenchTimes.csv (which contains all measured timestamps/durations).
 
 ### More detailed explanation
 
-There are five phases the driver traverses (only three are benchmarked though): data generation, load test, power test, throughput test and query result validation. The driver has a clean option (-c) which does not run the benchmark but rather cleans the environment from previous runs (if for some reason all generated data should be cleaned).
+There are multiple phases the driver traverses (only three are benchmarked though): DATA_GENERATION, LOAD_TEST, POWER_TEST, THROUGHPUT_TEST_1. To add or remove phases from execution, modify the workload property in the bigBench,properties file or provide the "-i" option to the runBenchmark module with the appropriate string as argument.
 
 #### Data generation
 
-The data generation phase is not benchmarked by BigBench. The driver can skip this phase by setting "-1". Skipping this phase is a good idea if data were already generated previously and the complete benchmark should be repeated with the same dataset size. In that case, generating data is not necessary as PDGF would generate the exact same data as in the previous run. If data generation is not skipped, two options can be provided to the driver: "-m" sets the number of map tasks for PDGF's data generation, "-f" sets the scale factor determining the dataset size (1 scale factor equals 1 GiB). If "-c" is set and "-1" is not set, the dataset directory in HDFS will be deleted.
+The data generation phase is not benchmarked by BigBench. The internal benchnark phase is called DATA_GENERATION. Skipping this phase is a good idea if data were already generated previously and the complete benchmark should be repeated with the same dataset size. In that case, generating data is not necessary as PDGF would generate the exact same data as in the previous run. If data generation is not skipped, two options can be provided to the driver: "-m" sets the number of map tasks for PDGF's data generation, "-f" sets the scale factor determining the dataset size (1 scale factor equals 1 GiB).
 
 #### Load test
 
-Population of the engine metastore is the first phase that is benchmarked by BigBench. This phase can be skipped by providing "-2" as an option. Re-populating the metastore is technically only necessary if the dataset has changed. Nevertheless, metastore population is part of the benchmark, so if this phase is skipped then no overall BigBench result can be computed. If "-c" is set and "-2" is not set, the tables of the dataset in the metastore will be dropped (however it does not clean the query results from other phases).
+Population of the engine metastore is the first phase that is benchmarked by BigBench. The driver recognizes the phase as LOAD_TEST. Re-populating the metastore is technically only necessary if the dataset has changed. Nevertheless, metastore population is part of the benchmark, so if this phase is skipped then the overall BigBench result is invalid.
 
 #### Power test
 
-This is the second phase that is benchmarked by BigBench. All queries run sequentially in one stream. The phase can be skipped with the option "-3". Setting "-c" (and not "-3") cleans previous power-test's results in the engine metastore tables and HDFS directories.
+This is the second phase that is benchmarked by BigBench. All queries run sequentially in one stream. The internal phase is called POWER_TEST. Skipping it invalidates the final BigBench result.
 
 #### Throughput test
 
-The throughput test is the last benchmark phase. All queries run in parallel streams in different order. The complete phase can be skipped with "-4". If this phase is not skipped, "-s" can be set specifying the number of parallel streams used in this phase. As in the other phases, setting "-c" (and not "-4") cleans the thoughput-test's results in the engine metastore and the HDFS directories. Furthermore, the three sub-phases of the throughput test (first query run, dataset maintenance, second query run) can be skipped individually, using "-5", "-6" or "-7" as command line options.
+The throughput test is the last benchmark phase. All queries run in parallel streams in different order. If this phase is not skipped, "-s" can be set specifying the number of parallel streams used in this phase. THROUGPUT_TEST_1 is the internal name for the phase.
 
 #### Query result validation
 
-The query result validation phase is not benchmarked by BigBench. The driver can skip this phase when "-x" is not provided as an option and BIG_BENCH_PERFORM_QUERY_RESULT_VERIFICATION is set to 0 in conf/userSettings.conf. This phase performs basic sanity checks on the query results.
+The query result validation is not benchmarked by BigBench. It will be performed when VALIDATE_POWER_TEST or VALIDATE_THROUGHPUT_TEST_1 is in the phase list of the driver. If a run with scale factor 1 was performed, an exact validation of the query results will be done. When using other scale factors, only basic sanity checks are performed.
+
+#### Engine validation
+
+The engine validation is a special phase which performs a complete circle of data generation, load, power and validation run with scale factor 1 to perform an exact result validation against the scale factor 1 dataset. The phases are called ENGINE_VALIDATION_DATA_GENERATION, ENGINE_VALIDATION_LOAD_TEST, ENGINE_VALIDATION_POWER_TEST and ENGINE_VALIDATION_RESULT_VALIDATION.
 
 ## Using the bigBench bash script
 
 The driver internally calls the $BIG_BENCH_BIN_DIR/bigBench bash script along with a module name. So every step the driver performs (apart from the more complicated "query mixing" and multi-stream execution logic) can be run manually by executing this script with the proper options.
+WARNING: The driver takes care for the correct option setting and execution order. Lots of options must match for the bash modules to work. Therefore, using the driver is STRICTLY recommended.
 
 ### Overview
 
@@ -185,26 +202,23 @@ as well as a specific help for each module
 * -p: Defines the benchmark phase to use (default: $BIG_BENCH_DEFAULT_BENCHMARK_PHASE)
 * -q: Defines the query number to be executed
 * -s: This option defines the number of parallel streams to use. It is only of any use with the runBenchmark and the runQueryInParallel modules. (default: $BIG_BENCH_DEFAULT_NUMBER_OF_PARALLEL_STREAMS)
-* -t: Sets the stream number of the current query. This option is important so that one query can run multiple times in parallel without interfering with other instances. (default: $BIG_BENCH_DEFAULT_STREAM_NUMBER)
 * -v: Use the provided file as initial metastore population script. (default: $BIG_BENCH_POPULATE_METASTORE_FILE)
 * -w: Use the provided file as metastore refresh script. (default: $BIG_BENCH_REFRESH_METASTORE_FILE)
 * -y: Use the provided file for custom query parameters. (global: $BIG_BENCH_QUERY_PARAMS_FILE)
-: -z: Use the provided file for custom engine settings. (global: $BIG_BENCH_ENGINE_SETTINGS_FILE)
+* -z: Use the provided file for custom engine settings. (global: $BIG_BENCH_ENGINE_SETTINGS_FILE)
 
 #### Driver specific options
 * -a: Only pretend command execution.
 * -b: Print stdout of called bash scripts during execution.
-* -c: Clean data/metatore instead of running workload.
-* -x: Run query result verification.
-* -1: Skip data generation phase.
-* -2: Skip load test.
-* -3: Skip power test.
-* -4: Skip throughput test.
-* -5: Skip first query run of throughput test.
-* -6: Skip data refresh of throughput test.
-* -7: Skip second query run of throughput test.
+* -i phases the driver performs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)
+* -j queries the driver runs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)
 
 ### Modules usage examples
+
+* cleanData: cleans all data/query results related to BigBench. WARNING: There is no confirmation message, EVERYTHING BigBench related will be purged.
+```
+"$INSTALL_DIR/bin/bigBench" cleanAll [-h]
+```
 
 * cleanData: cleans the dataset directory in HDFS. This module is automatically run by the data generator module to remove the dataset from the HDFS.
 ```
@@ -214,11 +228,6 @@ as well as a specific help for each module
 * cleanMetastore: cleans the metastore dataset tables.
 ```
 "$INSTALL_DIR/bin/bigBench" cleanMetastore [-d <database name>] [-h] [-z <engine settings>]
-```
-
-* cleanQueries: cleans all metastore tables and result directories in HDFS for all 30 queries. This module works as a wrapper for cleanQuery and does not work if "-q" is set as option.
-```
-"$INSTALL_DIR/bin/bigBench" cleanQueries [-d <database name>] [-h] [-p <benchmark phase>] [-t <stream number] [-z <engine settings>]
 ```
 
 * cleanQuery: cleans metastore tables and result directories in HDFS for one query. Needs the query number to be set.
@@ -246,19 +255,9 @@ as well as a specific help for each module
 "$INSTALL_DIR/bin/bigBench" runBenchmark [-d <database name>] [-e <engine name>] [-f <scale factor>] [-h] [-m <map tasks>] [-s <number of parallel streams>] [-v <population script>] [-w <refresh script>] [-y <query parameters>] [-z <engine settings>] [-a] [-b] [-c] [-x] [-1] [-2] [-3] [-4] [-5] [-6] [-7]
 ```
 
-* runQueries: runs all 30 queries sequentially. This module works as a wrapper for runQuery and does not work if "-q" is set as option.
-```
-"$INSTALL_DIR/bin/bigBench" runQueries [-d <database name>] [-h] [-p <benchmark phase>] [-t <stream number] [-z <engine settings>]
-```
-
 * runQuery: runs one query. Needs the query number to be set.
 ```
 "$INSTALL_DIR/bin/bigBench" runQuery [-d <database name>] [-D <debug query part] [-h] [-p <benchmark phase>] -q <query number> [-t <stream number] [-y <query parameters>] [-z <engine settings>]
-```
-
-* runQueryInParallel: runs one query on multiple parallel streams. This module is a wrapper for runQuery. Needs the query number ("-q") to be set and the stream number ("-t") to be unset.
-```
-"$INSTALL_DIR/bin/bigBench" runQueryInParallel [-d <database name>] [-D <debug query part] [-h] [-p <benchmark phase>] -q <query number> [-s <number of parallel streams>] [-y <query parameters>] [-z <engine settings>]
 ```
 
 * showErrors: parses query errors in the log files after query runs.
@@ -274,11 +273,6 @@ as well as a specific help for each module
 * showValidation: parses query validation results in the log files after query runs.
 ```
 "$INSTALL_DIR/bin/bigBench" showValidation [-h] [-q]
-```
-
-* validateQueries: validates all 30 queries sequentially. This module works as a wrapper for validateQuery and does not work if "-q" is set as option.
-```
-"$INSTALL_DIR/bin/bigBench" validateQueries [-d <database name>] [-h] [-p <benchmark phase>] [-t <stream number] [-z <engine settings>]
 ```
 
 * validateQuery: validates one query. Needs the query number to be set.

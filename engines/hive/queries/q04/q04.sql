@@ -5,69 +5,60 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
-
+--TASK
 --Shopping cart abandonment analysis: For users who added products in
 --their shopping carts but did not check out in the online store, find the average
 --number of pages they visited during their sessions.
 
+--IMPLEMENTATION NOTICE
+-- The difficulty is to reconstruct a users browsing session from the web_clickstreams  table
+-- There are are several ways to to "sessionize", common to all is the creation of a unique virtual time stamp from the date and time serial
+-- key's as we know they are both strictly monotonic increasing in order of time: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk implemented is way A)
+-- Implemented is way B)
+-- A) sessionizeusing SQL-windowing functions => partition by user and  sort by virtual time stamp. 
+--    Step1: compute time difference to preceding click_session
+--    Step2: compute session id per user by defining a session as: clicks no father apart then q02_session_timeout_inSec
+--    Step3: make unique session identifier <user_sk>_<user_session_ID>
+-- B) sessionize by clustering on user_sk and sorting by virtual time stamp then feeding the output through a external reducer script
+--    which linearly iterates over the rows,  keeps track of session id's per user based on the specified session timeout and makes the unique session identifier <user_sk>_<user_seesion_ID>
+
 -- Resources
-ADD FILE ${hiveconf:QUERY_DIR}/q4_reducer1.py;
-ADD FILE ${hiveconf:QUERY_DIR}/q4_reducer2.py;
+ADD FILE ${hiveconf:QUERY_DIR}/q4_abandonedShoppingCarts.py;
+ADD FILE ${hiveconf:QUERY_DIR}/q4_sessionize.py;
+--set hive.exec.parallel = true;
 
--- Query parameters
 
--- Part 1: join webclickstreams with user, webpage and date -----------
-DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE1};
-CREATE VIEW ${hiveconf:TEMP_TABLE1} AS
+-- Part 1: re-construct a click session of a user  -----------
+DROP view IF EXISTS ${hiveconf:TEMP_TABLE1};
+CREATE view ${hiveconf:TEMP_TABLE1} AS
 SELECT *
-FROM (
-  FROM (
-    SELECT
-      c.wcs_user_sk AS uid,
-      c.wcs_item_sk AS item,
-      w.wp_type     AS wptype,
-      t.t_time+unix_timestamp(d.d_date,'yyyy-MM-dd') AS tstamp
-    FROM web_clickstreams c
-    JOIN web_page w ON (c.wcs_web_page_sk = w.wp_web_page_sk
-      AND c.wcs_user_sk IS NOT NULL)
-    JOIN date_dim d ON c.wcs_click_date_sk = d.d_date_sk
-    JOIN time_dim t ON c.wcs_click_time_sk = t.t_time_sk
-    CLUSTER BY uid
-  ) q04_tmp_map_output
+FROM 
+(
+  FROM 
+  (
+	SELECT
+	  c.wcs_user_sk,
+	  w.wp_type  ,
+	 (wcs_click_date_sk*24*60*60 + wcs_click_time_sk) AS tstamp_inSec 
+	FROM web_clickstreams c, web_page w 
+	WHERE c.wcs_web_page_sk = w.wp_web_page_sk  
+	AND   c.wcs_web_page_sk IS NOT NULL
+	AND   c.wcs_user_sk     IS NOT NULL
+	DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec -- "sessionize" reducer script requires the cluster by wcs_user_sk and sort by tstamp
+  ) clicksAnWebPageType
   REDUCE
-    q04_tmp_map_output.uid,
-    q04_tmp_map_output.item,
-    q04_tmp_map_output.wptype,
-    q04_tmp_map_output.tstamp
-  USING 'python q4_reducer1.py ${hiveconf:q04_timeout}'
+    wcs_user_sk,
+    tstamp_inSec,
+    wp_type
+  USING 'python q4_sessionize.py ${hiveconf:q04_session_timeout_inSec}'
   AS (
-    uid    BIGINT,
-    item   BIGINT,
-    wptype STRING,
-    tstamp BIGINT,
+    wp_type STRING,
+    --tstamp BIGINT,
     sessionid STRING)
 ) q04_tmp_sessionize
---ORDER BY uid, tstamp --ORDER BY is bad! total ordering ->only one reducer
---LIMIT 2500
-CLUSTER BY sessionid,uid, tstamp
+DISTRIBUTE BY sessionid SORT BY sessionid  --required by "abandonment analysis script"
 ;
 
-
--- Part 2: Abandoned shopping carts ----------------------------------
-DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE2};
-CREATE VIEW ${hiveconf:TEMP_TABLE2} AS
-SELECT *
-FROM (
-  FROM ${hiveconf:TEMP_TABLE1} q04_tmp_map_output
-  REDUCE q04_tmp_map_output.uid,
-    q04_tmp_map_output.item,
-    q04_tmp_map_output.wptype,
-    q04_tmp_map_output.tstamp,
-    q04_tmp_map_output.sessionid
-  USING 'python q4_reducer2.py' AS (sid STRING, start_s BIGINT, end_s BIGINT)
-) q04_tmp_npath
-CLUSTER BY sid
-;
 
 --Result  --------------------------------------------------------------------
 --keep result human readable
@@ -76,21 +67,28 @@ set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
-  sid     STRING,
-  s_pages BIGINT
+  averageNumberOfPages DECIMAL(15,2) 
 )
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}';
 
+
 -- the real query part
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
-SELECT c.sid, COUNT (*) AS s_pages
-FROM ${hiveconf:TEMP_TABLE2} c
-JOIN ${hiveconf:TEMP_TABLE1} s ON s.sessionid = c.sid
-GROUP BY c.sid
+SELECT avg(pagecount)
+FROM (
+  FROM ${hiveconf:TEMP_TABLE1} abbandonedSessions
+  REDUCE 
+    wp_type,
+    --tstamp, --allready sorted by timestamp
+    sessionid -- but we still need the sessionid within the script to identify session boundaries
+	
+  -- script requires input tuples to be grouped by sessionid and ordered by timestamp ascencding.
+  -- output one tuple: <pagecount> if a session's shopping cart is abandoned, else: nothing
+  USING 'python q4_abandonedShoppingCarts.py' AS ( pagecount BIGINT)
+)  abandonedShoppingCartsPageCounts
 ;
-
 
 --cleanup --------------------------------------------
 DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE1};
-DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE2};
+

@@ -1,6 +1,6 @@
-!echo ============================;
-!echo Most important settings;
-!echo ============================;
+-- !echo ============================;
+-- !echo Most important settings;
+-- !echo ============================;
 
 set hive.exec.parallel;
 set hive.exec.parallel.thread.number;
@@ -28,8 +28,8 @@ set hive.mapjoin.localtask.max.memory.usage;
 
 
 
-!echo ============================;
-!echo Complete settings;
-!echo ============================;
+-- !echo ============================;
+-- !echo Complete settings;
+-- !echo ============================;
 
 set -v;

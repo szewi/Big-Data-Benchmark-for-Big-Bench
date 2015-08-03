@@ -81,4 +81,5 @@ if __name__ == "__main__":
 		logging.info('category: ' +category )
 		logging.info("line from hive: \"" + line + "\"")
 		logging.exception("Oops:")
+		raise
 		sys.exit(1)
