@@ -40,7 +40,7 @@ Java 1.7 is required. 64 bit is recommended. A suitable JDK is installed along w
 * grep
 * tar
 * zip
-* snakebite (optional)
+* snakebite (optional) faster hdfs client.  https://github.com/spotify/snakebite Only required on your gateway machine from which you run Big-Data-Benchmark-For-Big-Bench. You can activate snakebite (if installed) in: conf/userSettings.conf (end of file).
 
 ## Installation
 
