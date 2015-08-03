@@ -17,15 +17,17 @@ helpModule () {
   echo -e "-h\tshow this help"
   echo -e "-m\tmap tasks for data generation (default: $BIG_BENCH_DEFAULT_MAP_TASKS)"
   echo -e "-s\tnumber of parallel streams (default: $BIG_BENCH_DEFAULT_NUMBER_OF_PARALLEL_STREAMS)"
+  echo
+  echo -e "-a\tdry-run - pretend command execution"
+  echo -e "-b\tprint stdout of called bash scripts during execution"
+  echo -e "-i\tphases the driver performs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
+  echo -e "-j\tqueries the driver runs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
+  echo
+  echo "INTERNAL options:"
   echo -e "-v\tsql script for metastore population (default: $BIG_BENCH_POPULATE_METASTORE_FILE)"
   echo -e "-w\tsql script for metastore refresh (default: $BIG_BENCH_REFRESH_METASTORE_FILE)"
   echo -e "-y\tfile with additional user defined query parameters (global: $BIG_BENCH_QUERY_PARAMS_FILE)"
   echo -e "-z\tfile with additional user defined engine settings (global: $BIG_BENCH_ENGINE_SETTINGS_FILE)"
-  echo
-  echo -e "-a\tpretend command execution"
-  echo -e "-b\tprint stdout of called bash scripts during execution"
-  echo -e "-i\tphases the driver performs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
-  echo -e "-j\tqueries the driver runs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
 }
 
 runModule () {

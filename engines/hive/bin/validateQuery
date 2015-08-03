@@ -11,9 +11,11 @@ helpModule () {
   echo "This module validates all query results from HDFS as well as from the metastore for one query"
   echo
   echo "Options:"
-  echo -e "-q\tquery number to run (required)"
   echo -e "-d\tdatabase to use"
   echo -e "-h\tshow this help"
+  echo
+  echo "INTERNAL options:"
+  echo -e "-q\tquery number to run (required)"
   echo -e "-p\tbenchmark phase to use"
   echo -e "-t\tstream number for query run"
   echo -e "-z\tfile with user defined engine settings"

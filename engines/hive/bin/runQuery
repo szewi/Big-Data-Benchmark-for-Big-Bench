@@ -11,10 +11,12 @@ helpModule () {
   echo "This module runs a single query on a single stream"
   echo
   echo "Options:"
-  echo -e "-q\tquery number to run (required)"
   echo -e "-d\tdatabase to use"
-  echo -e "-D\tquery part to debug"
   echo -e "-h\tshow this help"
+  echo
+  echo "INTERNAL options:"
+  echo -e "-q\tquery number to run (required)"
+  echo -e "-D\tquery part to debug"
   echo -e "-p\tbenchmark phase to use"
   echo -e "-t\tstream number for query run"
   echo -e "-y\tfile with user defined query parameters"
