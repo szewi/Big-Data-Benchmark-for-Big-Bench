@@ -19,7 +19,7 @@ This document is a development version and describes the BigBench installation a
 **Cloudera**
 
 * Initially developed and tested on Cloudera CDH 5.0.0
-+ Re-tested on Cloudera CDH 5.2.0
++ Re-tested on Cloudera CDH 5.4.x
 * Re-tested on HDP 2.3
 
 **Java**
