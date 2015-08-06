@@ -11,35 +11,68 @@
 ## function definitions
 ## ===================================================
 showGlobalHelp () {
-  echo "Usage: `basename $0` module [options]"
-  echo
-  echo "Script options:"
-  echo -e "-d\tdatabase to use (default: $BIG_BENCH_DEFAULT_DATABASE)"
-  echo -e "-D\tquery part to debug"
-  echo -e "-e\tengine to use (default: $BIG_BENCH_DEFAULT_ENGINE)"
-  echo -e "-f\tscale factor for data set (default: $BIG_BENCH_DEFAULT_SCALE_FACTOR)"
-  echo -e "-h\tshow this help"
-  echo -e "-m\tmap tasks for data generation (default: $BIG_BENCH_DEFAULT_MAP_TASKS)"
-  echo -e "-p\tbenchmark phase to use (default: $BIG_BENCH_DEFAULT_BENCHMARK_PHASE)"
-  echo -e "-q\tquery number to run"
-  echo -e "-s\tnumber of parallel streams (default: $BIG_BENCH_DEFAULT_NUMBER_OF_PARALLEL_STREAMS)"
-  # INTERNAL USE only
-  # The driver uses it to set the stream number of this run.
-  # option is recognized and works, but will not be shown in the help
-  #echo -e "-t\tstream number for query run (default: $BIG_BENCH_DEFAULT_STREAM_NUMBER)"
-  echo -e "-v\tsql script for metastore population (default: $BIG_BENCH_POPULATE_METASTORE_FILE)"
-  echo -e "-w\tsql script for metastore refresh (default: $BIG_BENCH_REFRESH_METASTORE_FILE)"
-  echo -e "-y\tfile with additional user defined query parameters (global: $BIG_BENCH_QUERY_PARAMS_FILE)"
-  echo -e "-z\tfile with additional user defined engine settings (global: $BIG_BENCH_ENGINE_SETTINGS_FILE)"
-  echo
-  echo "Driver specific options:"
-  echo -e "-a\tpretend command execution"
-  echo -e "-b\tprint stdout of called bash scripts during execution"
-  echo -e "-i\tphases the driver performs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
-  echo -e "-j\tqueries the driver runs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
-  echo
-  echo "List of available modules:"
-  ls -1 "$BIG_BENCH_ENGINE_BIN_DIR"
+  if [ "$BIG_BENCH_EXPERT_MODE" -eq 0 ]
+  then
+    echo "Usage: `basename $0` runBenchmark [options]"
+    echo
+    echo "General options:"
+    echo -e "-d\tdatabase to use (default: $BIG_BENCH_DEFAULT_DATABASE)"
+    echo -e "-e\tengine to use (default: $BIG_BENCH_DEFAULT_ENGINE)"
+    echo -e "-f\tscale factor for data set (default: $BIG_BENCH_DEFAULT_SCALE_FACTOR)"
+    echo -e "-h\tshow this help"
+    echo -e "-m\tmap tasks for data generation (default: $BIG_BENCH_DEFAULT_MAP_TASKS)"
+    echo -e "-s\tnumber of parallel streams (default: $BIG_BENCH_DEFAULT_NUMBER_OF_PARALLEL_STREAMS)"
+    echo
+    echo "Driver specific options:"
+    echo -e "-a\tdry-run - pretend command execution"
+    echo -e "-b\tprint stdout of called bash scripts during execution"
+    echo -e "-i\tphases the driver performs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
+    echo -e "-j\tqueries the driver runs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
+    echo
+    echo "Take a look into $BIG_BENCH_CONF_DIR/bigBench.properties for a well documented description how to configure the driver"
+    echo
+    echo "Expert mode:"
+    echo -e "-U\tunlock expert mode - WARNING: run modules manually only if you know what you are doing!"
+    echo
+  else
+    # INTERNAL USE ONLY
+    echo "Usage: `basename $0` module [options]"
+    echo
+    echo "General options:"
+    echo -e "-d\tdatabase to use (default: $BIG_BENCH_DEFAULT_DATABASE)"
+    echo -e "-e\tengine to use (default: $BIG_BENCH_DEFAULT_ENGINE)"
+    echo -e "-f\tscale factor for data set (default: $BIG_BENCH_DEFAULT_SCALE_FACTOR)"
+    echo -e "-h\tshow this help"
+    echo -e "-m\tmap tasks for data generation (default: $BIG_BENCH_DEFAULT_MAP_TASKS)"
+    echo -e "-s\tnumber of parallel streams (default: $BIG_BENCH_DEFAULT_NUMBER_OF_PARALLEL_STREAMS)"
+    echo
+    echo "Driver specific options:"
+    echo -e "-a\tdry-run - pretend command execution"
+    echo -e "-b\tprint stdout of called bash scripts during execution"
+    echo -e "-i\tphases the driver performs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
+    echo -e "-j\tqueries the driver runs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
+    echo
+    echo "Take a look into $BIG_BENCH_CONF_DIR/bigBench.properties for a well documented description how to configure the driver"
+    echo
+    echo "WARNING"
+    echo "INTERNAL USE ONLY:"
+    echo "Only set manually if you know what you are doing!"
+    echo "Ignoring them is probably the best solution"
+    echo
+    echo -e "-U\tunlock expert mode"
+    echo
+    echo -e "-D\tquery part to debug"
+    echo -e "-p\tbenchmark phase to use (default: $BIG_BENCH_DEFAULT_BENCHMARK_PHASE)"
+    echo -e "-q\tquery number to run"
+    echo -e "-t\tstream number for query run"
+    echo -e "-v\tsql script for metastore population (default: $BIG_BENCH_POPULATE_METASTORE_FILE)"
+    echo -e "-w\tsql script for metastore refresh (default: $BIG_BENCH_REFRESH_METASTORE_FILE)"
+    echo -e "-y\tfile with additional user defined query parameters (global: $BIG_BENCH_QUERY_PARAMS_FILE)"
+    echo -e "-z\tfile with additional user defined engine settings (global: $BIG_BENCH_ENGINE_SETTINGS_FILE)"
+    echo
+    echo "List of available modules:"
+    ls -1 "$BIG_BENCH_ENGINE_BIN_DIR"
+  fi
   exit 0
 }
 
@@ -47,7 +80,75 @@ logEnvInformation ()
 {
   local ENV_INFO_FILE="$BIG_BENCH_LOGS_DIR/envInfo.log"
   [ ! -d "$BIG_BENCH_LOGS_DIR" ] && mkdir -p "$BIG_BENCH_LOGS_DIR"
-  [ ! -f "$ENV_INFO_FILE" ] && ( hadoop version; hadoop classpath; "$BIG_BENCH_JAVA" -version; ) > "$ENV_INFO_FILE" 2>&1
+  > "$ENV_INFO_FILE"
+  if [ -w "$ENV_INFO_FILE" ]
+  then
+    echo "##############################" >> "$ENV_INFO_FILE" 2>&1
+    echo "#          Hardware          #" >> "$ENV_INFO_FILE" 2>&1
+    echo "##############################" >> "$ENV_INFO_FILE" 2>&1
+
+    # deactivated for now, needs root
+    #if type dmidecode > /dev/null 2>&1
+    #then
+      #echo -e "\n##### dmidecode #####\n" >> "$ENV_INFO_FILE" 2>&1
+      #dmidecode >> "$ENV_INFO_FILE" 2>&1
+    #fi
+    echo -e "\n##### /proc/cpuinfo #####\n" >> "$ENV_INFO_FILE" 2>&1
+    cat /proc/cpuinfo >> "$ENV_INFO_FILE" 2>&1
+    echo -e "\n##### /proc/meminfo #####\n" >> "$ENV_INFO_FILE" 2>&1
+    cat /proc/meminfo >> "$ENV_INFO_FILE" 2>&1
+    if type lscpu > /dev/null 2>&1
+    then
+      echo -e "\n##### lscpu #####\n" >> "$ENV_INFO_FILE" 2>&1
+      lscpu >> "$ENV_INFO_FILE" 2>&1
+    fi
+    if type lspci > /dev/null 2>&1
+    then
+      echo -e "\n##### lspci #####\n" >> "$ENV_INFO_FILE" 2>&1
+      lspci >> "$ENV_INFO_FILE" 2>&1
+    fi
+    if type lsblk > /dev/null 2>&1
+    then
+      echo -e "\n##### lsblk #####\n" >> "$ENV_INFO_FILE" 2>&1
+      lsblk >> "$ENV_INFO_FILE" 2>&1
+    fi
+    if type ifconfig > /dev/null 2>&1
+    then
+      echo -e "\n##### ifconfig #####\n" >> "$ENV_INFO_FILE" 2>&1
+      ifconfig >> "$ENV_INFO_FILE" 2>&1
+    else
+      if type ip > /dev/null 2>&1
+      then
+        echo -e "\n##### ip #####\n" >> "$ENV_INFO_FILE" 2>&1
+        ip addr list >> "$ENV_INFO_FILE" 2>&1
+      fi
+    fi
+
+    echo "##############################" >> "$ENV_INFO_FILE" 2>&1
+    echo "#          Software          #" >> "$ENV_INFO_FILE" 2>&1
+    echo "##############################" >> "$ENV_INFO_FILE" 2>&1
+
+    echo -e "\n##### linux release #####\n" >> "$ENV_INFO_FILE" 2>&1
+    cat /etc/*release >> "$ENV_INFO_FILE" 2>&1
+    echo -e "\n##### kernel release #####\n" >> "$ENV_INFO_FILE" 2>&1
+    uname -a >> "$ENV_INFO_FILE" 2>&1
+    echo -e "\n##### date #####\n" >> "$ENV_INFO_FILE" 2>&1
+    date >> "$ENV_INFO_FILE" 2>&1
+    echo -e "\n##### hadoop version #####\n" >> "$ENV_INFO_FILE" 2>&1
+    hadoop version >> "$ENV_INFO_FILE" 2>&1
+    echo -e "\n##### hadoop classpath #####\n" >> "$ENV_INFO_FILE" 2>&1
+    hadoop classpath >> "$ENV_INFO_FILE" 2>&1
+    echo -e "\n##### java version #####\n" >> "$ENV_INFO_FILE" 2>&1
+    "$BIG_BENCH_JAVA" -version >> "$ENV_INFO_FILE" 2>&1
+    echo -e "\n##### environment #####\n" >> "$ENV_INFO_FILE" 2>&1
+    set >> "$ENV_INFO_FILE" 2>&1
+    # deactivated for now, needs root
+    #echo -e "\n##### iptables #####\n" >> "$ENV_INFO_FILE" 2>&1
+    #iptables -S >> "$ENV_INFO_FILE" 2>&1
+  else
+    echo "environment information could not be written to $ENV_INFO_FILE"
+    exit 1
+  fi
 }
 
 runCmdWithErrorCheck () {
@@ -121,23 +222,26 @@ fi
 ## ===================================================
 ## all static settings sourced, start checking runtime settings
 ## ===================================================
-# write environment information into logfile
-logEnvInformation
-
-# the help must list the modules, so keep on parsing stuff first
-[[ $# -eq 0 || "$1" = "-h" || "$1" = "--help" ]] && SHOW_GLOBAL_HELP="1"
 
 ## ===================================================
 ## parse command line arguments
 ## ===================================================
 # the first parameter after the options must be the module name
-export MODULE_NAME="$1"
-shift
+
+# if there are no parameters or the first parameter starts with "-"
+# the user has not provided any module to run
+if [[ $# -eq 0 || "`echo "$1" | cut -c1`" = "-" ]]
+then
+  export MODULE_NAME=""
+else
+  export MODULE_NAME="$1"
+  shift
+fi
 
 export LIST_OF_USER_OPTIONS="$@"
 
 # parse remaining options
-while getopts ":d:D:e:f:hm:p:q:s:t:v:w:y:z:abi:j:" OPT; do
+while getopts ":d:D:e:f:hm:p:q:s:t:Uv:w:y:z:abi:j:" OPT; do
   case "$OPT" in
     # script options
     d)
@@ -158,7 +262,7 @@ while getopts ":d:D:e:f:hm:p:q:s:t:v:w:y:z:abi:j:" OPT; do
     ;;
     h)
       #echo "-h was triggered, Parameter: $OPTARG" >&2
-      SHOW_MODULE_HELP="1"
+      SHOW_HELP="1"
     ;;
     m)
       #echo "-m was triggered, Parameter: $OPTARG" >&2
@@ -179,6 +283,10 @@ while getopts ":d:D:e:f:hm:p:q:s:t:v:w:y:z:abi:j:" OPT; do
     t)
       #echo "-s was triggered, Parameter: $OPTARG" >&2
       USER_STREAM_NUMBER="$OPTARG"
+    ;;
+    U)
+      #echo "-U was triggered, Parameter: $OPTARG" >&2
+      USER_EXPERT_MODE="1"
     ;;
     v)
       #echo "-v was triggered, Parameter: $OPTARG" >&2
@@ -226,6 +334,9 @@ done
 
 # remove options from parameter list
 shift $((OPTIND-1))
+
+export BIG_BENCH_EXPERT_MODE="${USER_EXPERT_MODE:-"0"}"
+export SHOW_HELP="${SHOW_HELP:-"0"}"
 
 # global shared variables
 export BIG_BENCH_DATABASE="${USER_DATABASE:-"$BIG_BENCH_DEFAULT_DATABASE"}"
@@ -300,7 +411,7 @@ then
 fi
 
 # as the module's bin directory is known at this point, the help can list all modules within that directory
-[ "$SHOW_GLOBAL_HELP" = "1" ] && showGlobalHelp
+[[ "$SHOW_HELP" -eq 1 && -z "$MODULE_NAME" ]] && showGlobalHelp
 
 ## ===================================================
 ## check for module existence and correctness
@@ -310,8 +421,14 @@ if [ -f "$MODULE" ]
 then
   source "$MODULE"
 else
-  echo "Module $MODULE not found, aborting script."
-  exit 1
+  export MODULE="$BIG_BENCH_BIN_DIR/$MODULE_NAME"
+  if [ -f "$MODULE" ]
+  then
+    source "$MODULE"
+  else
+    echo "Module $MODULE not found, aborting script."
+    exit 1
+  fi
 fi
 
 # check if the module's run method was implemented properly
@@ -338,10 +455,20 @@ then
   exit 1
 fi
 
+# write environment information into logfile
+logEnvInformation
+
 # run module
-if [ "$SHOW_MODULE_HELP" = "1" ]
+if [[ "$BIG_BENCH_EXPERT_MODE" -eq 1 || "$MODULE_NAME" = "runBenchmark" ]]
 then
-  "$MODULE_HELP_METHOD"
+  if [ "$SHOW_HELP" -eq 1 ]
+  then
+    "$MODULE_HELP_METHOD"
+  else
+    runCmdWithErrorCheck "$MODULE_RUN_METHOD"
+  fi
 else
-  runCmdWithErrorCheck "$MODULE_RUN_METHOD"
+  echo "Running module $MODULE_NAME directly is only supported in expert mode"
+  echo "Normal mode only supports runBenchmark module"
+  exit 1
 fi

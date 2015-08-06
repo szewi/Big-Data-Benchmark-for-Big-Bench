@@ -13,6 +13,8 @@ helpModule () {
   echo "Options:"
   echo -e "-d\tdatabase to use"
   echo -e "-h\tshow this help"
+  echo
+  echo "INTERNAL options:"
   echo -e "-z\tfile with user defined engine settings"
 }
 
