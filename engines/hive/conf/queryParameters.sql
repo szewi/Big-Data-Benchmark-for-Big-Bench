@@ -42,9 +42,9 @@ set q02_session_timeout_inSec=3600;
 
 
 -------- Q03 -----------
-set q03_days_before_purchase=10;
+set q03_days_in_sec_before_purchase=864000;
 set q03_views_before_purchase=5;
-set q03_purchased_item_IN=10000;
+set q03_purchased_item_IN=10001;
 --see q1 for categories
 set q03_purchased_item_category_IN=2,3; 
 set q03_limit=30;

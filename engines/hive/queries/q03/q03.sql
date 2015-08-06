@@ -23,6 +23,7 @@
 -- Resources
 ADD FILE ${hiveconf:QUERY_DIR}/q03_filterLast_N_viewedItmes_within_y_days.py;
 
+
 --Result -------------------------------------------------------------------------
 --keep result human readable
 set hive.exec.compress.output=false;
@@ -45,40 +46,40 @@ FROM
 	(
 	SELECT * 
 	FROM item i ,
-		(--sessionize and filter "last 5 viewed products after purchase" with reduce script
+		(--sessionize and filter "last 5 viewed products after purchase of specific item" with reduce script
 		  FROM 
 			  (
-				SELECT
-				  wcs_user_sk  ,
-				  wcs_click_date_sk as tstamp ,
-				  wcs_item_sk  ,     
-				  wcs_sales_sk     
-				FROM web_clickstreams w
-				WHERE wcs_user_sk IS NOT NULL -- only select clickstreams resulting in a purchase user_sk = null -> only non buying visitor
-				AND wcs_item_sk IS NOT NULL
-				DISTRIBUTE BY wcs_user_sk --build clickstream per user
-				SORT BY tstamp DESC --order by tstamp => required by python script
-			  ) q03_map_output
-		  REDUCE
-			  q03_map_output.wcs_user_sk,
-			  q03_map_output.tstamp,
-			  q03_map_output.wcs_item_sk,
-			  q03_map_output.wcs_sales_sk
-		  --Reducer script logic: iterate through clicks of a user in descending order (most recent click first).
-		  --if a purchase is found (wcs_sales_sk!=null) display the next 5 clicks if they are within the provided date range (max 10 days before)
-		  --Reducer script selects only:
-		  -- * products viewed within 'q03_days_before_purchase' days before the purchase date
-		  -- * only the last 5 products that where purchased before a sale
-		  USING 'python q03_filterLast_N_viewedItmes_within_y_days.py ${hiveconf:q03_days_before_purchase} ${hiveconf:q03_views_before_purchase}'
-		  AS ( purchased_item BIGINT, lastviewed_item BIGINT)
+          SELECT
+            wcs_user_sk  ,
+           (wcs_click_date_sk*24*60*60 + wcs_click_time_sk) AS tstamp,
+            wcs_item_sk  ,     
+            wcs_sales_sk     
+          FROM web_clickstreams w
+          WHERE wcs_user_sk IS NOT NULL -- only select clickstreams resulting in a purchase (user_sk != null)
+          AND wcs_item_sk IS NOT NULL
+          DISTRIBUTE BY wcs_user_sk --build clickstream per user
+          SORT BY wcs_user_sk, tstamp ASC, wcs_sales_sk, wcs_item_sk  --order by tstamp ASC => required by python script
+        ) q03_map_output
+        REDUCE
+          q03_map_output.wcs_user_sk,
+          q03_map_output.tstamp,
+          q03_map_output.wcs_item_sk,
+          q03_map_output.wcs_sales_sk
+        --Reducer script logic: iterate through clicks of a user in ascending order (oldest recent click first).
+        --keep a list of the last N clicks and clickdate in a LRU list. if a purchase is found (wcs_sales_sk!=null) display the N previous clicks if they are within the provided date range (max 10 days before purchase)
+        --Reducer script selects only:
+        -- * products viewed within 'q03_days_before_purchase' days before the purchase date
+        -- * consider only purchase of specific item
+        -- * only the last 5 products that where viewed before a sale
+        USING 'python q03_filterLast_N_viewedItmes_within_y_days.py ${hiveconf:q03_days_in_sec_before_purchase} ${hiveconf:q03_views_before_purchase} ${hiveconf:q03_purchased_item_IN}'
+        AS ( purchased_item BIGINT, lastviewed_item BIGINT)
 		) lastViewSessions
 	WHERE i.i_item_sk = lastViewSessions.lastviewed_item
 	AND i.i_category_id IN (${hiveconf:q03_purchased_item_category_IN})  --Only products in certain categories			
-	AND purchased_item IN ( ${hiveconf:q03_purchased_item_IN} )
 	CLUSTER BY lastviewed_item,purchased_item -- pre cluster to speed up following group by and count()
 	) distributed
-GROUP BY lastviewed_item,purchased_item
+GROUP BY purchased_item,lastviewed_item
 ORDER BY cnt DESC, purchased_item, lastviewed_item
-LIMIT 100
 --DISTRIBUTE BY lastviewed_item SORT BY cnt DESC, purchased_item, lastviewed_item --cluster parallel sorting
+LIMIT 100
 ;
