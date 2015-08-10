@@ -69,10 +69,7 @@ set hive.exec.compress.output;
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
   averageNumberOfPages DECIMAL(20,1),
-  rawval double,
-  totalsum double,
-  totalcount double
-  
+ 
 )
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}';
@@ -80,10 +77,8 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 
 -- the real query part
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
-SELECT sum(pagecount)/count(*),
-      sum(pagecount)/count(*), 
-      sum(pagecount),
-      count(*)
+SELECT sum(pagecount)/count(*)
+     
 FROM(
   FROM 
   (

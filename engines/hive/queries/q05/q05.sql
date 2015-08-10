@@ -10,22 +10,6 @@
 --activities and demographics, for a visitor to an online store, predict the visitors
 --likelihood to be interested in a given category.
 
--- Hive 0.12 bug, hive ignores  'hive.mapred.local.mem' resulting in out of memory errors in map joins!
--- (more exactly: bug in Hadoop 2.2 where hadoop-env.cmd sets the -xmx parameter multiple times, effectively overriding the user set hive.mapred.local.mem setting. see: https://issues.apache.org/jira/browse/HADOOP-10245
--- There are 3 workarounds: 
--- 1) assign more memory to the local!! Hadoop JVM client via 'HADOOP_CLIENT_OPTS'. (Cloudera->hive service settings->gateway default group->Resourcemanagement->Java-Heap size)
---    Map-join child vm will inherit the parents jvm settings. 
--- 2) reduce "hive.smalltable.filesize" to ~1MB (depends on your cluster settings for the local JVM)
--- 3) turn off "hive.auto.convert.join" to prevent hive from converting the join to a mapjoin.
---- set hive.auto.convert.join;
---- set hive.auto.convert.join=false;
---- 10mb smalltable.filesize should be sufficient for all static tables of bigbench
---- set hive.mapjoin.smalltable.filesize;
---- set hive.mapjoin.smalltable.filesize=12144;
---- set hive.mapred.local.mem;
---- set hive.mapred.local.mem=2048;
---- set hive.mapjoin.localtask.max.memory.usage;
---- set hive.mapjoin.localtask.max.memory.usage=0.99;
 
 -- Resources
 

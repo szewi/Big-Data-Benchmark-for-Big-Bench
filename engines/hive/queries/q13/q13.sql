@@ -159,7 +159,7 @@ AND tw_s.year        = (${hiveconf:q13_Year} + 1)
 AND ts_f.year_total  > 0
 AND tw_f.year_total  > 0
 
-CLUSTER BY
+ORDER BY
   ts_s.customer_id,
   ts_s.customer_first_name,
   ts_s.customer_last_name

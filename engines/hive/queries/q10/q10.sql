@@ -23,6 +23,16 @@ CREATE TEMPORARY FUNCTION extract_sentiment AS 'io.bigdatabenchmark.v1.queries.q
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
 
+-- This query requires parallel orderby for fast and deterministic global ordering of final result
+set hive.optimize.sampling.orderby=${hiveconf:bigbench.hive.optimize.sampling.orderby};
+set hive.optimize.sampling.orderby.number=${hiveconf:bigbench.hive.optimize.sampling.orderby.number};
+set hive.optimize.sampling.orderby.percent=${hiveconf:bigbench.hive.optimize.sampling.orderby.percent};
+--debug print
+set hive.optimize.sampling.orderby;
+set hive.optimize.sampling.orderby.number;
+set hive.optimize.sampling.orderby.percent;
+
+
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
@@ -42,5 +52,7 @@ FROM (--wrap in additional FOR(), because Sorting/distribute by with UDTF in sel
   SELECT extract_sentiment(pr_item_sk,pr_review_content) AS (item_sk, review_sentence, sentiment, sentiment_word)
   FROM product_reviews 
 ) extracted
-DISTRIBUTE BY item_sk --item_sk is skewed, but we need to sort by it. Technically we just expect a deterministic global sorting and not clustering by item_sk...so we could distribute by pr_review_sk
-SORT BY item_sk,review_sentence,sentiment,sentiment_word
+ORDER BY item_sk,review_sentence,sentiment,sentiment_word
+--CLUSTER BY instead of ORDER BY does not work to achieve global ordering. e.g. 2 reducers: first reducer will write keys 0,2,4,6.. into file 000000_0 and reducer 2 will write keys 1,3,5,7,.. into file 000000_1.concatenating these files does not produces a deterministic result if number of reducer changes.
+--Solution: parallel "order by" as non parallel version only uses a single reducer and we cant use "limit
+;

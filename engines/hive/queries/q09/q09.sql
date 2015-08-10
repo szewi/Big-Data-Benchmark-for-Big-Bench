@@ -79,4 +79,5 @@ AND
     AND ss1.ss_net_profit <= ${hiveconf:q09_part3_net_profit_max}
   )
 )
+--no sorting required. output is a single line
 ;

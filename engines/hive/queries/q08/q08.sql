@@ -89,6 +89,7 @@ JOIN (
   FROM ${hiveconf:TEMP_TABLE3} ws
 )  q08_all_sales
 ON q08_review_sales.id = q08_all_sales.id
+--result is one single line, no sorting required
 ;
 
 

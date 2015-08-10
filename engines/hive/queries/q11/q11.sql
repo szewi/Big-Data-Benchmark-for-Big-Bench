@@ -60,6 +60,7 @@ FROM (
   ) s
   ON p.pr_item_sk = s.ws_item_sk
 ) q11_review_stats
+--no sorting required, output is a single line
 ;
 
 -- cleanup -------------------------------------------------------------

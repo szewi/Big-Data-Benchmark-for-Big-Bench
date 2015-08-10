@@ -48,6 +48,15 @@ WHERE stdev > mean AND mean > 0 --if stdev > mean then stdev/mean is greater 1.0
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
 
+-- This query requires parallel orderby for fast and deterministic global ordering of final result
+set hive.optimize.sampling.orderby=${hiveconf:bigbench.hive.optimize.sampling.orderby};
+set hive.optimize.sampling.orderby.number=${hiveconf:bigbench.hive.optimize.sampling.orderby.number};
+set hive.optimize.sampling.orderby.percent=${hiveconf:bigbench.hive.optimize.sampling.orderby.percent};
+--debug print
+set hive.optimize.sampling.orderby;
+set hive.optimize.sampling.orderby.number;
+set hive.optimize.sampling.orderby.percent;
+
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE1};
 CREATE TABLE ${hiveconf:RESULT_TABLE1} (
@@ -85,8 +94,7 @@ JOIN ${hiveconf:TEMP_TABLE} inv2 ON (
 			  AND inv1.d_moy = ${hiveconf:q23_month}
 			  AND inv2.d_moy = ${hiveconf:q23_month} + 1
 			)
---original was ORDER BY, but CLUSTER BY is hives cluster scale counter part
-CLUSTER BY
+ORDER BY
   inv1_w_warehouse_sk,
   inv1_i_item_sk,
   inv1_d_moy,
@@ -102,6 +110,15 @@ CLUSTER BY
 --keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
+
+-- This query requires parallel orderby for fast and deterministic global ordering of final result
+set hive.optimize.sampling.orderby=${hiveconf:bigbench.hive.optimize.sampling.orderby};
+set hive.optimize.sampling.orderby.number=${hiveconf:bigbench.hive.optimize.sampling.orderby.number};
+set hive.optimize.sampling.orderby.percent=${hiveconf:bigbench.hive.optimize.sampling.orderby.percent};
+--debug print
+set hive.optimize.sampling.orderby;
+set hive.optimize.sampling.orderby.number;
+set hive.optimize.sampling.orderby.percent;
 
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE2};
@@ -141,8 +158,7 @@ JOIN ${hiveconf:TEMP_TABLE} inv2 ON (
   AND inv2.d_moy = ${hiveconf:q23_month} + 2
   AND inv1.cov > ${hiveconf:q23_coeficient}
 )
---original was ORDER BY, but CLUSTER BY is hives cluster scale counter part
-CLUSTER BY
+ORDER BY
   inv1_w_warehouse_sk,
   inv1_i_item_sk,
   inv1_d_moy,

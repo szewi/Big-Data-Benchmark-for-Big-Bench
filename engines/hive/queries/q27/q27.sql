@@ -22,6 +22,15 @@ CREATE TEMPORARY FUNCTION find_company AS 'io.bigdatabenchmark.v1.queries.q27.Co
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
 
+-- This query requires parallel orderby for fast and deterministic global ordering of final result
+set hive.optimize.sampling.orderby=${hiveconf:bigbench.hive.optimize.sampling.orderby};
+set hive.optimize.sampling.orderby.number=${hiveconf:bigbench.hive.optimize.sampling.orderby.number};
+set hive.optimize.sampling.orderby.percent=${hiveconf:bigbench.hive.optimize.sampling.orderby.percent};
+--debug print
+set hive.optimize.sampling.orderby;
+set hive.optimize.sampling.orderby.number;
+set hive.optimize.sampling.orderby.percent;
+
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
@@ -44,5 +53,7 @@ FROM ( --wrap in additional FOR(), because Sorting/distribute by with UDTF in se
     WHERE pr_item_sk = ${hiveconf:q27_pr_item_sk}
   ) subtable
 )extracted
-DISTRIBUTE BY review_sk SORT BY  review_sk, item_sk, company_name, review_sentence
+ORDER BY review_sk, item_sk, company_name, review_sentence
+--CLUSTER BY instead of ORDER BY does not work to achieve global ordering. e.g. 2 reducers: first reducer will write keys 0,2,4,6.. into file 000000_0 and reducer 2 will write keys 1,3,5,7,.. into file 000000_1.concatenating these files does not produces a deterministic result if number of reducer changes.
+--Solution: parallel "order by" as non parallel version only uses a single reducer and we cant use "limit
 ;

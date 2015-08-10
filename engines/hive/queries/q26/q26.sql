@@ -61,6 +61,8 @@ WHERE i.i_category IN (${hiveconf:q26_i_category_IN})
 AND ss.ss_customer_sk IS NOT NULL
 GROUP BY ss.ss_customer_sk
 HAVING count(ss.ss_item_sk) > ${hiveconf:q26_count_ss_item_sk}
+CLUSTER BY cid
+--no total ordering with ORDER BY required, further processed by clustering algorithm
 ;
 
 -------------------------------------------------------------------------------

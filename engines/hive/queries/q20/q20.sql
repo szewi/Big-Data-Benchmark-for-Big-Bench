@@ -69,6 +69,7 @@ FROM
     GROUP BY sr_customer_sk
   ) returned ON ss_customer_sk=sr_customer_sk  
 Cluster by user_sk
+--no total ordering with ORDER BY required, further processed by clustering algorithm
 ;
 
 

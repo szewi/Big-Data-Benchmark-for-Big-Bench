@@ -105,6 +105,7 @@ SELECT
 FROM ${hiveconf:TEMP_TABLE1} c
 JOIN ${hiveconf:TEMP_TABLE2} ws ON c.i_item_sk = ws.ws_item_sk
 JOIN ${hiveconf:TEMP_TABLE3} ss ON c.i_item_sk = ss.ss_item_sk
+-- no ORDER BY required, result is a single row for the selected item
 ;
 
 

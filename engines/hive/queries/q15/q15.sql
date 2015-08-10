@@ -76,4 +76,6 @@ FROM (
   GROUP BY cat
 ) regression
 WHERE slope <= 0
+ORDER BY cat
+-- limit not required, number of categories is known to be small and of fixed size across scalefactors
 ;

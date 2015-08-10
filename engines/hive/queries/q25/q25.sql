@@ -82,7 +82,11 @@ SELECT
   count(oid) AS frequency,
   SUM(amount) AS totalspend
 FROM ${hiveconf:TEMP_TABLE}
-GROUP BY cid;
+GROUP BY cid 
+CLUSTER BY cid
+--no total ordering with ORDER BY required, further processed by clustering algorithm
+
+;
 
 
 --- CLEANUP--------------------------------------------

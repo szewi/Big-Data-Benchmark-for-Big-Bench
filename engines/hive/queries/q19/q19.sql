@@ -8,7 +8,7 @@
 
 --Retrieve the items with the highest number of returns where the num-
 --ber of returns was approximately equivalent across all store and web channels
---(within a tolerance of +/- 10%), within the week ending given dates. Analyze
+--(within a tolerance of +/- 10%), within the week ending given dates. Analyse
 --the online reviews for these items to see if there are any major negative reviews.
 
 
@@ -21,6 +21,15 @@ CREATE TEMPORARY FUNCTION extract_sentiment AS 'io.bigdatabenchmark.v1.queries.q
 --keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
+
+-- This query requires parallel orderby for fast and deterministic global ordering of final result
+set hive.optimize.sampling.orderby=${hiveconf:bigbench.hive.optimize.sampling.orderby};
+set hive.optimize.sampling.orderby.number=${hiveconf:bigbench.hive.optimize.sampling.orderby.number};
+set hive.optimize.sampling.orderby.percent=${hiveconf:bigbench.hive.optimize.sampling.orderby.percent};
+--debug print
+set hive.optimize.sampling.orderby;
+set hive.optimize.sampling.orderby.number;
+set hive.optimize.sampling.orderby.percent;
 
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
@@ -82,6 +91,6 @@ FROM
 	AND abs( (sr_item_qty-wr_item_qty)/ ((sr_item_qty+wr_item_qty)/2)) <= 0.1
 )extractedSentiments
 WHERE sentiment= 'NEG' --if there are any major negative reviews.
-DISTRIBUTE BY item_sk --item_sk is skewed, but we need to sort by it. Technically we just expect a deterministic global sorting and not clustering by item_sk...so we could distribute by pr_review_sk
-SORT BY item_sk,review_sentence,sentiment,sentiment_word
+--item_sk is skewed, but we need to sort by it. Technically we just expect a deterministic global sorting and not clustering by item_sk...so we could distribute by pr_review_sk
+ORDER BY item_sk,review_sentence,sentiment,sentiment_word
 ;

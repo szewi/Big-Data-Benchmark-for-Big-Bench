@@ -88,6 +88,16 @@ WHERE locate(lower(stores_with_regression.s_store_name), lower(pr.pr_review_cont
 --keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
+
+-- This query requires parallel orderby for fast and deterministic global ordering of final result
+set hive.optimize.sampling.orderby=${hiveconf:bigbench.hive.optimize.sampling.orderby};
+set hive.optimize.sampling.orderby.number=${hiveconf:bigbench.hive.optimize.sampling.orderby.number};
+set hive.optimize.sampling.orderby.percent=${hiveconf:bigbench.hive.optimize.sampling.orderby.percent};
+--debug print
+set hive.optimize.sampling.orderby;
+set hive.optimize.sampling.orderby.number;
+set hive.optimize.sampling.orderby.percent;
+
 --Prepare result storage
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
@@ -108,7 +118,9 @@ FROM ( --wrap in additional FOR(), because Sorting/distribute by with UDTF in se
   SELECT extract_NegSentiment(store_ID, pr_review_date, pr_review_content) AS ( s_name, r_date, r_sentence, sentiment, sentiment_word )
   FROM ${hiveconf:TEMP_TABLE2}
 ) extracted
-DISTRIBUTE BY s_name SORT BY s_name, r_date, r_sentence, sentiment,sentiment_word
+ORDER BY s_name, r_date, r_sentence, sentiment,sentiment_word
+--CLUSTER BY instead of ORDER BY does not work to achieve global ordering. e.g. 2 reducers: first reducer will write keys 0,2,4,6.. into file 000000_0 and reducer 2 will write keys 1,3,5,7,.. into file 000000_1.concatenating these files does not produces a deterministic result if number of reducer changes.
+--Solution: parallel "order by" as non parallel version only uses a single reducer and we cant use "limit
 ;
 
 

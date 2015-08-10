@@ -10,8 +10,14 @@
 -- EXECUTION ENGINE
 --###########################
 -- values: mr, tez, spark
--- set hive.execution.engine=tez;
+-- set hive.execution.engine=mr;
 
+-- ###########################
+-- parallel order by. required by queries:
+-- ###########################
+set bigbench.hive.optimize.sampling.orderby=true;
+set bigbench.hive.optimize.sampling.orderby.number=20000;
+set bigbench.hive.optimize.sampling.orderby.percent=0.1;
 
 -- ###########################
 -- output and itermediate table settings 
@@ -66,8 +72,6 @@
 -- default:25MB, max size of tables considered for local in memory map join. Beware! ORC files have only little file size but huge in memory data size! a 25MB ORC easily consumes 512MB.. related: https://issues.apache.org/jira/browse/HIVE-2601
 -- set hive.mapjoin.smalltable.filesize=10000; 
 -- set hive.mapjoin.localtask.max.memory.usage=0.90;
--- set hive.mapred.local.mem=2147483647;
--- set mapred.child.java.opts=-Xmx2048m;
 -- set hive.auto.convert.sortmerge.join=true;
 -- set hive.auto.convert.sortmerge.join.noconditionaltask=true;
 -- set hive.auto.convert.join.noconditionaltask.size=100000;

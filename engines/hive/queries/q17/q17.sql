@@ -13,9 +13,6 @@
 -- Resources
 
 
-
---TODO Empty result - needs more testing
-
 --Result  --------------------------------------------------------------------
 --keep result human readable
 set hive.exec.compress.output=false;

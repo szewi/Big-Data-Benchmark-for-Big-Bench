@@ -16,6 +16,15 @@
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
 
+-- This query requires parallel orderby for fast and deterministic global ordering of final result
+set hive.optimize.sampling.orderby=${hiveconf:bigbench.hive.optimize.sampling.orderby};
+set hive.optimize.sampling.orderby.number=${hiveconf:bigbench.hive.optimize.sampling.orderby.number};
+set hive.optimize.sampling.orderby.percent=${hiveconf:bigbench.hive.optimize.sampling.orderby.percent};
+--debug print
+set hive.optimize.sampling.orderby;
+set hive.optimize.sampling.orderby.number;
+set hive.optimize.sampling.orderby.percent;
+
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
 	u_id    BIGINT
@@ -49,4 +58,6 @@ FROM
 WHERE wcs_user_sk = ss_customer_sk
 AND wcs_click_date_sk < ss_sold_date_sk -- buy AFTER viewed on website
 ORDER BY 	wcs_user_sk 
+--CLUSTER BY instead of ORDER BY does not work to achieve global ordering. e.g. 2 reducers: first reducer will write keys 0,2,4,6.. into file 000000_0 and reducer 2 will write keys 1,3,5,7,.. into file 000000_1.concatenating these files does not produces a deterministic result if number of reducer changes.
+--Solution: parallel "order by" as non parallel version only uses a single reducer and we cant use "limit"
 ;

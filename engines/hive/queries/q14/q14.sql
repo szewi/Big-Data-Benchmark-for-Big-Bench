@@ -18,6 +18,18 @@
 
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
+
+
+-- This query requires parallel orderby for fast and deterministic global ordering of final result
+set hive.optimize.sampling.orderby=true;
+set hive.optimize.sampling.orderby.number=20000;
+set hive.optimize.sampling.orderby.percent=0.1;
+set hive.optimize.sampling.orderby;
+set hive.optimize.sampling.orderby.number;
+
+
+DROP TABLE 
+
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
@@ -55,6 +67,8 @@ JOIN (
   AND wp.wp_char_count >= ${hiveconf:q14_content_len_min}
   AND wp.wp_char_count <= ${hiveconf:q14_content_len_max}
 ) pt
---original was ORDER BY am_pm_ratio , but CLUSTER BY is hives cluster scale counter part
-CLUSTER BY am_pm_ratio
+
+ORDER BY am_pm_ratio
+--CLUSTER BY instead of ORDER BY does not work to achieve global ordering. e.g. 2 reducers: first reducer will write keys 0,2,4,6.. into file 000000_0 and reducer 2 will write keys 1,3,5,7,.. into file 000000_1.concatenating these files does not produces a deterministic result if number of reducer changes.
+--Solution: parallel "order by" as non parallel version only uses a single reducer and we cant use "limit
 ;
