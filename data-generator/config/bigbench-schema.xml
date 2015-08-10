@@ -130,6 +130,7 @@ Please contact info@bankmark.de for an evaluation license.
  <property name="${anonymous_reviews_per_item}" type="double">5</property>
  <property name="${reviews_per_user}" type="double">0.2</property>
  <property name="${reviews_per_sale}" type="double">0.01</property>
+ <property name="${PR_CONTAINING_STORE_NAME_PERCENT}" type="double">0.001</property> <!-- ~7 reviews per store @ SF 1 (90k reviews)/(13 stores)* 0.001=6.9 -->
  
  <!-- promotion -->
  <property name="${dmail_likelihood}" type="double">0.5</property>
@@ -1271,9 +1272,7 @@ Please contact info@bankmark.de for an evaluation license.
   </field>
   
   <field name="ca_city" size="60" type="VARCHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="cities" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
   </field>
   
   <!-- used by Q9 -->
@@ -1283,11 +1282,9 @@ Please contact info@bankmark.de for an evaluation license.
   
   <!-- used by Q7, Q9 -->
   <field name="ca_state" size="2" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="st" weightColumn="uniform">
      <sameChoiceAs field="ca_county" generatorByID="countyChooser"/>
     </gen_WeightedListGenerator>
-   </gen_NullGenerator>
   </field>
   
   <field name="ca_zip" size="10" type="CHAR" primary="false">
@@ -1300,27 +1297,21 @@ Please contact info@bankmark.de for an evaluation license.
   </field>
   
   <field name="ca_country" size="20" type="VARCHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_StaticValueGenerator>
      <value>United States</value>
     </gen_StaticValueGenerator>
-   </gen_NullGenerator>
   </field>
   
   <!-- used by Q17 -->
   <!-- decimalSize="5,2"-->
   <field name="ca_gmt_offset" size="5" type="NUMERIC" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="fips_county" valueColumn="gmt" weightColumn="uniform">
      <sameChoiceAs field="ca_county" generatorByID="countyChooser"/>
     </gen_WeightedListGenerator>
-   </gen_NullGenerator>
   </field>
   
   <field name="ca_location_type" size="20" type="CHAR" primary="false">
-   <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="location_type" valueColumn="0" weightColumn="0" />
-   </gen_NullGenerator>
   </field>
  </table>
  
@@ -1717,24 +1708,86 @@ Please contact info@bankmark.de for an evaluation license.
    
   <!-- used by Q10, Q18, Q19, Q27, Q28 -->
   <field name="pr_review_content" size="0" type="LONGVARCHAR" primary="false">
-   <!--Generate a review suiting the item category and the rating -->
-   <gen_BigBenchReviewGenerator>
-    <markovChainsPath>dicts/bigbench/reviews-markovchains</markovChainsPath>  
-    <!-- required intra tuple reference to rating -->
-    <gen_OtherFieldValueGenerator>
-      <reference field="pr_review_rating" />
-    </gen_OtherFieldValueGenerator>
-    <!-- required reference to i_category, YES category, not subcategory. In truth i_category chooses both, but it depends on the column within the weighted list.  -->
-    <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-     <sameChoiceAs field="pr_item_sk" generatorByID="itemChooser"/><useValueAsIDsource>true</useValueAsIDsource>
-     <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="item" field="i_category" />
-    </gen_ReferenceGenerator>
-    
-    <!-- Fallback generator if no fitting Markov chain is found for specified category/rating   -->   
-    <gen_RandomSentence>
-      <min>150</min> <max>150</max>
-    </gen_RandomSentence>
-   </gen_BigBenchReviewGenerator>
+  
+   <!-- x percent of reviews must contain a random "store_name" from stores table => required by q18 serarching for this--> 
+   <gen_ProbabilityGenerator>
+     <probability value="1.0d - ${PR_CONTAINING_STORE_NAME_PERCENT}">
+          <!--Generate a review suiting the item category and the rating -->
+          <gen_BigBenchReviewGenerator>
+              <markovChainsPath>dicts/bigbench/reviews-markovchains</markovChainsPath>  
+            
+              <!-- required intra tuple reference to rating -->
+              <gen_OtherFieldValueGenerator>
+                <reference field="pr_review_rating" />
+              </gen_OtherFieldValueGenerator>
+             
+              <!-- required reference to i_category, YES category, not subcategory. In truth i_category chooses both, but it depends on the column within the weighted list.  -->
+              <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+               <sameChoiceAs field="pr_item_sk" generatorByID="itemChooser"/><useValueAsIDsource>true</useValueAsIDsource>
+               <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="item" field="i_category" />
+              </gen_ReferenceGenerator>
+              
+              <!-- Fallback generator if no fitting Markov chain is found for specified category/rating   -->   
+              <gen_RandomSentence>
+                <min>150</min> <max>150</max>
+              </gen_RandomSentence>
+              
+          </gen_BigBenchReviewGenerator>
+     </probability>
+     <!-- x percent of reviews contain a exisiting s_store_name -->
+     <probability value="${PR_CONTAINING_STORE_NAME_PERCENT}">
+        <gen_TemplateGenerator>
+            <getValue><!-- 
+                //multiline code, xml comment tags are required
+                //add whitespace prefix to store name for later insert into review text without sticking to preceeding word.
+                String store_name = " " + generator[0].toString();
+                String review = generator[1].toString();   
+                
+                //most efficient way, as StringBuilder can share its internal buffer with new String
+                StringBuilder buf = new StringBuilder(store_name.length()+review.length()); //set to final len, avoid resizing
+                buf.append(review);
+                //insert store name at random position
+                int insertPos = parent.getRandomSample(0,review.length(),rng);
+                
+                //find next whitespace
+                insertPos = review.indexOf(' ', insertPos);
+                if(insertPos <1){ //no whitespace found, append at end of review 
+                  buf.append(store_name);
+                }else{
+                  buf.insert(insertPos,store_name);
+                }
+                fvdto.setBothValues(buf.toString()); 
+            --></getValue>
+            
+            <!-- Generator[0] store name-->
+            <gen_ReferenceGenerator choose="random" from="historical">
+              <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="store" field="s_store_name" />
+            </gen_ReferenceGenerator> 
+            
+            <!-- Generator[1] review text-->
+            <!--Generate a review suiting the item category and the rating -->
+            <gen_BigBenchReviewGenerator>
+                <markovChainsPath>dicts/bigbench/reviews-markovchains</markovChainsPath>  
+              
+                <!-- required intra tuple reference to rating -->
+                <gen_OtherFieldValueGenerator>
+                  <reference field="pr_review_rating" />
+                </gen_OtherFieldValueGenerator>
+               
+                <!-- required reference to i_category, YES category, not subcategory. In truth i_category chooses both, but it depends on the column within the weighted list.  -->
+                <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+                 <sameChoiceAs field="pr_item_sk" generatorByID="itemChooser"/><useValueAsIDsource>true</useValueAsIDsource>
+                 <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="item" field="i_category" />
+                </gen_ReferenceGenerator>
+                
+                <!-- Fallback generator if no fitting Markov chain is found for specified category/rating   -->   
+                <gen_RandomSentence>
+                  <min>150</min> <max>150</max>
+                </gen_RandomSentence>
+              </gen_BigBenchReviewGenerator>
+          </gen_TemplateGenerator>
+        </probability>
+     </gen_ProbabilityGenerator>
   </field>
  </table>
  
@@ -2038,7 +2091,20 @@ Please contact info@bankmark.de for an evaluation license.
   
   <!-- used by Q18, Q21 -->
   <field name="s_store_name" size="50" type="VARCHAR" primary="false">
-    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="syllables" valueColumn="0" weightColumn="0" />
+    <!-- Name is supposed to be NOT unique (thats what s_store_id and s_store_sk are for)--> 
+    <!-- just use "cities" as store name, which makes a nice name for a store but limit to single word --> 
+    <gen_TemplateGenerator>
+      <getValue><!-- //multiline code, xml comment tags are required
+              String value=generator[0].toString();  
+              int idx= value.indexOf(' ');
+              if (idx>0){
+                value = value.substring(0,idx);
+              }
+              fvdto.setBothValues(value.trim()); 
+              --></getValue>
+      <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="cities" valueColumn="0" weightColumn="1" />
+    </gen_TemplateGenerator>
+   
   </field>
   
   <field name="s_number_employees" size="10" type="INTEGER" primary="false">
@@ -2457,13 +2523,13 @@ Please contact info@bankmark.de for an evaluation license.
           <probability value="1.0 - ${nonUniformyCustomerPurchases_Ratio}">
             <gen_ReferenceGenerator choose="sameChoiceAs" from="">
               <sameChoiceAs field="ss_customer_sk" generatorByID="customerChooser_uniform"/>
-              <reference  table="customer" field="c_current_cdemo_sk" /><!-- reference result can be null -->
+              <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_current_cdemo_sk" /><!-- reference result can be null -->
             </gen_ReferenceGenerator>
          </probability>
          <probability value="${nonUniformyCustomerPurchases_Ratio}">
             <gen_ReferenceGenerator choose="sameChoiceAs" from="">
               <sameChoiceAs field="ss_customer_sk" generatorByID="customerChooser_nonUniform"/>
-              <reference  table="customer" field="c_current_cdemo_sk" /><!-- reference result can be null -->
+              <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_current_cdemo_sk" /><!-- reference result can be null -->
             </gen_ReferenceGenerator>
          </probability>
        </gen_ProbabilityGenerator>
@@ -2478,13 +2544,13 @@ Please contact info@bankmark.de for an evaluation license.
           <probability value="1.0 - ${nonUniformyCustomerPurchases_Ratio}">
             <gen_ReferenceGenerator choose="sameChoiceAs" from="">
               <sameChoiceAs field="ss_customer_sk" generatorByID="customerChooser_uniform"/>
-              <reference  table="customer" field="c_current_hdemo_sk" /><!-- reference result can be null -->
+              <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_current_hdemo_sk" /><!-- reference result can be null -->
             </gen_ReferenceGenerator>
          </probability>
          <probability value="${nonUniformyCustomerPurchases_Ratio}">
             <gen_ReferenceGenerator choose="sameChoiceAs" from="">
               <sameChoiceAs field="ss_customer_sk" generatorByID="customerChooser_nonUniform"/>
-              <reference  table="customer" field="c_current_hdemo_sk" /><!-- reference result can be null -->
+              <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_current_hdemo_sk" /><!-- reference result can be null -->
             </gen_ReferenceGenerator>
          </probability>
        </gen_ProbabilityGenerator>
@@ -2500,13 +2566,13 @@ Please contact info@bankmark.de for an evaluation license.
           <probability value="1.0 - ${nonUniformyCustomerPurchases_Ratio}">
             <gen_ReferenceGenerator choose="sameChoiceAs" from="">
               <sameChoiceAs field="ss_customer_sk" generatorByID="customerChooser_uniform"/>
-              <reference  table="customer" field="c_current_addr_sk" /><!-- reference result can be null -->
+              <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_current_addr_sk" /><!-- reference result can be null -->
             </gen_ReferenceGenerator>
          </probability>
          <probability value="${nonUniformyCustomerPurchases_Ratio}">
             <gen_ReferenceGenerator choose="sameChoiceAs" from="">
               <sameChoiceAs field="ss_customer_sk" generatorByID="customerChooser_nonUniform"/>
-              <reference  table="customer" field="c_current_addr_sk" /><!-- reference result can be null -->
+              <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_current_addr_sk" /><!-- reference result can be null -->
             </gen_ReferenceGenerator>
          </probability>
        </gen_ProbabilityGenerator>
@@ -2547,7 +2613,7 @@ Please contact info@bankmark.de for an evaluation license.
     <gen_IdGenerator> <min>${SK_ID_OFFSET}</min> </gen_IdGenerator>
   </field>
   
-  <!-- used by Q21, Q24 -->
+  <!-- used by q20 ,Q21, Q24 -->
   <field name="ss_quantity" size="10" type="INTEGER" primary="false">
    <gen_ForGenerator>
      <sameChoiceAs field="ss_promo_sk" generatorByID="numberOfItemsChooser"/>
@@ -3355,13 +3421,13 @@ Please contact info@bankmark.de for an evaluation license.
           <probability value="1.0 - ${nonUniformyCustomerPurchases_Ratio}">
             <gen_ReferenceGenerator choose="sameChoiceAs" from="">
               <sameChoiceAs field="ws_bill_customer_sk" generatorByID="customerChooser_uniform"/>
-              <reference  table="customer" field="c_current_cdemo_sk" /><!-- reference result can be null -->
+              <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_current_cdemo_sk" /><!-- reference result can be null -->
             </gen_ReferenceGenerator>
          </probability>
          <probability value="${nonUniformyCustomerPurchases_Ratio}">
             <gen_ReferenceGenerator choose="sameChoiceAs" from="">
               <sameChoiceAs field="ws_bill_customer_sk" generatorByID="customerChooser_nonUniform"/>
-              <reference  table="customer" field="c_current_cdemo_sk" /><!-- reference result can be null -->
+              <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_current_cdemo_sk" /><!-- reference result can be null -->
             </gen_ReferenceGenerator>
          </probability>
        </gen_ProbabilityGenerator>
@@ -3376,13 +3442,13 @@ Please contact info@bankmark.de for an evaluation license.
           <probability value="1.0 - ${nonUniformyCustomerPurchases_Ratio}">
             <gen_ReferenceGenerator choose="sameChoiceAs" from="">
               <sameChoiceAs field="ws_bill_customer_sk" generatorByID="customerChooser_uniform"/>
-              <reference  table="customer" field="c_current_hdemo_sk" /><!-- reference result can be null -->
+              <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_current_hdemo_sk" /><!-- reference result can be null -->
             </gen_ReferenceGenerator>
          </probability>
          <probability value="${nonUniformyCustomerPurchases_Ratio}">
             <gen_ReferenceGenerator choose="sameChoiceAs" from="">
               <sameChoiceAs field="ws_bill_customer_sk" generatorByID="customerChooser_nonUniform"/>
-              <reference  table="customer" field="c_current_hdemo_sk" /><!-- reference result can be null -->
+              <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_current_hdemo_sk" /><!-- reference result can be null -->
             </gen_ReferenceGenerator>
          </probability>
        </gen_ProbabilityGenerator>
@@ -3397,13 +3463,13 @@ Please contact info@bankmark.de for an evaluation license.
         <probability value="1.0 - ${nonUniformyCustomerPurchases_Ratio}">
           <gen_ReferenceGenerator choose="sameChoiceAs" from="">
             <sameChoiceAs field="ws_bill_customer_sk" generatorByID="customerChooser_uniform"/>
-            <reference  table="customer" field="c_current_addr_sk" /><!-- reference result can be null -->
+            <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}"  table="customer" field="c_current_addr_sk" /><!-- reference result can be null -->
           </gen_ReferenceGenerator>
        </probability>
        <probability value="${nonUniformyCustomerPurchases_Ratio}">
           <gen_ReferenceGenerator choose="sameChoiceAs" from="">
             <sameChoiceAs field="ws_bill_customer_sk" generatorByID="customerChooser_nonUniform"/>
-            <reference  table="customer" field="c_current_addr_sk" /><!-- reference result can be null -->
+            <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_current_addr_sk" /><!-- reference result can be null -->
           </gen_ReferenceGenerator>
        </probability>
      </gen_ProbabilityGenerator>
@@ -3434,7 +3500,7 @@ Please contact info@bankmark.de for an evaluation license.
      <gen_NullGenerator probability="${NULL_CHANCE}">
        <gen_ReferenceGenerator choose="sameChoiceAs" from="">
          <sameChoiceAs field="ws_ship_customer_sk" generatorByID="giftBillCustomerChooser"/>
-         <reference  table="customer" field="c_current_cdemo_sk" /><!-- reference result can be null -->
+         <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_current_cdemo_sk" /><!-- reference result can be null -->
        </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </probability>
@@ -3457,7 +3523,7 @@ Please contact info@bankmark.de for an evaluation license.
      <gen_NullGenerator probability="${NULL_CHANCE}">
        <gen_ReferenceGenerator choose="sameChoiceAs" from="">
          <sameChoiceAs field="ws_ship_customer_sk" generatorByID="giftBillCustomerChooser"/>
-         <reference  table="customer" field="c_current_hdemo_sk" /> <!-- reference result can be null -->
+         <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_current_hdemo_sk" /> <!-- reference result can be null -->
        </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </probability>
@@ -3479,7 +3545,7 @@ Please contact info@bankmark.de for an evaluation license.
      <gen_NullGenerator probability="${NULL_CHANCE}">
        <gen_ReferenceGenerator choose="sameChoiceAs" from="">
          <sameChoiceAs field="ws_ship_customer_sk" generatorByID="giftBillCustomerChooser"/>
-         <reference  table="customer" field="c_current_addr_sk" />
+         <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="customer" field="c_current_addr_sk" />
        </gen_ReferenceGenerator>
      </gen_NullGenerator>
     </probability>
@@ -4369,32 +4435,21 @@ Please contact info@bankmark.de for an evaluation license.
    
  <!-- used by Q3, Q4, Q8, Q12 -->
   <field name="wcs_click_date_sk" size="19" type="BIGINT" primary="false">
-   <gen_ProbabilityGenerator id="buyChooser">
-    <disableRng>true</disableRng>
-    <chunkSize>${clickstreams_chunksize}</chunkSize>
-    
+   <gen_ProbabilityGenerator>
+    <sameChoiceAs field="wcs_sales_sk" generatorByID="buyerOrVisitorChooser"/>
+
     <!--visitor -->    
     <probability value="${visitor_likelihood}">
-     <gen_ForGenerator id="numberOfVisitorClicksChooser">
-      <i>
-       <gen_LongGenerator>
-        <min>${mean_clicks_per_visitor} - 5</min>
-        <max>${mean_clicks_per_visitor} + 5</max>
-       </gen_LongGenerator>
-      </i>
-      <do>
-        <gen_FormulaGenerator>
-         <formula>${web_sales_days_since_date_begin_date} + Math.floor(gc.getID() * ((${web_sales_days_within} - 1) / ${web_clickstreams_size}))</formula>
-         <decimalPlaces>0</decimalPlaces>
-        </gen_FormulaGenerator>
-      </do>
-     </gen_ForGenerator>
+      <gen_FormulaGenerator>
+       <formula>${web_sales_days_since_date_begin_date} + Math.floor(gc.getID() * ((${web_sales_days_within} - 1) / ${web_clickstreams_size}))</formula>
+       <decimalPlaces>0</decimalPlaces>
+      </gen_FormulaGenerator>
     </probability>
     
     <!-- buyer -->
     <probability value="1 - ${visitor_likelihood}">
      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-      <sameChoiceAs field="wcs_sales_sk" generatorByID="orderChooser"/>
+      <sameChoiceAs field="wcs_sales_sk" generatorByID="salesSKChooser"/>
       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_sold_date_sk" />
      </gen_ReferenceGenerator>
     </probability>
@@ -4404,12 +4459,12 @@ Please contact info@bankmark.de for an evaluation license.
   <!-- used by Q3, Q4, Q8, Q12 -->
   <field name="wcs_click_time_sk" size="19" type="BIGINT" primary="false">
    <gen_ProbabilityGenerator>
-    <sameChoiceAs field="wcs_click_date_sk" generatorByID="buyChooser"/>
+    <sameChoiceAs field="wcs_sales_sk" generatorByID="buyerOrVisitorChooser"/>
     
     <!--visitor -->    
     <probability value="${visitor_likelihood}">
      <gen_ForGenerator>
-      <sameChoiceAs field="wcs_click_date_sk" generatorByID="numberOfVisitorClicksChooser"/>
+      <sameChoiceAs field="wcs_sales_sk" generatorByID="numberOfVisitorClicksChooser"/>
       <do>
         <gen_ReferenceGenerator choose="random" from="historical">
          <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="time_dim" field="t_time_sk" />
@@ -4420,54 +4475,114 @@ Please contact info@bankmark.de for an evaluation license.
     
     <!-- buyer -->
     <probability value="1 - ${visitor_likelihood}">
-     <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-      <sameChoiceAs field="wcs_sales_sk" generatorByID="orderChooser"/>
-      <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_sold_time_sk" />
-     </gen_ReferenceGenerator>
+      <gen_BuildListGenerator flattenSubList="true"><!-- merges the two sublists into one list  -->
+      
+        <!-- List 1 random additional clicks-->
+        <gen_ForGenerator id="additionalBuyerClicksChooser">
+         <sameChoiceAs field="wcs_sales_sk" generatorByID="additionalBuyerClicksChooser"/>
+         <do>
+           <gen_ReferenceGenerator choose="random" from="historical">
+             <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="time_dim" field="t_time_sk" />
+           </gen_ReferenceGenerator>
+         </do>
+        </gen_ForGenerator>
+        
+        <!-- list 2 clicks on purchased items-->
+         <gen_ForGenerator id="salesTimePadding">
+          <i>
+            <gen_LongGenerator>
+              <min>${WS_ITEMS_PER_ORDER_MAX}</min> <!-- always padd to max items per order -->
+              <max>${WS_ITEMS_PER_ORDER_MAX}</max>
+            </gen_LongGenerator>
+          </i>    
+          <do>
+            <gen_ReferenceGenerator choose="sameChoiceAs" from="">
+             <sameChoiceAs field="wcs_sales_sk" generatorByID="salesSKChooser"/>
+              <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_sold_time_sk" />
+            </gen_ReferenceGenerator>
+          </do>
+        </gen_ForGenerator>
+      </gen_BuildListGenerator>
     </probability>
+    
    </gen_ProbabilityGenerator>
+   
   </field>
   
   <!-- used by Q3, Q8 -->
   <field name="wcs_sales_sk" size="19" type="BIGINT" primary="false" nullable="true">
-   <gen_ProbabilityGenerator>
-    <sameChoiceAs field="wcs_click_date_sk" generatorByID="buyChooser"/>
-    <!-- visitor's dont purchase anything and are unknown user=> they dont have a "sales_sk"  -->
+   <gen_ProbabilityGenerator id="buyerOrVisitorChooser">
+    <disableRng>true</disableRng>
+    <chunkSize>${clickstreams_chunksize}</chunkSize>
+    
+    <!--visitor -->
     <probability value="${visitor_likelihood}">
-     <gen_StaticValueGenerator>
-      <value></value>
-     </gen_StaticValueGenerator>
+      <gen_ForGenerator id="numberOfVisitorClicksChooser">
+        <i>
+         <gen_LongGenerator>
+          <min>${mean_clicks_per_visitor} - 5</min>
+          <max>${mean_clicks_per_visitor} + 5</max>
+         </gen_LongGenerator>
+        </i>
+        <do>
+         <gen_StaticValueGenerator>
+          <value></value>
+         </gen_StaticValueGenerator>
+        </do>
+     </gen_ForGenerator>
     </probability>
     
-    <!-- Buyer -->
+    <!-- buyer -->
     <probability value="1 - ${visitor_likelihood}">
-       <!-- old system
-       <gen_NullGenerator probability="${NULL_CHANCE}">
-        <gen_ReferenceGenerator id="orderChooser" choose="random" from="historical">
-         <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_order_number" />
-        </gen_ReferenceGenerator>
-       </gen_NullGenerator>
-       -->
+      <gen_BuildListGenerator flattenSubList="true"><!-- merges the two sublists into one list  -->
+     
+        <!-- List 1 random additional clicks-->
+        <gen_ForGenerator id="additionalBuyerClicksChooser">
+          <i>
+            <gen_LongGenerator>
+             <min>${mean_clicks_per_buyer} - 1</min>
+             <max>${mean_clicks_per_buyer} + 2</max>
+            </gen_LongGenerator>
+          </i>
+          <do>
+           <gen_StaticValueGenerator>
+            <value></value>
+           </gen_StaticValueGenerator>
+          </do>
+         </gen_ForGenerator>
+      
+      <!-- list 2 clicks on purchased items-->
        <!--  RelativeGenerator: (long) Math.floor( staticFactor * relativeFactor * generatedDouble);  If not explicitly specified, every factor has a default value of 1.0 
            RelativeGenerator's result is a 'choice' queryable with <gen_ReferenceGenerator><sameChoiceAs>
        -->
        <!-- Choose the ws_order_number. Every  ${clickstreams_chunksize}'th clickstream is a "buy" all others are "visitors" -->
-       <gen_RelativeGenerator id="orderChooser" correctionFactor="1 / ${clickstreams_chunksize}">
-         <gen_IdGenerator />
-       </gen_RelativeGenerator>
+         <gen_ForGenerator id="salesSkPadding">
+          <i>
+            <gen_LongGenerator>
+              <min>${WS_ITEMS_PER_ORDER_MAX}</min> <!-- always padd to max items per order -->
+              <max>${WS_ITEMS_PER_ORDER_MAX}</max>
+            </gen_LongGenerator>
+          </i>    
+          <do>
+           <gen_RelativeGenerator id="salesSKChooser" correctionFactor="1 / ${clickstreams_chunksize}">
+             <gen_IdGenerator /> <!-- current ID as input source to RelativeGenerator -->
+           </gen_RelativeGenerator>
+          </do>
+        </gen_ForGenerator>
+      </gen_BuildListGenerator>
     </probability>
    </gen_ProbabilityGenerator>
   </field>
   
   <!-- used by Q2, Q3, Q4, Q5, Q8, Q12, Q30 -->
   <field name="wcs_item_sk" size="19" type="BIGINT" primary="false">
-   <gen_ProbabilityGenerator>
-    <sameChoiceAs field="wcs_click_date_sk" generatorByID="buyChooser"/>
+   <gen_ProbabilityGenerator id="itemSKChooser">
+    <sameChoiceAs field="wcs_sales_sk" generatorByID="buyerOrVisitorChooser"/>
     
     <!--visitor -->
     <probability value="${visitor_likelihood}">
      <gen_ForGenerator>
-      <sameChoiceAs field="wcs_click_date_sk" generatorByID="numberOfVisitorClicksChooser"/>
+      <sameChoiceAs field="wcs_sales_sk" generatorByID="numberOfVisitorClicksChooser"/>
       <do>
        <gen_ReferenceGenerator choose="random" from="historical">
         <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="item" field="i_item_sk" />
@@ -4482,12 +4597,7 @@ Please contact info@bankmark.de for an evaluation license.
       
       <!-- List 1 random additional clicks-->
       <gen_ForGenerator id="additionalBuyerClicksChooser">
-       <i>
-        <gen_LongGenerator>
-         <min>${mean_clicks_per_buyer} - 1</min>
-         <max>${mean_clicks_per_buyer} + 2</max>
-        </gen_LongGenerator>
-       </i>
+       <sameChoiceAs field="wcs_sales_sk" generatorByID="additionalBuyerClicksChooser"/>
        <do>
         <gen_ReferenceGenerator choose="random" from="historical">
          <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="item" field="i_item_sk" />
@@ -4497,7 +4607,7 @@ Please contact info@bankmark.de for an evaluation license.
       
       <!-- list 2 clicks on purchased items-->
       <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-       <sameChoiceAs field="wcs_sales_sk" generatorByID="orderChooser"/>
+       <sameChoiceAs field="wcs_sales_sk" generatorByID="salesSKChooser"/>
        <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_item_sk" />
       </gen_ReferenceGenerator>
      </gen_BuildListGenerator>
@@ -4509,12 +4619,12 @@ Please contact info@bankmark.de for an evaluation license.
   <!-- used by Q4, Q8 -->
   <field name="wcs_web_page_sk" size="19" type="BIGINT" primary="false">
    <gen_ProbabilityGenerator>
-    <sameChoiceAs field="wcs_click_date_sk" generatorByID="buyChooser"/>
+    <sameChoiceAs field="wcs_sales_sk" generatorByID="buyerOrVisitorChooser"/>
     
     <!-- visitor -->
     <probability value="${visitor_likelihood}">
      <gen_ForGenerator>
-      <sameChoiceAs field="wcs_click_date_sk" generatorByID="numberOfVisitorClicksChooser"/>
+      <sameChoiceAs field="wcs_sales_sk" generatorByID="numberOfVisitorClicksChooser"/>
       <do>
         <gen_ReferenceGenerator choose="random" from="historical">
          <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_page" field="wp_web_page_sk" />
@@ -4528,7 +4638,7 @@ Please contact info@bankmark.de for an evaluation license.
       <gen_BuildListGenerator flattenSubList="true"><!-- concatenate lists as single flat list -->
        <!-- list 1 random additional clicks -->
        <gen_ForGenerator>
-        <sameChoiceAs field="wcs_item_sk" generatorByID="additionalBuyerClicksChooser"/>
+        <sameChoiceAs field="wcs_sales_sk" generatorByID="additionalBuyerClicksChooser"/>        
         <do>
          <gen_ReferenceGenerator choose="random" from="historical">
           <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_page" field="wp_web_page_sk" />
@@ -4537,7 +4647,7 @@ Please contact info@bankmark.de for an evaluation license.
        </gen_ForGenerator>
        <!-- list 2 clicks on purchased items-->
        <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-        <sameChoiceAs field="wcs_sales_sk" generatorByID="orderChooser"/>
+        <sameChoiceAs field="wcs_sales_sk" generatorByID="salesSKChooser"/>
         <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_web_page_sk" />
        </gen_ReferenceGenerator>
       </gen_BuildListGenerator>
@@ -4549,7 +4659,7 @@ Please contact info@bankmark.de for an evaluation license.
   <!-- used by Q2, Q3, Q4, Q5, Q8, Q12, Q30 -->
   <field name="wcs_user_sk" size="19" type="BIGINT" primary="false" nullable="true">
    <gen_ProbabilityGenerator>
-    <sameChoiceAs field="wcs_click_date_sk" generatorByID="buyChooser"/>
+    <sameChoiceAs field="wcs_sales_sk" generatorByID="buyerOrVisitorChooser"/>
     <!-- visitor -->
     <probability value="${visitor_likelihood}">
      <gen_ProbabilityGenerator>
@@ -4574,12 +4684,20 @@ Please contact info@bankmark.de for an evaluation license.
     <!-- buyer -->
     <probability value="1 - ${visitor_likelihood}">
      <gen_ReferenceGenerator choose="sameChoiceAs" from="">
-      <sameChoiceAs field="wcs_sales_sk" generatorByID="orderChooser"/>
+      <sameChoiceAs field="wcs_sales_sk" generatorByID="salesSKChooser"/>
       <reference maxIDFromSchedulerPrepartitioner="${REFRESH_SYSTEM_ENABLED}" table="web_sales" field="ws_bill_customer_sk" />
      </gen_ReferenceGenerator>
     </probability>
    </gen_ProbabilityGenerator>
   </field>
+  
+  <!-- unique click session id for debug -->
+  <!-- 
+   <field name="wcs_click_sk" size="19" type="BIGINT" primary="true">
+    <gen_IdGenerator> <min>${SK_ID_OFFSET}</min> </gen_IdGenerator>
+  </field>
+   -->
+  
  </table>
  
  
