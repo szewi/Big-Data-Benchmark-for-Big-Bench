@@ -47,7 +47,7 @@ INNER JOIN (
   JOIN (
     SELECT d_date_sk, d_year
     FROM date_dim d
-    WHERE d.d_year in (${hiveconf:q13_Year}, ${hiveconf:q13_Year} + 1)
+    WHERE d.d_year in (${hiveconf:q13_Year}, (${hiveconf:q13_Year} + 1))
   ) dd on ( ss.ss_sold_date_sk = dd.d_date_sk )
 
 ) ss 
@@ -78,7 +78,7 @@ INNER JOIN (
   JOIN (
     SELECT d_date_sk, d_year
     FROM  date_dim d
-    WHERE d.d_year in (${hiveconf:q13_Year}, ${hiveconf:q13_Year} + 1)
+    WHERE d.d_year in (${hiveconf:q13_Year}, (${hiveconf:q13_Year} + 1) )
   ) dd on (  ws.ws_sold_date_sk =dd.d_date_sk )
 ) ws
 ON c.c_customer_sk = ws.ws_bill_customer_sk
@@ -153,9 +153,9 @@ AND tw_f.sale_type   = 'w'
 AND ts_s.sale_type   = 's'
 AND tw_s.sale_type   = 'w'
 AND ts_f.year        = ${hiveconf:q13_Year}
-AND ts_s.year        = ${hiveconf:q13_Year} + 1
+AND ts_s.year        = (${hiveconf:q13_Year} + 1)
 AND tw_f.year        = ${hiveconf:q13_Year}
-AND tw_s.year        = ${hiveconf:q13_Year} + 1
+AND tw_s.year        = (${hiveconf:q13_Year} + 1)
 AND ts_f.year_total  > 0
 AND tw_f.year_total  > 0
 
