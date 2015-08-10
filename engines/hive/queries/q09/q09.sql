@@ -7,8 +7,7 @@
 
 
 --Calculate the total sales by different types of customers
---(e.g., based on marital status, education status), sales price and different com-
---binations of state and sales profit.
+--(e.g., based on marital status, education status), sales price and different combinations of state and sales profit.
 
 -- Resources
 
