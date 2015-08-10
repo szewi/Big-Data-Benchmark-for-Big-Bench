@@ -56,7 +56,8 @@ AND unix_timestamp(d.d_date, 'yyyy-MM-dd') >= unix_timestamp('${hiveconf:q16_dat
 AND unix_timestamp(d.d_date, 'yyyy-MM-dd') <= unix_timestamp('${hiveconf:q16_date}', 'yyyy-MM-dd') + 30*24*60*60 --add 30 days in seconds
 GROUP BY w_state,i_item_id
 --original was ORDER BY w_state,i_item_id , but CLUSTER BY is hives cluster scale counter part
-CLUSTER BY w_state,i_item_id
+ORDER BY w_state,i_item_id
+LIMIT 100
 ;
 
 -- cleaning up ---------------------------------------------------------------------
