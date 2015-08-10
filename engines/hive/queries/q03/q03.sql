@@ -6,18 +6,19 @@
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
 -- TASK:
---Find the last 5 products that are mostly viewed before a given product
---was purchased online. Only products in certain item categories and viewed within 10
---days before the purchase date are considered. 
+-- For a given product get a top 30 list sorted by number of views in descending order of the last 5 products that are mostly viewed before the product
+-- was purchased online. For the viewed products, consider only products in certain item categories and viewed within 10
+-- days before the purchase date. 
 
 
 --IMPLEMENTATION NOTICE: 
--- The task exceeds "click session" boundaries: all clicks of a user wihtin the 10 day before purchase time frame have to be considered.
+-- The task exceeds "click session" boundaries: all clicks of a user within the 10 day before purchase time frame have to be considered.
 -- Theoretically you could view this task as a "market basket analysis" with a very large basket (all clicks of a user for every purchase), which would be inefficient.
--- This is a classic MR filtering job which cannot be easily expressed and execxuted efficiently in hive/sql. 
--- This does not mean you cant express the job purely in HQL. By cleverly employing windowing functions with "preceeding" rows and "lag" it can be achieved.
--- However this implementation  uses a custom reducer streaming job script, which enforces the "last 10 days" and "last 5 views" constraints in a sequential fashion, not requireing excessive caching or joining.
--- The reduce script requires the input to be pre-partitioned by user_sk and pre-sorted on timestamp by hive.
+-- This is a classic MR filtering job which cannot be easily expressed and executed efficiently in hive/sql. 
+-- This does not mean you cant express the job purely in HQL. By cleverly employing windowing functions with "preceding" rows and "lag" it can be achieved.
+-- However this implementation uses a custom reducer streaming job script, which enforces the "last 10 days" and "last 5 views" constraints in a sequential fashion. 
+-- The employed python script does not requiring excessive caching or joining besides buffering the "last 5" in a circular LRU cache.
+-- The reduce python script requires the input to be pre-partitioned by user_sk and pre-sorted on virtual timestamp (wcs_click_date_sk*24*60*60 + wcs_click_time_sk) by hive.
 
 
 -- Resources
