@@ -25,8 +25,8 @@ set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
-  pr_review_sk    BIGINT,
-  pr_item_sk      BIGINT,
+  review_sk    BIGINT,
+  item_sk      BIGINT,
   company_name    STRING,
   review_sentence STRING
 )
@@ -35,14 +35,14 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 
 -- the real query part
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
-SELECT pr_review_sk, pr_item_sk, company_name, review_sentence
-FROM (
-  SELECT find_company(pr_review_sk, pr_item_sk, pr_review_content) AS (pr_review_sk, pr_item_sk, company_name, review_sentence)
+SELECT review_sk, item_sk, company_name, review_sentence
+FROM ( --wrap in additional FOR(), because Sorting/distribute by with UDTF in select clause is not allowed
+  SELECT find_company(pr_review_sk, pr_item_sk, pr_review_content) AS (review_sk, item_sk, company_name, review_sentence)
   FROM (
     SELECT pr_review_sk, pr_item_sk, pr_review_content
     FROM product_reviews
     WHERE pr_item_sk = ${hiveconf:q27_pr_item_sk}
   ) subtable
 )extracted
-CLUSTER BY  pr_review_sk, company_name
+DISTRIBUTE BY review_sk SORT BY  review_sk, item_sk, company_name, review_sentence
 ;
