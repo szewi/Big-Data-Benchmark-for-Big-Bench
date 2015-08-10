@@ -20,7 +20,6 @@ set hive.exec.compress.output=false;
 set hive.exec.compress.output;
 
 
-DROP TABLE 
 
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
