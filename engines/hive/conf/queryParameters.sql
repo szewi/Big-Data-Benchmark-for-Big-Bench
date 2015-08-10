@@ -70,7 +70,7 @@ SET q07_HIGHER_PRICE_RATIO=1.2;
 SET q07_YEAR=2004;
 SET q07_MONTH=7;
 SET q07_HAVING_COUNT_GE=10;
-SET q07_LIMIT=100;
+SET q07_LIMIT=10;
 
 -------- Q08 -----------
 set q08_category=review;
