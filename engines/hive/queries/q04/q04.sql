@@ -6,16 +6,19 @@
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
 --TASK
---Shopping cart abandonment analysis: For users who added products in
---their shopping carts but did not check out in the online store, find the average
---number of pages they visited during their sessions.
+--Web_clickstream shopping cart abandonment analysis: For users who added products in
+--their shopping carts but did not check out in the online store during their session, find the average
+--number of pages they visited during their sessions. 
+--A "session" relates to a click_session of a known user with a session time-out of 60min. 
+--If the duration between two click of a user is greater then the session time-out, a new session begins.
 
 --IMPLEMENTATION NOTICE
 -- The difficulty is to reconstruct a users browsing session from the web_clickstreams  table
 -- There are are several ways to to "sessionize", common to all is the creation of a unique virtual time stamp from the date and time serial
--- key's as we know they are both strictly monotonic increasing in order of time: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk implemented is way A)
--- Implemented is way B)
--- A) sessionizeusing SQL-windowing functions => partition by user and  sort by virtual time stamp. 
+-- key's as we know they are both strictly monotonic increasing in order of time and one wcs_click_date_sk relates to excatly one day
+--  the following code works: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk 
+-- Implemented is way B) as A) proved to be inefficient
+-- A) sessionize using SQL-windowing functions => partition by user and  sort by virtual time stamp. 
 --    Step1: compute time difference to preceding click_session
 --    Step2: compute session id per user by defining a session as: clicks no father apart then q02_session_timeout_inSec
 --    Step3: make unique session identifier <user_sk>_<user_session_ID>
@@ -67,7 +70,7 @@ set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
-  averageNumberOfPages DECIMAL(15,2) 
+  averageNumberOfPages DECIMAL(20,1) 
 )
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}';
@@ -80,7 +83,7 @@ FROM (
   FROM ${hiveconf:TEMP_TABLE1} abbandonedSessions
   REDUCE 
     wp_type,
-    --tstamp, --allready sorted by timestamp
+    --tstamp, --already sorted by timestamp
     sessionid -- but we still need the sessionid within the script to identify session boundaries
 	
   -- script requires input tuples to be grouped by sessionid and ordered by timestamp ascencding.
