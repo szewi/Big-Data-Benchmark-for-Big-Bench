@@ -6,7 +6,7 @@
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
 --TASK
---Find products that are sold together frequently in given
+--Find top 100 products (ordered descending by count) that are sold together frequently in given
 --stores. Only products in certain categories sold in specific stores are considered,
 --and "sold together frequently" means at least 50 customers bought these products 
 --together in a transaction.
@@ -45,12 +45,12 @@ SELECT  item_sk_1, item_sk_2, COUNT (*) AS cnt
 FROM (
   --Make item "sold together" pairs
   
-	-- combining collect_set + sorting + makepairs(array, noSelfParing) 
-	-- ensuers we get no pairs with swapped places like: (12,24),(24,12). 
-	-- We only produce tuples (12,24) ensuring that the smaller number is allways on the left side
+	-- combining collect_set + sorting + makePairs(array, selfParing=false) 
+	-- ensures we get no pairs with swapped places like: (12,24),(24,12). 
+	-- We only produce tuples like: (12,24) ensuring that the smaller number is always on the left side
     SELECT makePairs(sort_array(itemArray), false) AS (item_sk_1, item_sk_2) 
 	FROM (
-		SELECT collect_set(ss_item_sk) AS itemArray --(_list= with dupplicates, _set = distinct)
+		SELECT collect_set(ss_item_sk) AS itemArray --(_list= with duplicates, _set = distinct)
 		FROM store_sales s, item i 
 		-- Only products in certain categories sold in specific stores are considered,
 		WHERE s.ss_item_sk = i.i_item_sk
