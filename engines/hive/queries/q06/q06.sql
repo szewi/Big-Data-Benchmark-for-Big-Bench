@@ -82,7 +82,7 @@ and   web.customer_sk =c_customer_sk
 and   case when web.first_year_total > 0 then web.second_year_total / web.first_year_total else null end
        > case when store.first_year_total > 0 then store.second_year_total / store.first_year_total else null end
 ORDER BY
-  c_customer_sk
+  c_customer_sk,
   c_first_name,
   c_last_name,
   c_preferred_cust_flag,

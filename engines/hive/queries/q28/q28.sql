@@ -42,9 +42,9 @@ SELECT
   pr_review_content
 FROM product_reviews
 WHERE pmod(pr_review_sk, 5) IN (1,2,3)
-CLUSTER BY pr_review_sk
+--CLUSTER BY pr_review_sk
 --no total ordering with ORDER BY required, further processed by clustering algorithm;
-
+;
 
 --Result 2 Testing table for mahout --------------------------------------------------------------------
 --keep result human readable
@@ -73,5 +73,6 @@ SELECT
   pr_review_content
 FROM product_reviews
 WHERE pmod(pr_review_sk, 5) in (0,4)
-CLUSTER BY pr_review_sk
+--CLUSTER BY pr_review_sk
 --no total ordering with ORDER BY required, further processed by clustering algorithm;
+;
