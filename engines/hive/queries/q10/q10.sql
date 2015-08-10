@@ -26,7 +26,7 @@ set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
-  pr_item_sk      BIGINT,
+  item_sk      BIGINT,
   review_sentence STRING,
   sentiment       STRING,
   sentiment_word  STRING
@@ -37,10 +37,10 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 -- the real query part
 -- you may want to adapt: set hive.exec.reducers.bytes.per.reducer=xxxx;  Default Value: 1,000,000,000 prior to Hive 0.14.0; 256 MB (256,000,000) in Hive 0.14.0 and later
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
-SELECT pr_item_sk, review_sentence, sentiment, sentiment_word
-FROM (
-  SELECT extract_sentiment(pr_item_sk,pr_review_content) AS (pr_item_sk, review_sentence, sentiment, sentiment_word)
+SELECT item_sk, review_sentence, sentiment, sentiment_word
+FROM (--wrap in additional FOR(), because Sorting/distribute by with UDTF in select clause is not allowed
+  SELECT extract_sentiment(pr_item_sk,pr_review_content) AS (item_sk, review_sentence, sentiment, sentiment_word)
   FROM product_reviews 
 ) extracted
-CLUSTER BY pr_item_sk,review_sentence,sentiment,sentiment_word
-;
+DISTRIBUTE BY item_sk --item_sk is skewed, but we need to sort by it. Technically we just expect a deterministic global sorting and not clustering by item_sk...so we could distribute by pr_review_sk
+SORT BY item_sk,review_sentence,sentiment,sentiment_word
