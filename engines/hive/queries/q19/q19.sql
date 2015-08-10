@@ -25,7 +25,7 @@ set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
-  pr_item_sk      BIGINT,
+  item_sk      BIGINT,
   review_sentence STRING,
   sentiment       STRING,
   sentiment_word  STRING
@@ -36,16 +36,18 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 ---- the real query --------------
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
 SELECT *
-FROM(
+FROM
+( --wrap in additional FOR(), because Sorting/distribute by with UDTF in select clause is not allowed
 	SELECT extract_sentiment(pr.pr_item_sk, pr.pr_review_content) AS 
 		(
-			pr_item_sk,
+			item_sk,
 			review_sentence,
 			sentiment,
 			sentiment_word
 		)
 	FROM product_reviews pr,
 	(
+    --store returns in week ending given date
 		SELECT sr_item_sk, sum(sr_return_quantity) sr_item_qty
 		FROM store_returns sr, 
 		( 
@@ -57,9 +59,10 @@ FROM(
 		) sr_dateFilter
 		WHERE  sr.sr_returned_date_sk = d_date_sk
 		GROUP BY sr_item_sk --across all store and web channels
-		HAVING SUM(sr_return_quantity) > 0
+		HAVING sr_item_qty > 0
 	) fsr,
 	(
+     --web returns in week ending given date
 		SELECT wr_item_sk, sum(wr_return_quantity) wr_item_qty
 		FROM web_returns wr, 
 		( 
@@ -71,13 +74,14 @@ FROM(
 		) wr_dateFilter
 		WHERE  wr.wr_returned_date_sk = d_date_sk
 		GROUP BY wr_item_sk  --across all store and web channels
-		HAVING SUM(wr_return_quantity) > 0
+		HAVING wr_item_qty > 0
 	) fwr 
 	WHERE fsr.sr_item_sk = fwr.wr_item_sk
-	AND pr.pr_item_sk = fsr.sr_item_sk --extract product_reviews for found itmes
+	AND pr.pr_item_sk = fsr.sr_item_sk --extract product_reviews for found items
 	-- equivalent across all store and web channels (within a tolerance of +/- 10%)
 	AND abs( (sr_item_qty-wr_item_qty)/ ((sr_item_qty+wr_item_qty)/2)) <= 0.1
 )extractedSentiments
 WHERE sentiment= 'NEG' --if there are any major negative reviews.
-CLUSTER BY pr_item_sk,review_sentence,sentiment,sentiment_word
+DISTRIBUTE BY item_sk --item_sk is skewed, but we need to sort by it. Technically we just expect a deterministic global sorting and not clustering by item_sk...so we could distribute by pr_review_sk
+SORT BY item_sk,review_sentence,sentiment,sentiment_word
 ;
