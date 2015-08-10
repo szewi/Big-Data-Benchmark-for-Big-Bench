@@ -35,31 +35,29 @@ ADD FILE ${hiveconf:QUERY_DIR}/q4_sessionize.py;
 DROP view IF EXISTS ${hiveconf:TEMP_TABLE1};
 CREATE view ${hiveconf:TEMP_TABLE1} AS
 SELECT *
-FROM 
-(
+FROM(
   FROM 
   (
-	SELECT
-	  c.wcs_user_sk,
-	  w.wp_type  ,
-	 (wcs_click_date_sk*24*60*60 + wcs_click_time_sk) AS tstamp_inSec 
-	FROM web_clickstreams c, web_page w 
-	WHERE c.wcs_web_page_sk = w.wp_web_page_sk  
-	AND   c.wcs_web_page_sk IS NOT NULL
-	AND   c.wcs_user_sk     IS NOT NULL
-	DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec -- "sessionize" reducer script requires the cluster by wcs_user_sk and sort by tstamp
-  ) clicksAnWebPageType
+    SELECT
+      c.wcs_user_sk,
+      w.wp_type  ,
+     (wcs_click_date_sk*24*60*60 + wcs_click_time_sk) AS tstamp_inSec 
+    FROM web_clickstreams c, web_page w 
+    WHERE c.wcs_web_page_sk = w.wp_web_page_sk  
+    AND   c.wcs_web_page_sk IS NOT NULL
+    AND   c.wcs_user_sk     IS NOT NULL
+    DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec -- "sessionize" reducer script requires the cluster by wcs_user_sk and sort by tstamp
+   ) clicksAnWebPageType
   REDUCE
     wcs_user_sk,
-    tstamp_inSec,
+    tstamp_inSec, 
     wp_type
   USING 'python q4_sessionize.py ${hiveconf:q04_session_timeout_inSec}'
   AS (
     wp_type STRING,
-    --tstamp BIGINT,
+    tstamp BIGINT,--we require timestamp in further processing to keep output deterministic cross multiple reducers 
     sessionid STRING)
-) q04_tmp_sessionize
-DISTRIBUTE BY sessionid SORT BY sessionid  --required by "abandonment analysis script"
+)sessionized
 ;
 
 
@@ -70,7 +68,11 @@ set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
-  averageNumberOfPages DECIMAL(20,1) 
+  averageNumberOfPages DECIMAL(20,1),
+  rawval double,
+  totalsum double,
+  totalcount double
+  
 )
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}';
@@ -78,18 +80,27 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 
 -- the real query part
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
-SELECT avg(pagecount)
-FROM (
-  FROM ${hiveconf:TEMP_TABLE1} abbandonedSessions
+SELECT sum(pagecount)/count(*),
+      sum(pagecount)/count(*), 
+      sum(pagecount),
+      count(*)
+FROM(
+  FROM 
+  (
+      SELECT  *
+      FROM ${hiveconf:TEMP_TABLE1} sessions
+      DISTRIBUTE BY sessionid SORT BY sessionid ,tstamp,wp_type --required by "abandonment analysis script"
+  ) distributedSessions
   REDUCE 
-    wp_type,
-    --tstamp, --already sorted by timestamp
-    sessionid -- but we still need the sessionid within the script to identify session boundaries
-	
-  -- script requires input tuples to be grouped by sessionid and ordered by timestamp ascencding.
-  -- output one tuple: <pagecount> if a session's shopping cart is abandoned, else: nothing
-  USING 'python q4_abandonedShoppingCarts.py' AS ( pagecount BIGINT)
-)  abandonedShoppingCartsPageCounts
+      wp_type,
+      --tstamp, --already sorted by time-stamp
+      sessionid -- but we still need the sessionid within the script to identify session boundaries
+
+    -- script requires input tuples to be grouped by sessionid and ordered by timestamp ascending.
+    -- output one tuple: <pagecount> if a session's shopping cart is abandoned, else: nothing
+    USING 'python q4_abandonedShoppingCarts.py' 
+    AS ( pagecount BIGINT)
+)  abandonedShoppingCartsPageCountsPerSession
 ;
 
 --cleanup --------------------------------------------

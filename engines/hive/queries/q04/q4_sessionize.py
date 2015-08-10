@@ -41,7 +41,7 @@ if __name__ == "__main__":
 				
 			last_click_time =tstamp
 			#print "%s\t%s\t%s" % (value,tstamp_str, user_sk+"_"+str(perUser_sessionID_counter) )
-			print "%s\t%s" % (value, user_sk+"_"+str(perUser_sessionID_counter) )
+			print "%s\t%s\t%s" % (value,tstamp_str, user_sk+"_"+str(perUser_sessionID_counter) )
 
 	except:
 		## should only happen if input format is not correct, like 4 instead of 5 tab separated values
