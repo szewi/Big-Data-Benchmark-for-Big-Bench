@@ -22,14 +22,14 @@
 --
 -- The second difficulty is to reconstruct a users browsing session from the web_clickstreams  table
 -- There are are several ways to to "sessionize", common to all is the creation of a unique virtual time stamp from the date and time serial
--- key's as we know they are both strictly monotonic increasing in order of time: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk implemented is way A)
+-- key's as we know they are both strictly monotonic increasing in order of time: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk 
 -- Implemented is way B)
--- A) sessionizeusing SQL-windowing functions => partition by user and  sort by virtual time stamp. 
+-- A) sessionize using SQL-windowing functions => partition by user and  sort by virtual time stamp. 
 --    Step1: compute time difference to preceding click_session
 --    Step2: compute session id per user by defining a session as: clicks no father apart then q02_session_timeout_inSec
 --    Step3: make unique session identifier <user_sk>_<user_session_ID>
 -- B) sessionize by clustering on user_sk and sorting by virtual time stamp then feeding the output through a external reducer script
---    which linearly iterates over the rows,  keeps track of session id's per user based on the specified session timeout and makes the unique session identifier <user_sk>_<user_seesion_ID>
+--    which linearly iterates over the rows,  keeps track of session id's per user based on the specified session time-out and makes the unique session identifier <user_sk>_<user_seesion_ID>
 
 
 -- Resources
@@ -50,13 +50,13 @@ FROM
   FROM 
   (
 	SELECT 	wcs_user_sk ,
-			(wcs_click_date_sk*24*60*60 + wcs_click_time_sk) AS tstamp_inSec ,
-			i_category_id
+			    (wcs_click_date_sk*24*60*60 + wcs_click_time_sk) AS tstamp_inSec ,
+			    i_category_id
 	FROM web_clickstreams wcs, item i
-    WHERE wcs.wcs_item_sk = i.i_item_sk 
+  WHERE wcs.wcs_item_sk = i.i_item_sk 
 	AND i.i_category_id IS NOT NULL
-    AND wcs.wcs_user_sk IS NOT NULL
-	DISTRIBUTE BY wcs_user_sk SORT BY  tstamp_inSec -- "sessionize" reducer script requires the cluster by uid and sort by tstamp
+  AND wcs.wcs_user_sk IS NOT NULL
+	DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec -- "sessionize" reducer script requires the cluster by uid and sort by tstamp
   ) clicksAnWebPageType
   REDUCE
     wcs_user_sk,
@@ -93,11 +93,11 @@ SELECT  category_id_1, category_id_2, COUNT (*) AS cnt
 FROM (
   --Make category "viewed together" pairs
 	-- combining collect_set + sorting + makepairs(array, noSelfParing) 
-	-- ensuers we get no pairs with swapped places like: (12,24),(24,12). 
-	-- We only produce tuples (12,24) ensuring that the smaller number is allways on the left side
-    SELECT makePairs(sort_array(itemArray), false) AS (category_id_1,category_id_2)
+	-- ensures we get no pairs with swapped places like: (12,24),(24,12). 
+	-- We only produce tuples (12,24) ensuring that the smaller number is always on the left side
+  SELECT makePairs(sort_array(itemArray), false) AS (category_id_1,category_id_2)
 	FROM (
-		SELECT collect_set(category_id) as itemArray --(_list= with dupplicates, _set = distinct)
+		SELECT collect_set(category_id) as itemArray --(_list= with duplicates, _set = distinct)
 		FROM  ${hiveconf:TEMP_TABLE}
 		GROUP BY sessionid
 	) collectedList
