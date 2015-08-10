@@ -8,7 +8,8 @@
 -- TASK:
 -- Find the top 30 products that are mostly viewed together with a given
 -- product in online store. Note that the order of products viewed does not matter,
--- and "viewed together" relates to a click_session of a user with a session timeout of 60min.
+-- and "viewed together" relates to a web_clickstreams click_session of a known user with a session time-out of 60min. 
+-- If the duration between two click of a user is greater then the session time-out, a new session begins. with a session timeout of 60min.
 
 --IMPLEMENTATION NOTICE:
 -- "Market basket analysis"   
@@ -20,9 +21,10 @@
 --
 -- The second difficulty is to reconstruct a users browsing session from the web_clickstreams  table
 -- There are are several ways to to "sessionize", common to all is the creation of a unique virtual time stamp from the date and time serial
--- key's as we know they are both strictly monotonic increasing in order of time: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk implemented is way A)
--- Implemented is way B)
--- A) sessionizeusing SQL-windowing functions => partition by user and  sort by virtual time stamp. 
+-- key's as we know they are both strictly monotonic increasing in order of time and one wcs_click_date_sk relates to excatly one day
+--  the following code works: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk 
+-- Implemented is way B) as A) proved to be inefficient
+-- A) sessionize using SQL-windowing functions => partition by user and  sort by virtual time stamp. 
 --    Step1: compute time difference to preceding click_session
 --    Step2: compute session id per user by defining a session as: clicks no father apart then q02_session_timeout_inSec
 --    Step3: make unique session identifier <user_sk>_<user_session_ID>
