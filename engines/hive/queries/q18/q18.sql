@@ -49,22 +49,22 @@ CREATE TABLE IF NOT EXISTS ${hiveconf:TEMP_TABLE1} AS
         FROM
         (    
           SELECT
-            s.ss_store_sk ,
-            s.ss_sold_date_sk  AS x,
-            SUM(s.ss_net_paid) AS y,
-            s.ss_sold_date_sk * SUM(s.ss_net_paid) AS xy,
-            s.ss_sold_date_sk*s.ss_sold_date_sk AS xx
-          FROM store_sales s
+            ss.ss_store_sk ,
+            ss.ss_sold_date_sk  AS x,
+            SUM(ss.ss_net_paid) AS y,
+            ss.ss_sold_date_sk * SUM(ss.ss_net_paid) AS xy,
+            ss.ss_sold_date_sk*ss.ss_sold_date_sk AS xx
+          FROM store_sales ss
           --select date range
           LEFT SEMI JOIN (
             SELECT d_date_sk
             FROM date_dim d
             WHERE d.d_date >= '${hiveconf:q18_startDate}'
             AND   d.d_date <= '${hiveconf:q18_endDate}'
-          ) dd ON ( s.ss_sold_date_sk=dd.d_date_sk )
-          GROUP BY s.ss_store_sk, s.ss_sold_date_sk
+          ) dd ON ( ss.ss_sold_date_sk=dd.d_date_sk )
+          GROUP BY ss.ss_store_sk, ss.ss_sold_date_sk
         ) temp
-        GROUP BY ss_store_sk
+        GROUP BY temp.ss_store_sk
     ) regression_analysis  
     WHERE slope <= 0--flat or declining sales
     AND s.s_store_sk = regression_analysis.ss_store_sk
