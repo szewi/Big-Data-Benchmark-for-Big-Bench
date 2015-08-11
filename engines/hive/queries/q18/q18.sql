@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS ${hiveconf:TEMP_TABLE1} AS
         ) temp
         GROUP BY temp.ss_store_sk
     ) regression_analysis  
-    WHERE slope <= 0--flat or declining sales
+    WHERE slope <= 0 --flat or declining sales
     AND s.s_store_sk = regression_analysis.ss_store_sk
 ;
 
