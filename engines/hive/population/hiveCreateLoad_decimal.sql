@@ -31,14 +31,14 @@ set reviewsTableName=product_reviews;
 -- /Begin HACK create first table differently
 -- README! why is the first table not done with CTAS (create table as), like the other tables?
 --
--- hack for https://issues.apache.org/jira/browse/HIVE-2419 where CTAS (create table as) is not working for a fresh install where the "warehouse" folder for hive does not exist. 
+-- hack for https://issues.apache.org/jira/browse/HIVE-2419 where CTAS (create table as) is not working for a fresh install where the "warehouse" folder for hive does not exist.
 -- The normal create table creates the warehouse folder if its missing.
--- But CTAS does not! create the warehouse folder, thus the "move" operation for data would fail with: 
+-- But CTAS does not! create the warehouse folder, thus the "move" operation for data would fail with:
 -- "Failed with exception Unable to rename: hdfs://namenode:port/tmp/hive-root/../-ext-000001 hdfs://namenode:port/user/hive/warehouse/<database>/<table>"
 
 DROP TABLE IF EXISTS createDatabaseDummyTable;
-CREATE TABLE IF NOT EXISTS  createDatabaseDummyTable(  sk   bigint);
-DROP TABLE IF EXISTS createDatabaseDummyTable;
+CREATE TABLE createDatabaseDummyTable(sk bigint);
+DROP TABLE createDatabaseDummyTable;
 
 -- /END HACK create first table differently
 
@@ -71,14 +71,15 @@ CREATE EXTERNAL TABLE ${hiveconf:customerTableName}${hiveconf:temporaryTableSuff
 
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:customerTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:customerTableName}
+DROP TABLE IF EXISTS ${hiveconf:customerTableName};
+CREATE TABLE ${hiveconf:customerTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:customerTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:customerTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:customerTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:customerTableName}${hiveconf:temporaryTableSuffix};
 
 
 
@@ -104,14 +105,15 @@ CREATE EXTERNAL TABLE ${hiveconf:customerAddressTableName}${hiveconf:temporaryTa
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:customerAddressTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:customerAddressTableName}
+DROP TABLE IF EXISTS ${hiveconf:customerAddressTableName};
+CREATE TABLE ${hiveconf:customerAddressTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:customerAddressTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:customerAddressTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:customerAddressTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:customerAddressTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:customerDemographicsTableName}${hiveconf:temporaryTableSuffix};
@@ -133,14 +135,15 @@ CREATE EXTERNAL TABLE ${hiveconf:customerDemographicsTableName}${hiveconf:tempor
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:customerDemographicsTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:customerDemographicsTableName}
+DROP TABLE IF EXISTS ${hiveconf:customerDemographicsTableName};
+CREATE TABLE ${hiveconf:customerDemographicsTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:customerDemographicsTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:customerDemographicsTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:customerDemographicsTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:customerDemographicsTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:dateTableName}${hiveconf:temporaryTableSuffix};
@@ -180,14 +183,15 @@ CREATE EXTERNAL TABLE ${hiveconf:dateTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:dateTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:dateTableName}
+DROP TABLE IF EXISTS ${hiveconf:dateTableName};
+CREATE TABLE ${hiveconf:dateTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:dateTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:dateTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:dateTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:dateTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:householdDemographicsTableName}${hiveconf:temporaryTableSuffix};
@@ -204,14 +208,15 @@ CREATE EXTERNAL TABLE ${hiveconf:householdDemographicsTableName}${hiveconf:tempo
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:householdDemographicsTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:householdDemographicsTableName}
+DROP TABLE IF EXISTS ${hiveconf:householdDemographicsTableName};
+CREATE TABLE ${hiveconf:householdDemographicsTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:householdDemographicsTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:householdDemographicsTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:householdDemographicsTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:householdDemographicsTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:incomeTableName}${hiveconf:temporaryTableSuffix};
@@ -226,14 +231,15 @@ CREATE EXTERNAL TABLE ${hiveconf:incomeTableName}${hiveconf:temporaryTableSuffix
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:incomeTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:incomeTableName}
+DROP TABLE IF EXISTS ${hiveconf:incomeTableName};
+CREATE TABLE ${hiveconf:incomeTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:incomeTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:incomeTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:incomeTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:incomeTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:itemTableName}${hiveconf:temporaryTableSuffix};
@@ -267,14 +273,15 @@ CREATE EXTERNAL TABLE ${hiveconf:itemTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:itemTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:itemTableName}
+DROP TABLE IF EXISTS ${hiveconf:itemTableName};
+CREATE TABLE ${hiveconf:itemTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:itemTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:itemTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:itemTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:itemTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:promotionTableName}${hiveconf:temporaryTableSuffix};
@@ -305,14 +312,15 @@ CREATE EXTERNAL TABLE ${hiveconf:promotionTableName}${hiveconf:temporaryTableSuf
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:promotionTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:promotionTableName}
+DROP TABLE IF EXISTS ${hiveconf:promotionTableName};
+CREATE TABLE ${hiveconf:promotionTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:promotionTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:promotionTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:promotionTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:promotionTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:reasonTableName}${hiveconf:temporaryTableSuffix};
@@ -327,14 +335,15 @@ CREATE EXTERNAL TABLE ${hiveconf:reasonTableName}${hiveconf:temporaryTableSuffix
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:reasonTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:reasonTableName}
+DROP TABLE IF EXISTS ${hiveconf:reasonTableName};
+CREATE TABLE ${hiveconf:reasonTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:reasonTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:reasonTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:reasonTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:reasonTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:shipModeTableName}${hiveconf:temporaryTableSuffix};
@@ -352,14 +361,15 @@ CREATE EXTERNAL TABLE ${hiveconf:shipModeTableName}${hiveconf:temporaryTableSuff
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:shipModeTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:shipModeTableName}
+DROP TABLE IF EXISTS ${hiveconf:shipModeTableName};
+CREATE TABLE ${hiveconf:shipModeTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:shipModeTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:shipModeTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:shipModeTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:shipModeTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:storeTableName}${hiveconf:temporaryTableSuffix};
@@ -400,14 +410,15 @@ CREATE EXTERNAL TABLE ${hiveconf:storeTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:storeTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:storeTableName}
+DROP TABLE IF EXISTS ${hiveconf:storeTableName};
+CREATE TABLE ${hiveconf:storeTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:storeTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:storeTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:storeTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:storeTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:timeTableName}${hiveconf:temporaryTableSuffix};
@@ -429,14 +440,15 @@ CREATE EXTERNAL TABLE ${hiveconf:timeTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:timeTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:timeTableName}
+DROP TABLE IF EXISTS ${hiveconf:timeTableName};
+CREATE TABLE ${hiveconf:timeTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:timeTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:timeTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:timeTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:timeTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:warehouseTableName}${hiveconf:temporaryTableSuffix};
@@ -462,14 +474,15 @@ CREATE EXTERNAL TABLE ${hiveconf:warehouseTableName}${hiveconf:temporaryTableSuf
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:warehouseTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:warehouseTableName}
+DROP TABLE IF EXISTS ${hiveconf:warehouseTableName};
+CREATE TABLE ${hiveconf:warehouseTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:warehouseTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:warehouseTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:warehouseTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:warehouseTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:webSiteTableName}${hiveconf:temporaryTableSuffix};
@@ -507,14 +520,15 @@ CREATE EXTERNAL TABLE ${hiveconf:webSiteTableName}${hiveconf:temporaryTableSuffi
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:webSiteTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:webSiteTableName}
+DROP TABLE IF EXISTS ${hiveconf:webSiteTableName};
+CREATE TABLE ${hiveconf:webSiteTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:webSiteTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:webSiteTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:webSiteTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:webSiteTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:webPageTableName}${hiveconf:temporaryTableSuffix};
@@ -540,14 +554,15 @@ CREATE EXTERNAL TABLE ${hiveconf:webPageTableName}${hiveconf:temporaryTableSuffi
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:webPageTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:webPageTableName}
+DROP TABLE IF EXISTS ${hiveconf:webPageTableName};
+CREATE TABLE ${hiveconf:webPageTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:webPageTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:webPageTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:webPageTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:webPageTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:inventoryTableName}${hiveconf:temporaryTableSuffix};
@@ -563,14 +578,15 @@ CREATE EXTERNAL TABLE ${hiveconf:inventoryTableName}${hiveconf:temporaryTableSuf
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:inventoryTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:inventoryTableName}
+DROP TABLE IF EXISTS ${hiveconf:inventoryTableName};
+CREATE TABLE ${hiveconf:inventoryTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:inventoryTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:inventoryTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:inventoryTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:inventoryTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:storeSalesTableName}${hiveconf:temporaryTableSuffix};
@@ -605,14 +621,15 @@ CREATE EXTERNAL TABLE ${hiveconf:storeSalesTableName}${hiveconf:temporaryTableSu
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:storeSalesTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:storeSalesTableName}
+DROP TABLE IF EXISTS ${hiveconf:storeSalesTableName};
+CREATE TABLE ${hiveconf:storeSalesTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:storeSalesTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:storeSalesTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:storeSalesTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:storeSalesTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:storeReturnsTableName}${hiveconf:temporaryTableSuffix};
@@ -644,14 +661,15 @@ CREATE EXTERNAL TABLE ${hiveconf:storeReturnsTableName}${hiveconf:temporaryTable
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:storeReturnsTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:storeReturnsTableName}
+DROP TABLE IF EXISTS ${hiveconf:storeReturnsTableName};
+CREATE TABLE ${hiveconf:storeReturnsTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:storeReturnsTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:storeReturnsTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:storeReturnsTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:storeReturnsTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:webSalesTableName}${hiveconf:temporaryTableSuffix};
@@ -697,14 +715,15 @@ CREATE EXTERNAL TABLE ${hiveconf:webSalesTableName}${hiveconf:temporaryTableSuff
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:webSalesTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:webSalesTableName}
+DROP TABLE IF EXISTS ${hiveconf:webSalesTableName};
+CREATE TABLE ${hiveconf:webSalesTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:webSalesTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:webSalesTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:webSalesTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:webSalesTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:webReturnsTableName}${hiveconf:temporaryTableSuffix};
@@ -740,14 +759,15 @@ CREATE EXTERNAL TABLE ${hiveconf:webReturnsTableName}${hiveconf:temporaryTableSu
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:webReturnsTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:webReturnsTableName}
+DROP TABLE IF EXISTS ${hiveconf:webReturnsTableName};
+CREATE TABLE ${hiveconf:webReturnsTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:webReturnsTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:webReturnsTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:webReturnsTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:webReturnsTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:marketPricesTableName}${hiveconf:temporaryTableSuffix};
@@ -766,14 +786,15 @@ CREATE EXTERNAL TABLE ${hiveconf:marketPricesTableName}${hiveconf:temporaryTable
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:marketPricesTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:marketPricesTableName}
+DROP TABLE IF EXISTS ${hiveconf:marketPricesTableName};
+CREATE TABLE ${hiveconf:marketPricesTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:marketPricesTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:marketPricesTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:marketPricesTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:marketPricesTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:clickstreamsTableName}${hiveconf:temporaryTableSuffix};
@@ -791,14 +812,15 @@ CREATE EXTERNAL TABLE ${hiveconf:clickstreamsTableName}${hiveconf:temporaryTable
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:clickstreamsTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:clickstreamsTableName}
+DROP TABLE IF EXISTS ${hiveconf:clickstreamsTableName};
+CREATE TABLE ${hiveconf:clickstreamsTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:clickstreamsTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:clickstreamsTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:clickstreamsTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:clickstreamsTableName}${hiveconf:temporaryTableSuffix};
 
 
 -- !echo Create temporary table: ${hiveconf:reviewsTableName}${hiveconf:temporaryTableSuffix};
@@ -818,11 +840,12 @@ CREATE EXTERNAL TABLE ${hiveconf:reviewsTableName}${hiveconf:temporaryTableSuffi
 ;
 
 -- !echo Load text data into ${hiveconf:tableFormat} table: ${hiveconf:reviewsTableName};
-CREATE TABLE IF NOT EXISTS ${hiveconf:reviewsTableName}
+DROP TABLE IF EXISTS ${hiveconf:reviewsTableName};
+CREATE TABLE ${hiveconf:reviewsTableName}
 STORED AS ${hiveconf:tableFormat}
 AS
 SELECT * FROM ${hiveconf:reviewsTableName}${hiveconf:temporaryTableSuffix}
 ;
 
 -- !echo Drop temporary table: ${hiveconf:reviewsTableName}${hiveconf:temporaryTableSuffix};
-DROP TABLE IF EXISTS ${hiveconf:reviewsTableName}${hiveconf:temporaryTableSuffix};
+DROP TABLE ${hiveconf:reviewsTableName}${hiveconf:temporaryTableSuffix};
