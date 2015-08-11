@@ -37,6 +37,7 @@ query_run_validate_method () {
 			VALIDATION_PASSED="0"
 		fi
 
+		#echo "validating hdfs result $RESULT_DIR/* against $VALIDATION_RESULTS_FILENAME . diff -q \"$VALIDATION_RESULTS_FILENAME\" <(hadoop fs -cat \"$RESULT_DIR/*\""
 		if diff -q "$VALIDATION_RESULTS_FILENAME" <(hadoop fs -cat "$RESULT_DIR/*")
 		then
 			echo "Validation of $VALIDATION_RESULTS_FILENAME passed: Query returned correct results"

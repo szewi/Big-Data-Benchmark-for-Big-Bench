@@ -148,8 +148,9 @@ query_run_validate_method () {
 			echo "Golden result set file $VALIDATION_RESULTS_FILENAME not found"
 			VALIDATION_PASSED="0"
 		fi
-
-		if diff -q "$VALIDATION_RESULTS_FILENAME" <(hadoop fs -cat "$RESULT_DIR/*")
+		
+		#just validate the raw classifier numbers. The other, human readable, file would require some parsing before being diff-able (includes timestamps)
+		if diff -q "$VALIDATION_RESULTS_FILENAME" <(hadoop fs -cat "$RESULT_DIR/classifierResult_raw.txt")
 		then
 			echo "Validation of $VALIDATION_RESULTS_FILENAME passed: Query returned correct results"
 		else
