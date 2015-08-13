@@ -526,33 +526,28 @@ FAILED: Execution Error, return code 3 from org.apache.hadoop.hive.ql.exec.mr.Ma
 ```
 
 Hive converted a join into a locally running and faster 'mapjoin', but ran out of memory while doing so.
-There are two bugs responsible for this.
+This is a good thing, because it will significantly increase performance. It works by building a hash table LOCALY (in the vm starting the hive query job)  and distributing this table to the cluster. The downside is: its memory hungry and the default settings in your cluster are probably to low.
 
+There are two ways to address this, the prefered way is A)
 
-**Bug 1)**
+A) assign more memory to the local! Hadoop/HIVE JVM client because map-join child jvm will inherit the parents jvm settings
 
-hives metric for converting joins miscalculated the required amount of memory. This is especially true for compressed files and ORC files, as hive uses the filesize as metric, but compressed tables require more memory in their uncompressed 'in memory representation'.
+Cloudera:
+ * In cloudera manager home, click on "HIVE" service,
+ * then on the HIVE service page click on "Configuration"
+ * Gateway Default Group --(expand)--> Resource Management -> Client Java Heap Size in Bytes -> to e.g. 4Gb/8GB/... 
+ 
 
-You could simply decrease 'hive.smalltable.filesize' to tune the metric, or increase 'hive.mapred.local.mem' to allow the allocation of more memory for map tasks.
+B) Tune hives metric of estimating if joins should be autoconverted 
+```
+set hive.mapjoin.smalltable.filesize;  
+```
+The threshold (in bytes) for the input file size of the small tables; if the file size is smaller than this threshold, it will try to convert the common join into map join.
+```
+set hive.auto.convert.join.noconditionaltask.size;
+```
+Whether Hive enables the optimization about converting common join into mapjoin based on the input file size. If this parameter is on, and the sum of size for n-1 of the tables/partitions for an n-way join is smaller than the size specified by hive.auto.convert.join.noconditionaltask.size, the join is directly converted to a mapjoin (there is no conditional task).
 
-The later option may lead to bug number two if you happen to have a affected hadoop version.
-
-**Bug 2)**
-
-Hive/Hadoop ignores 'hive.mapred.local.mem' !
-(more exactly: bug in Hadoop 2.2 where hadoop-env.cmd sets the -xmx parameter multiple times, effectively overriding the user set hive.mapred.local.mem setting. 
-see: https://issues.apache.org/jira/browse/HADOOP-10245
-
-**There are 3 workarounds for this bug:**
-
-* 1) assign more memory to the local! Hadoop JVM client (this is not! mapred.map.memory) because map-join child jvm will inherit the parents jvm settings
- * In cloudera manager home, click on "hive" service,
- * then on the hive service page click on "configuration"
- * Gateway base group --(expand)--> Resource Management -> Client Java Heap Size in Bytes -> 1GB 
-* 2) reduce "hive.smalltable.filesize" to ~1MB or below (depends on your cluster settings for the local JVM)
-* 3) turn off "hive.auto.convert.join" to prevent hive from converting the joins to a mapjoin.
-
-2) & 3) can be set in Big-Bench/engines/hive/conf/hiveSettings.sql
 
 
 ### Cannot allocate memory
