@@ -6,9 +6,24 @@
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
 
---Build text classifier for online review sentiment classification (Positive,
---Negative, Neutral), using 60% of available reviews for training and the remaining
---40% for testing. Display classifier accuracy on testing data.
+-- Build text classifier for online review sentiment classification (Positive,
+-- Negative, Neutral), using 60% of available reviews for training and the remaining
+-- 40% for testing. Display classifier accuracy on testing data.
+
+-- IMPLEMENTATION NOTICE:
+-- All reviews are split as follows:
+-- case (pr_review_sk % 5) in
+--   1|2|3) => use for training
+--   ;;
+--   0|4) => use for testing
+--   ;;
+-- esac
+
+-- The input format for the clustering is:
+-- ID of the review, rating of the review (NEG, NEU, POS), review text
+-- Fields are separated by tabs
+-- Example:
+-- 1\tNEU\tThis is a neutral review text\n
 
 -- Query parameters
 

@@ -5,11 +5,11 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
---based on tpc-ds q40
---Compute the impact of an item price change on the
---store sales by computing the total sales for items in a 30 day period before and
---after the price change. Group the items by location of warehouse where they
---were delivered from.
+-- based on tpc-ds q40
+-- Compute the impact of an item price change on the
+-- store sales by computing the total sales for items in a 30 day period before and
+-- after the price change. Group the items by location of warehouse where they
+-- were delivered from.
 
 -- Resources
 
@@ -40,14 +40,14 @@ SELECT w_state, i_item_id,
   ) AS sales_before,
   SUM(
     CASE WHEN (unix_timestamp(d_date,'yyyy-MM-dd') >= unix_timestamp('${hiveconf:q16_date}','yyyy-MM-dd'))
-    THEN ws_sales_price - coalesce(wr_refunded_cash,0)
+    THEN ws_sales_price - COALESCE(wr_refunded_cash,0)
     ELSE 0.0 END
   ) AS sales_after
 FROM (
   SELECT *
   FROM web_sales ws
   LEFT OUTER JOIN web_returns wr ON (ws.ws_order_number = wr.wr_order_number
-  AND ws.ws_item_sk = wr.wr_item_sk)
+    AND ws.ws_item_sk = wr.wr_item_sk)
 ) a1
 JOIN item i ON a1.ws_item_sk = i.i_item_sk
 JOIN warehouse w ON a1.ws_warehouse_sk = w.w_warehouse_sk

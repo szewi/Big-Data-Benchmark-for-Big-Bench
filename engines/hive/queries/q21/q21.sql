@@ -5,13 +5,13 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
---based on tpc-ds q29
---Get all items that were sold in stores in a given month
---and year and which were returned in the next 6 months and re-purchased by
---the returning customer afterwards through the web sales channel in the following
---three years. For those these items, compute the total quantity sold through the
---store, the quantity returned and the quantity purchased through the web. Group
---this information by item and store.
+-- based on tpc-ds q29
+-- Get all items that were sold in stores in a given month
+-- and year and which were returned in the next 6 months and re-purchased by
+-- the returning customer afterwards through the web sales channel in the following
+-- three years. For those items, compute the total quantity sold through the
+-- store, the quantity returned and the quantity purchased through the web. Group
+-- this information by item and store.
 
 
 --Result --------------------------------------------------------------------
@@ -35,48 +35,46 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 
 -- the real query part
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
-select   
-     i_item_id
-    ,i_item_desc
-    ,s_store_id
-    ,s_store_name
-    ,sum(ss_quantity)        as store_sales_quantity
-    ,sum(sr_return_quantity) as store_returns_quantity
-    ,sum(ws_quantity)        as web_sales_quantity
- from
-    store_sales
-   ,store_returns
-   ,web_sales
-   ,date_dim             d1
-   ,date_dim             d2
-   ,date_dim             d3
-   ,store
-   ,item
- where   d1.d_year          = ${hiveconf:q21_year} --sold in stores in a given month and year
- and    d1.d_moy            = ${hiveconf:q21_month}
- and d1.d_date_sk           = ss_sold_date_sk
- and i_item_sk              = ss_item_sk
- and s_store_sk             = ss_store_sk
- and ss_customer_sk         = sr_customer_sk
- and ss_item_sk             = sr_item_sk
- and ss_ticket_number       = sr_ticket_number
- and sr_returned_date_sk    = d2.d_date_sk
- and d2.d_moy               between ${hiveconf:q21_month} and  ${hiveconf:q21_month} + 6 --which were returned in the next six months 
- and d2.d_year              = ${hiveconf:q21_year}
- and sr_customer_sk         = ws_bill_customer_sk --re-purchased by the returning customer afterwards through the web sales channel
- and sr_item_sk             = ws_item_sk
- and ws_sold_date_sk        = d3.d_date_sk     
- and d3.d_year              between ${hiveconf:q21_year} and ${hiveconf:q21_year} + 2 -- in the following three years (re-purchased by the returning customer afterwards through the web sales channel) 
- group by
-    i_item_id
-   ,i_item_desc
-   ,s_store_id
-   ,s_store_name
- order by
-    i_item_id 
-   ,i_item_desc
-   ,s_store_id
-   ,s_store_name
- limit ${hiveconf:q21_limit};
-
-
+SELECT
+  i_item_id,
+  i_item_desc,
+  s_store_id,
+  s_store_name,
+  SUM(ss_quantity) AS store_sales_quantity,
+  SUM(sr_return_quantity) AS store_returns_quantity,
+  SUM(ws_quantity) AS web_sales_quantity
+FROM
+  store_sales,
+  store_returns,
+  web_sales,
+  date_dim d1,
+  date_dim d2,
+  date_dim d3,
+  store,
+  item
+WHERE d1.d_year         = ${hiveconf:q21_year} --sold in stores in a given month and year
+AND d1.d_moy            = ${hiveconf:q21_month}
+AND d1.d_date_sk        = ss_sold_date_sk
+AND i_item_sk           = ss_item_sk
+AND s_store_sk          = ss_store_sk
+AND ss_customer_sk      = sr_customer_sk
+AND ss_item_sk          = sr_item_sk
+AND ss_ticket_number    = sr_ticket_number
+AND sr_returned_date_sk = d2.d_date_sk
+AND d2.d_moy BETWEEN ${hiveconf:q21_month} AND ${hiveconf:q21_month} + 6 --which were returned in the next six months 
+AND d2.d_year           = ${hiveconf:q21_year}
+AND sr_customer_sk      = ws_bill_customer_sk --re-purchased by the returning customer afterwards through the web sales channel
+AND sr_item_sk          = ws_item_sk
+AND ws_sold_date_sk     = d3.d_date_sk
+AND d3.d_year BETWEEN ${hiveconf:q21_year} AND ${hiveconf:q21_year} + 2 -- in the following three years (re-purchased by the returning customer afterwards through the web sales channel)
+GROUP BY
+  i_item_id,
+  i_item_desc,
+  s_store_id,
+  s_store_name
+ORDER BY
+  i_item_id,
+  i_item_desc,
+  s_store_id,
+  s_store_name
+LIMIT ${hiveconf:q21_limit};

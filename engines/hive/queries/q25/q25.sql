@@ -6,10 +6,19 @@
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
 
---Customer segmentation analysis: Customers are separated along the
---following key shopping dimensions: recency of last visit, frequency of visits and
---monetary amount. Use the store and online purchase data during a given year
---to compute.
+-- Customer segmentation analysis: Customers are separated along the
+-- following key shopping dimensions: recency of last visit, frequency of visits and
+-- monetary amount. Use the store and online purchase data during a given year
+-- to compute.
+
+-- IMPLEMENTATION NOTICE:
+-- hive provides the input for the clustering program
+
+-- The input format for the clustering is:
+-- customer ID, flag if customer buyed something within the last 60 days (integer 0 or 1), number of orders, total amount spent
+-- Fields are separated by a single space
+-- Example:
+-- 1 1 2 42\n
 
 -- Resources
 
@@ -24,6 +33,7 @@ CREATE TABLE ${hiveconf:TEMP_TABLE} (
   amount  decimal(15,2)
 );
 
+-- Add store sales data
 INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
 SELECT
   ss_customer_sk AS cid,
@@ -40,13 +50,13 @@ GROUP BY
   ss_sold_date_sk
 ;
 
-
+-- Add web sales data
 INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
 SELECT
   ws_bill_customer_sk AS cid,
   ws_order_number AS oid,
   ws_sold_date_sk AS dateid,
-  sum(ws_net_paid) AS amount
+  SUM(ws_net_paid) AS amount
 FROM web_sales ws
 JOIN date_dim d ON ws.ws_sold_date_sk = d.d_date_sk
 WHERE d.d_date > '${hiveconf:q25_date}'
@@ -57,8 +67,6 @@ GROUP BY
   ws_sold_date_sk
 ;
 
--------------------------------------------------------------------------------
---2003-01-02 == date_sk 37621
 
 ------ create input table for mahout --------------------------------------
 --keep result human readable
@@ -85,7 +93,6 @@ FROM ${hiveconf:TEMP_TABLE}
 GROUP BY cid 
 CLUSTER BY cid
 --no total ordering with ORDER BY required, further processed by clustering algorithm
-
 ;
 
 

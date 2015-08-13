@@ -5,8 +5,18 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
---TASK:
---Perform category affinity analysis for products purchased online together.
+
+--Perform category affinity analysis for products purchased together online.
+-- Note that the order of products viewed does not matter,
+
+
+-- IMPLEMENTATION NOTICE:
+-- "Market basket analysis"
+-- A difficult part is to create pairs of "purchased together" items within one sale
+-- There are are several ways to to "basketing", implemented is way A)
+-- A) collect all pairs per purchase (same order_number) in list and employ a UDTF to produce pairwise combinations of all list elements
+-- B) distribute by order_number and employ reducer streaming script to aggregate all items per purchase and produce the pairs
+-- C) pure SQL: produce pairings by self joining on order_number and filtering out left.item_sk < right.item_sk
 
 -- Resources
 ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
@@ -22,7 +32,7 @@ DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
   category_id_1 BIGINT,
   category_id_2 BIGINT,
-  cnt  BIGINT
+  cnt BIGINT
 )
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}';
@@ -30,26 +40,21 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 
 -- the real query part
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
-SELECT  category_id_1, category_id_2, COUNT (*) AS cnt
+SELECT category_id_1, category_id_2, COUNT (*) AS cnt
 FROM (
-  --Make category "purchased together" pairs
-	-- combining collect_set + sorting + makepairs(array, noSelfParing) 
-	-- ensures we get no pairs with swapped places like: (12,24),(24,12). 
-	-- We only produce tuples (12,24) ensuring that the smaller number is always on the left side
-    SELECT makePairs(sort_array(itemArray), false) AS (category_id_1,category_id_2)
-	FROM (
-		SELECT collect_set(i_category_id) as itemArray --(_list= with duplicates, _set = distinct)
-		FROM web_sales ws,  item i 
-		WHERE ws.ws_item_sk = i.i_item_sk
-		AND i.i_category_id IS NOT NULL
-		GROUP BY ws_order_number
-	) collectedList
+  -- Make category "purchased together" pairs
+  -- combining collect_set + sorting + makepairs(array, noSelfParing)
+  -- ensures we get no pairs with swapped places like: (12,24),(24,12).
+  -- We only produce tuples (12,24) ensuring that the smaller number is always on the left side
+  SELECT makePairs(sort_array(itemArray), false) AS (category_id_1,category_id_2)
+  FROM (
+    SELECT collect_set(i_category_id) as itemArray --(_list= with duplicates, _set = distinct)
+    FROM web_sales ws, item i
+    WHERE ws.ws_item_sk = i.i_item_sk
+    AND i.i_category_id IS NOT NULL
+    GROUP BY ws_order_number
+  ) collectedList
 ) pairs
 GROUP BY category_id_1, category_id_2
-ORDER BY cnt DESC, category_id_1 ,category_id_2
-LIMIT  ${hiveconf:q29_limit};		
-
-
-
-
-
+ORDER BY cnt DESC, category_id_1, category_id_2
+LIMIT ${hiveconf:q29_limit};

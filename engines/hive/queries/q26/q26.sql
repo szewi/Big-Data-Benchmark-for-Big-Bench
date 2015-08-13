@@ -9,6 +9,16 @@
 --Cluster customers into book buddies/club groups based on their in
 --store book purchasing histories.
 
+-- IMPLEMENTATION NOTICE:
+-- hive provides the input for the clustering program
+
+-- The input format for the clustering is:
+-- customer ID, sum of store sales in the item class ids 1, 3, 5, 7, 9, 11, 13, 15, 2, 4, 6, 8, 10, 14, 16
+-- Fields are separated by a single space
+-- Example:
+-- 1 12 3 0 9 5 7 2 9 1 5 9 0 4 3 0\n
+
+
 -- Resources
 
 ------ create input table for mahout --------------------------------------
