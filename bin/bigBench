@@ -230,12 +230,18 @@ fi
 
 # if there are no parameters or the first parameter starts with "-"
 # the user has not provided any module to run
-if [[ $# -eq 0 || "`echo "$1" | cut -c1`" = "-" ]]
+if [ $# -eq 0 ]
 then
   export MODULE_NAME=""
+  SHOW_HELP="1"
 else
-  export MODULE_NAME="$1"
-  shift
+  if [[ "`echo "$1" | cut -c1`" = "-" ]]
+  then
+    export MODULE_NAME=""
+  else
+    export MODULE_NAME="$1"
+    shift
+  fi
 fi
 
 export LIST_OF_USER_OPTIONS="$@"

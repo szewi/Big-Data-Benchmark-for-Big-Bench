@@ -17,6 +17,6 @@ helpModule () {
 runModule () {
   echo "dropping database (with all tables)"
   runCmdWithErrorCheck runEngineCmd -e "DROP DATABASE IF EXISTS $BIG_BENCH_DATABASE CASCADE;"
-  echo "cleaning ${BIG_BENCH_HDFS_ABSOLUTE_PATH}/benchmarks/bigbench"
-  runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "${BIG_BENCH_HDFS_ABSOLUTE_PATH}/benchmarks/bigbench"
+  echo "cleaning ${BIG_BENCH_HDFS_ABSOLUTE_HOME}"
+  runCmdWithErrorCheck hadoop fs -rm -r -f -skipTrash "${BIG_BENCH_HDFS_ABSOLUTE_HOME}"
 }
