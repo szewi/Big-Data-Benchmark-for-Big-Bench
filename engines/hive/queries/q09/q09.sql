@@ -5,7 +5,8 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
--- Aggregate total amount of sold items over different given types of combinations of customers based on selected groups of 
+
+-- Aggregate total amount of sold items over different given types of combinations of customers based on selected groups of
 -- marital status, education status, sales price  and   different combinations of state and sales profit.
 
 -- Resources

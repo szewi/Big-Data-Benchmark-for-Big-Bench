@@ -20,7 +20,7 @@ FROM date_dim d
 WHERE d.d_date >= '${hiveconf:q08_startDate}'
 AND   d.d_date <= '${hiveconf:q08_endDate}'
 ;
----- !echo "created ${hiveconf:TEMP_TABLE1}";
+
 
 --PART 1 - sales that users have viewed the review pages--------------------------------------------------------
 -- recreate clicksession in specified year to and return users who read reviews in theirs session
@@ -39,14 +39,14 @@ FROM (
     JOIN ${hiveconf:TEMP_TABLE1} d ON (c.wcs_click_date_sk = d.d_date_sk) --where exists
     INNER JOIN web_page w ON c.wcs_web_page_sk = w.wp_web_page_sk
     WHERE c.wcs_user_sk IS NOT NULL
-    CLUSTER BY uid,c_date,c_time,sales_sk,wpt
+    CLUSTER BY uid, c_date, c_time, sales_sk, wpt
   ) q08_map_output
   REDUCE q08_map_output.uid,
     q08_map_output.c_date,
     q08_map_output.c_time,
     q08_map_output.sales_sk,
     q08_map_output.wpt
-  USING 'python q8_reducer.py ${hiveconf:q08_category}'  --recreate click session per user and return only if seesion contained clicks to review page wp.type 
+  USING 'python q8_reducer.py ${hiveconf:q08_category}' --recreate click session per user and return only if seesion contained clicks to review page wp.type 
   AS (s_date BIGINT, s_sk BIGINT)
 ) q08npath
 ;
@@ -62,7 +62,7 @@ JOIN ${hiveconf:TEMP_TABLE1} d ON ( ws.ws_sold_date_sk = d.d_date_sk)
 
 
 --PART 3 - for sales in given year, compute sales in which customers checked online reviews vs. sales in which customers did not read reviews.
---Result  --------------------------------------------------------------------
+--Result --------------------------------------------------------------------
 --keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
@@ -89,13 +89,13 @@ FROM (
 JOIN (
   SELECT 1 AS id, SUM(ws_net_paid) as amount
   FROM ${hiveconf:TEMP_TABLE3} allSalesInYear
-)  q08_all_sales
+) q08_all_sales
 ON q08_review_sales.id = q08_all_sales.id
 --result is one single line, no sorting required
 ;
 
 
 --cleanup-------------------------------------------------------------------
-DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE2};
 DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE3};
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE2};
 DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE1};

@@ -5,6 +5,7 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
+
 -- TASK:
 -- Build a model using logistic regression: based on existing users online
 -- activities and demographics, for a visitor to an online store, predict the visitors
@@ -64,10 +65,11 @@ FROM (
     FROM customer ct
     INNER JOIN customer_demographics cdt ON ct.c_current_cdemo_sk = cdt.cd_demo_sk
     INNER JOIN web_clickstreams wcst ON (wcst.wcs_user_sk = ct.c_customer_sk
-       AND wcst.wcs_user_sk IS NOT NULL)
+      AND wcst.wcs_user_sk IS NOT NULL)
     INNER JOIN item it ON wcst.wcs_item_sk = it.i_item_sk
   ) q05_tmp_cust_clicks
-  GROUP BY q05_tmp_cust_clicks.c_customer_sk,
+  GROUP BY
+    q05_tmp_cust_clicks.c_customer_sk,
     q05_tmp_cust_clicks.college_education,
     q05_tmp_cust_clicks.male
 ) q05_tmp_Cust

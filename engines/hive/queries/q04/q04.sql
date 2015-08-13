@@ -5,6 +5,7 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
+
 -- TASK
 -- Web_clickstream shopping cart abandonment analysis: For users who added products in
 -- their shopping carts but did not check out in the online store during their session, find the average
@@ -16,9 +17,9 @@
 -- The difficulty is to reconstruct a users browsing session from the web_clickstreams  table
 -- There are are several ways to to "sessionize", common to all is the creation of a unique virtual time stamp from the date and time serial
 -- key's as we know they are both strictly monotonic increasing in order of time and one wcs_click_date_sk relates to excatly one day
---  the following code works: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk 
+--  the following code works: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk
 -- Implemented is way B) as A) proved to be inefficient
--- A) sessionize using SQL-windowing functions => partition by user and  sort by virtual time stamp. 
+-- A) sessionize using SQL-windowing functions => partition by user and  sort by virtual time stamp.
 --    Step1: compute time difference to preceding click_session
 --    Step2: compute session id per user by defining a session as: clicks no father apart then q02_session_timeout_inSec
 --    Step3: make unique session identifier <user_sk>_<user_session_ID>
@@ -31,34 +32,35 @@ ADD FILE ${hiveconf:QUERY_DIR}/q4_sessionize.py;
 --set hive.exec.parallel = true;
 
 
--- Part 1: re-construct a click session of a user  -----------
-DROP view IF EXISTS ${hiveconf:TEMP_TABLE1};
-CREATE view ${hiveconf:TEMP_TABLE1} AS
+-- Part 1: re-construct a click session of a user -----------
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE1};
+CREATE VIEW ${hiveconf:TEMP_TABLE1} AS
 SELECT *
-FROM(
-  FROM 
+FROM
+(
+  FROM
   (
     SELECT
       c.wcs_user_sk,
-      w.wp_type  ,
-     (wcs_click_date_sk*24*60*60 + wcs_click_time_sk) AS tstamp_inSec 
-    FROM web_clickstreams c, web_page w 
-    WHERE c.wcs_web_page_sk = w.wp_web_page_sk  
+      w.wp_type,
+      (wcs_click_date_sk * 24 * 60 * 60 + wcs_click_time_sk) AS tstamp_inSec
+    FROM web_clickstreams c, web_page w
+    WHERE c.wcs_web_page_sk = w.wp_web_page_sk
     AND   c.wcs_web_page_sk IS NOT NULL
     AND   c.wcs_user_sk     IS NOT NULL
     AND   c.wcs_sales_sk    IS NULL --abandoned implies: no sale
     DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec -- "sessionize" reducer script requires the cluster by wcs_user_sk and sort by tstamp
-   ) clicksAnWebPageType
+  ) clicksAnWebPageType
   REDUCE
     wcs_user_sk,
-    tstamp_inSec, 
+    tstamp_inSec,
     wp_type
   USING 'python q4_sessionize.py ${hiveconf:q04_session_timeout_inSec}'
   AS (
     wp_type STRING,
-    tstamp BIGINT,--we require timestamp in further processing to keep output deterministic cross multiple reducers 
+    tstamp BIGINT, --we require timestamp in further processing to keep output deterministic cross multiple reducers
     sessionid STRING)
-)sessionized
+) sessionized
 ;
 
 
@@ -70,7 +72,6 @@ set hive.exec.compress.output;
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
   averageNumberOfPages DECIMAL(20,1)
- 
 )
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}';
@@ -78,27 +79,26 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 
 -- the real query part
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
-SELECT sum(pagecount)/count(*)
-     
-FROM(
-  FROM 
+SELECT SUM(pagecount) / COUNT(*)
+FROM
+(
+  FROM
   (
-      SELECT  *
-      FROM ${hiveconf:TEMP_TABLE1} sessions
-      DISTRIBUTE BY sessionid SORT BY sessionid ,tstamp,wp_type --required by "abandonment analysis script"
+    SELECT *
+    FROM ${hiveconf:TEMP_TABLE1} sessions
+    DISTRIBUTE BY sessionid SORT BY sessionid, tstamp, wp_type --required by "abandonment analysis script"
   ) distributedSessions
   REDUCE 
-      wp_type,
-      --tstamp, --already sorted by time-stamp
-      sessionid -- but we still need the sessionid within the script to identify session boundaries
+    wp_type,
+    --tstamp, --already sorted by time-stamp
+    sessionid --but we still need the sessionid within the script to identify session boundaries
 
     -- script requires input tuples to be grouped by sessionid and ordered by timestamp ascending.
     -- output one tuple: <pagecount> if a session's shopping cart is abandoned, else: nothing
-    USING 'python q4_abandonedShoppingCarts.py' 
-    AS ( pagecount BIGINT)
-)  abandonedShoppingCartsPageCountsPerSession
+    USING 'python q4_abandonedShoppingCarts.py'
+    AS (pagecount BIGINT)
+) abandonedShoppingCartsPageCountsPerSession
 ;
 
 --cleanup --------------------------------------------
 DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE1};
-

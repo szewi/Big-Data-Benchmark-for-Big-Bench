@@ -6,29 +6,27 @@
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
 
---based, not equal on tpc-ds q6 
---List top 10 states in descending order with at least 10 customers who during
---a given month bought products with the price tag at least 20% higher than the
---average price of products in the same category.
+-- Based, but not equal to tpc-ds q6
+-- List top 10 states in descending order with at least 10 customers who during
+-- a given month bought products with the price tag at least 20% higher than the
+-- average price of products in the same category.
 
 -- Resources
 
---helper table: items with 20% higher then avg prices of product from same category
+-- helper table: items with 20% higher then avg prices of product from same category
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE} AS
---"price tag at least 20% higher than the average price of products in the same category."
+-- "price tag at least 20% higher than the average price of products in the same category."
 SELECT k.i_item_sk
 FROM item k,
-    (
-    SELECT
-      AVG(j.i_current_price) * ${hiveconf:q07_HIGHER_PRICE_RATIO} AS avg_price
-    FROM item j
-    GROUP BY j.i_category
-    ) avgCategoryPrice
-WHERE k.i_current_price > avgCategoryPrice.avg_price 
+(
+  SELECT
+    AVG(j.i_current_price) * ${hiveconf:q07_HIGHER_PRICE_RATIO} AS avg_price
+  FROM item j
+  GROUP BY j.i_category
+) avgCategoryPrice
+WHERE k.i_current_price > avgCategoryPrice.avg_price
 ;
-
-
 
 
 --Result  --------------------------------------------------------------------
@@ -39,35 +37,38 @@ set hive.exec.compress.output;
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
   ca_state STRING,
-  cnt   BIGINT
+  cnt      BIGINT
 )
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}';
 
 -- the real query part
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
-SELECT  ca_state, 
-        COUNT(*) AS cnt
-FROM customer_address a,
-     customer c,
-     store_sales s,
-    ${hiveconf:TEMP_TABLE} highPriceItems
+SELECT
+  ca_state,
+  COUNT(*) AS cnt
+FROM
+  customer_address a,
+  customer c,
+  store_sales s,
+  ${hiveconf:TEMP_TABLE} highPriceItems
 WHERE a.ca_address_sk = c.c_current_addr_sk
 AND c.c_customer_sk = s.ss_customer_sk
 AND ca_state IS NOT NULL
 AND highPriceItems.i_item_sk = ss_item_sk
-AND s.ss_sold_date_sk IN 
-                    ( --during a given month
-                    SELECT d_date_sk
-                    FROM date_dim 
-                    WHERE d_year = ${hiveconf:q07_YEAR}
-                    AND d_moy = ${hiveconf:q07_MONTH}
-                    )
+AND s.ss_sold_date_sk IN
+( --during a given month
+  SELECT d_date_sk
+  FROM date_dim
+  WHERE d_year = ${hiveconf:q07_YEAR}
+  AND d_moy = ${hiveconf:q07_MONTH}
+)
 GROUP BY ca_state
-HAVING cnt  >= ${hiveconf:q07_HAVING_COUNT_GE} --at least 10 customers
+HAVING cnt >= ${hiveconf:q07_HAVING_COUNT_GE} --at least 10 customers
 ORDER BY cnt DESC, ca_state
 LIMIT ${hiveconf:q07_LIMIT}
 ;
+
 
 --cleanup
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
