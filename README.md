@@ -537,6 +537,10 @@ Cloudera:
  * then on the HIVE service page click on "Configuration"
  * Gateway Default Group --(expand)--> Resource Management -> Client Java Heap Size in Bytes -> to e.g. 4Gb/8GB/... 
  
+Hortonworks/Ambari:
+Its very well and counterintuitively hidden in
+* HDFS Service 
+* Configuration -> Advanced -> General --(expand)--> "Hadoop maximum Java heap size" -> to e.g. 4Gb/8GB/... 
 
 B) Tune hives metric of estimating if joins should be autoconverted 
 ```
