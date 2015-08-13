@@ -13,6 +13,7 @@
 
 -- Resources
 
+--helper table: items with 20% higher then avg prices of product from same category
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE} AS
 --"price tag at least 20% higher than the average price of products in the same category."
@@ -25,7 +26,6 @@ FROM item k,
     GROUP BY j.i_category
     ) avgCategoryPrice
 WHERE k.i_current_price > avgCategoryPrice.avg_price 
-    
 ;
 
 
@@ -69,4 +69,5 @@ ORDER BY cnt DESC, ca_state
 LIMIT ${hiveconf:q07_LIMIT}
 ;
 
+--cleanup
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};

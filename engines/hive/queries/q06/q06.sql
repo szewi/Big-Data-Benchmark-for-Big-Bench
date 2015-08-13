@@ -5,10 +5,21 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
---based on tpc-ds q4
---Find customers who spend more money via web than in
---stores for a given year. Report customers first name, last name, their country of
---origin and identify if they are preferred customer.
+
+-- TASK:
+-- Identifies customers shifting their purchase habit from store to web sales.
+-- Find customers who spend in relation more money in the second year following a given year in the web_sales channel then in the store sales channel.
+-- Hint: web second_year_total/first_year_total > store second_year_total/first_year_total
+-- Report customers details: first name, last name, their country of origin, login name and email address) and identify if they are preferred customer, for the top 100 customers with the highest increase in their second year web purchase ratio.
+
+-- Implementation notice:
+-- loosely based on implementation of tpc-ds q4 - Query description in tpcds_1.1.0.pdf does NOT match implmementation in tpc-ds qgen\query_templates}query4.tpl
+-- This version:
+--    * does not have the catalog_sales table (there is none in our dataset). Web_sales plays the role of catalog_sales.
+--    * avoids the 4 self joins and replaces them with only one by creating two distinct views with better pre-filters and aggreations for store/web-sales first and second year
+-- TODO: (and introduces a more logical sorting by reporting the top 100 customers ranked by their web_sales increase instead of just reporting random 100 customers)
+
+
 
 -- Resources
 

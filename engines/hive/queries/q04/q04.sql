@@ -5,12 +5,12 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
---TASK
---Web_clickstream shopping cart abandonment analysis: For users who added products in
---their shopping carts but did not check out in the online store during their session, find the average
---number of pages they visited during their sessions. 
---A "session" relates to a click_session of a known user with a session time-out of 60min. 
---If the duration between two click of a user is greater then the session time-out, a new session begins.
+-- TASK
+-- Web_clickstream shopping cart abandonment analysis: For users who added products in
+-- their shopping carts but did not check out in the online store during their session, find the average
+-- number of pages they visited during their sessions. 
+-- A "session" relates to a click_session of a known user with a session time-out of 60min.
+-- If the duration between two clicks of a user is greater then the session time-out, a new session begins.
 
 --IMPLEMENTATION NOTICE
 -- The difficulty is to reconstruct a users browsing session from the web_clickstreams  table
@@ -46,6 +46,7 @@ FROM(
     WHERE c.wcs_web_page_sk = w.wp_web_page_sk  
     AND   c.wcs_web_page_sk IS NOT NULL
     AND   c.wcs_user_sk     IS NOT NULL
+    AND   c.wcs_sales_sk    IS NULL --abandoned implies: no sale
     DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec -- "sessionize" reducer script requires the cluster by wcs_user_sk and sort by tstamp
    ) clicksAnWebPageType
   REDUCE

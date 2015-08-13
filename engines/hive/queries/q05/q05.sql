@@ -5,10 +5,16 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
-
---Build a model using logistic regression: based on existing users online
---activities and demographics, for a visitor to an online store, predict the visitors
---likelihood to be interested in a given category.
+-- TASK:
+-- Build a model using logistic regression: based on existing users online
+-- activities and demographics, for a visitor to an online store, predict the visitors
+-- likelihood to be interested in a given item category.
+-- input vectors to the machine learing algorithm are:
+--    user_sk             serial
+--    hasCollegeEducation [0,1]
+--    isMale              [0,1]
+--    hasClicksInCategory [0,1]
+-- TODO: updated this description once improved q5 with more features is merged
 
 
 -- Resources

@@ -6,18 +6,20 @@
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
 --TASK
---Find top 100 products (ordered descending by count) that are sold together frequently in given
+--Find top 100 products that are sold together frequently in given
 --stores. Only products in certain categories sold in specific stores are considered,
 --and "sold together frequently" means at least 50 customers bought these products 
 --together in a transaction.
 
 --IMPLEMENTATION NOTICE:
 -- "Market basket analysis"   
--- create pairs of "viewed together" items within one sale
+-- create pairs of "viewed together" items within one sale (one sale == one ss_sales_sk)
 -- There are are several ways to to "basketing". Implemented is way A)
--- A) collect all pairs per session (same sales_sk) in list and employ a UDF'S to produce pairwise combinations of all list elements
+-- A) collect distinct viewed items per session (same sales_sk) in list and employ a UDTF to produce pairwise combinations of all list elements
 -- B) distribute by sales_sk end employ reducer streaming script to aggregate all items per session and produce the pairs
--- C) pure SQL: produce pairings by self joining on sales_sk and filtering out left.item_sk < right.item_sk
+-- C) pure SQL: produce pairings by self joining on sales_sk and filtering out left.item_sk < right.item_sk (elimiates dupplicates and switched posistions)
+
+
 
 
 -- Resources

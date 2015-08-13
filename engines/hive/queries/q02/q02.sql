@@ -15,14 +15,15 @@
 -- "Market basket analysis"   
 -- First difficult part is to create pairs of "viewed together" items within one sale
 -- There are are several ways to to "basketing", implemented is way A)
--- A) collect all pairs per session (same sales_sk) in list and employ a UDF'S to produce pairwise combinations of all list elements
+-- A) collect distinct viewed items per session (same sales_sk) in list and employ a UDTF to produce pairwise combinations of all list elements
 -- B) distribute by sales_sk end employ reducer streaming script to aggregate all items per session and produce the pairs
--- C) pure SQL: produce pairings by self joining on sales_sk and filtering out left.item_sk < right.item_sk
+-- C) pure SQL: produce pairings by self joining on sales_sk and filtering out left.item_sk < right.item_sk (elimiates dupplicates and switched posistions)
+--
 --
 -- The second difficulty is to reconstruct a users browsing session from the web_clickstreams  table
 -- There are are several ways to to "sessionize", common to all is the creation of a unique virtual time stamp from the date and time serial
 -- key's as we know they are both strictly monotonic increasing in order of time and one wcs_click_date_sk relates to excatly one day
---  the following code works: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk 
+--  the following code works: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk )
 -- Implemented is way B) as A) proved to be inefficient
 -- A) sessionize using SQL-windowing functions => partition by user and  sort by virtual time stamp. 
 --    Step1: compute time difference to preceding click_session

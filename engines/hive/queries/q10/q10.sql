@@ -6,9 +6,9 @@
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
 
--- For all products, extract sentences from its product reviews that contain
--- positive or negative sentiment and display the sentiment polarity of the
--- extracted sentences.
+-- For all products, extract sentences from its product reviews that contain positive or negative sentiment 
+-- and display for each item the sentiment polarity of the extracted sentences (POS OR NEG) 
+-- and the sentence and word in sentence leading to this classification
 
 -- Resources
 ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/opennlp-maxent-3.0.3.jar;
