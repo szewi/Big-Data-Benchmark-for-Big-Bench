@@ -453,6 +453,7 @@ There are several projects trying to reduces this problem like TEZ from the stin
 Make sure you run your benchmark with a big enough dataset to reduce the ratio of fixed overhead time vs. total runtime. Besides from initial testing your cluster setup, never run with a scaling factor of smaller than 100 ( -f 100 ==100GB). For fat nodes (E.g. Nodes with 128GB+ RAM, 32+ Threads, 24+ HDD's) experiement with 250GB/Node for cluster with 8 DataNodes  2-3TB Datset size is a good starting point.
 
 
+
 **Enough map/reduce tasks per query stage ?**
 
 
@@ -474,6 +475,34 @@ set mapred.max.split.size=67108864;
 set mapred.min.split.size=1;
 set hive.exec.reducers.max=99999;
 ```
+** Example on how to boost your SF1GB runtime ** 
+
+MR guide (does not apply to TEZ or SPARK)
+------------------------------------------------------------------
+The most important tuning parameter is  mapreduce.input.fileinputformat.split.maxsize which determines the number of map tasks started for a job. 
+
+For SF1 start with rather small values:
+* set  values for in \Big-Data-Benchmark-for-Big-Bench\engines\hive\conf\hiveSettings.sql to: (4Mb/8MB)
+set mapreduce.input.fileinputformat.split.minsize=4198400
+set mapreduce.input.fileinputformat.split.maxsize=8396800
+set hive.exec.reducers.bytes.per.reducer=8396800
+
+For SF 1000 you may want to start with 64MB or 128MB
+
+NOTICE: you wont get good cluster utilization by running with only SF 1 (=1GB) . Most time spent is from lauching hive/mahout instances (starting of jobs) and preparing and isolating the tests from each other 
+
+There is not definitive formula to determine the correct split size settings for YOUR cluster as they are ScaleFactor SF and cluster size dependent.
+
+As a rule of thumb you want hive to start more map jobs then you have vcores in your cluster if you aim to 100% utilize your cpu resources during processing. Approximately 1-4 times the number of vcores is ideal if you can afford to fully saturate your cluster with one job. If you are working on a shared cluster you DONT want to do that and be more conservative about this setting and aim for ~ 1/2 to 1/4 of available vcores.
+
+
+Look at the logs of some longer running stages of some average running task. If the numbers for mappers and reducers of the first 2-3 stage of a job are smaller then the number of containers, you should decrease the split size.
+If the numbers are several times greater then your number of vcores you want to increase the split size, as to much tasks per stage is counterproductive in terms of performance as the start of a maptask has an overhead associate with it.
+You have to find a balance between your cluster showing good utilization and not spending most of his time just starting and stopping tasks.
+
+A good query log to start with is query 10, as it is fairly simple.  If your settings are right, query 10 can show a ~98% CPU utilization of your cluster if you are not limited by I/O.
+
+TODO: some example values for sample cluster. We will provide some sample settings for SF 1000 (1TB) 
 
 
 ## More detailed log files
