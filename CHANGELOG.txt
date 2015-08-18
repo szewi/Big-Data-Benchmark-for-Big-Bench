@@ -1,0 +1,30 @@
+BigBench v0.5 beta changes:
+
+* Java driver
+  * Added properties file
+  * This allows defining driver settings like the workload and the queries to run
+  * Driver was segmented into independent parts to support a flexible workload execution
+  * Metric was split into sub-metrics to output results even if some phases or queries were skipped
+  * Added logic to check BigBench final result validity depending on which phases were performed
+    A result is flagged valid only if:
+    * All 30 queries were running
+    * At least the phases LOAD_TEST, POWER_TEST and THROUGHPUT_TEST_1 were performed
+    * Pretend mode was not active
+  * Implemented custom RNG and list shuffling algorithm so that the result is consistent over different JVM vendors and versions
+  * Driver adaption to underlying bash enhancements
+    * Added validation phases
+    * Enabled expert mode of bash scripts
+* Bash kit
+  * Added validation method to query scripts for query result validation
+  * Added new module to call validation methods
+  * Introduced normal and expert mode in bash scripts
+    * A user should only use the normal mode for benchmark execution. This mode only allows executing the runBenchmark module to start the Java driver which in turn takes over control of the bash part of the kit
+    * The expert mode allows running all modules. This is the mode the Java driver operates in. A user can choose to enable that mode as well if the Java driver should be circumvented
+  * Extended system environment information logging of the bigBench script
+* Queries
+  * Modified queries for deterministic output
+  * Synced queries and their description.
+* DataModel
+  * added high frequency customers (some customers being more active then others)
+  * added high frequency items (some items are more frequently viewed and purchased then others)
+  * corrected an issue in product review text generation
