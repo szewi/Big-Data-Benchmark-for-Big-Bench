@@ -1,4 +1,4 @@
-15/08/10 19:15:35 INFO test.TestNaiveBayesDriver: Standard NB Results: 
+15/08/13 17:57:30 INFO test.TestNaiveBayesDriver: Standard NB Results: 
 =======================================================
 Summary
 -------------------------------------------------------
@@ -25,4 +25,4 @@ Weighted precision                          0.6624
 Weighted recall                             0.4598
 Weighted F1 score                           0.5295
 
-15/08/10 19:15:35 INFO driver.MahoutDriver: Program took 15733 ms (Minutes: 0.26221666666666665)
+15/08/13 17:57:30 INFO driver.MahoutDriver: Program took 15638 ms (Minutes: 0.26063333333333333)

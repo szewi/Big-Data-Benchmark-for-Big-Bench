@@ -5,11 +5,11 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
---based on tpc-ds q90
---What is the ratio between the number of items sold over
---the internet in the morning (8 to 9am) to the number of items sold in the evening
---(7 to 8pm) of customers with a specified number of dependents. Consider only
---websites with a high amount of content.
+-- based on tpc-ds q90
+-- What is the ratio between the number of items sold over
+-- the internet in the morning (7 to 8am) to the number of items sold in the evening
+-- (7 to 8pm) of customers with a specified number of dependents. Consider only
+-- websites with a high amount of content.
 
 -- Resources
 
@@ -40,7 +40,7 @@ FROM (
   JOIN time_dim td ON td.t_time_sk = ws.ws_sold_time_sk
   AND td.t_hour >= ${hiveconf:q14_morning_startHour}
   AND td.t_hour <= ${hiveconf:q14_morning_endHour}
-  JOIN web_page wp ON wp.wp_web_page_sk =ws.ws_web_page_sk
+  JOIN web_page wp ON wp.wp_web_page_sk = ws.ws_web_page_sk
   AND wp.wp_char_count >= ${hiveconf:q14_content_len_min}
   AND wp.wp_char_count <= ${hiveconf:q14_content_len_max}
 ) at
@@ -49,7 +49,7 @@ JOIN (
   FROM web_sales ws
   JOIN household_demographics hd ON ws.ws_ship_hdemo_sk = hd.hd_demo_sk
   AND hd.hd_dep_count = ${hiveconf:q14_dependents}
-  JOIN time_dim td ON  td.t_time_sk =ws.ws_sold_time_sk
+  JOIN time_dim td ON td.t_time_sk = ws.ws_sold_time_sk
   AND td.t_hour >= ${hiveconf:q14_evening_startHour}
   AND td.t_hour <= ${hiveconf:q14_evening_endHour}
   JOIN web_page wp ON wp.wp_web_page_sk = ws.ws_web_page_sk

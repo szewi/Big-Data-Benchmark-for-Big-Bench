@@ -5,10 +5,14 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
---based on tpc-ds q39
---This query contains multiple, related iterations: Iteration 1: Calculate the coeficient of variation 
---and mean of every item and warehouse of two consecutive months Iteration 2: Find items that had a coeficient
---of variation in the first months of 1.5 or larger
+-- based on tpc-ds q39
+-- This query contains multiple, related iterations:
+
+-- Iteration 1: Calculate the coefficient of variation and mean of every item
+-- and warehouse of the given and the consecutive month
+
+-- Iteration 2: Find items that had a coefficient of variation of 1.5 or larger
+-- in the given and the consecutive month
 
 
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
@@ -20,7 +24,7 @@ SELECT
   d_moy,
   stdev,
   mean,
-  cast( (CASE mean WHEN 0.0 THEN NULL ELSE stdev/mean END)  as decimal(15,5))  cov
+  cast( (CASE mean WHEN 0.0 THEN NULL ELSE stdev/mean END) as decimal(15,5)) cov
 FROM (
   SELECT
     w_warehouse_name,
@@ -28,7 +32,7 @@ FROM (
     i_item_sk,
     d_moy,
     cast(stddev_samp(inv_quantity_on_hand) as decimal(15,5)) stdev,
-    cast(avg(inv_quantity_on_hand) as decimal(15,5))  mean
+    cast(avg(inv_quantity_on_hand) as decimal(15,5)) mean
   FROM inventory inv
   JOIN date_dim d ON (inv.inv_date_sk = d.d_date_sk
   AND d.d_year = ${hiveconf:q23_year} )
@@ -89,11 +93,11 @@ SELECT
   inv2.cov AS inv2_cov
 FROM ${hiveconf:TEMP_TABLE} inv1
 JOIN ${hiveconf:TEMP_TABLE} inv2 ON (
-			  inv1.i_item_sk = inv2.i_item_sk
-			  AND inv1.w_warehouse_sk = inv2.w_warehouse_sk
-			  AND inv1.d_moy = ${hiveconf:q23_month}
-			  AND inv2.d_moy = ${hiveconf:q23_month} + 1
-			)
+  inv1.i_item_sk = inv2.i_item_sk
+  AND inv1.w_warehouse_sk = inv2.w_warehouse_sk
+  AND inv1.d_moy = ${hiveconf:q23_month}
+  AND inv2.d_moy = ${hiveconf:q23_month} + 1
+)
 ORDER BY
   inv1_w_warehouse_sk,
   inv1_i_item_sk,
@@ -154,9 +158,9 @@ FROM ${hiveconf:TEMP_TABLE} inv1
 JOIN ${hiveconf:TEMP_TABLE} inv2 ON (
   inv1.i_item_sk = inv2.i_item_sk
   AND inv1.w_warehouse_sk = inv2.w_warehouse_sk
-  AND inv1.d_moy = ${hiveconf:q23_month} + 1
-  AND inv2.d_moy = ${hiveconf:q23_month} + 2
-  AND inv1.cov > ${hiveconf:q23_coeficient}
+  AND inv1.d_moy = ${hiveconf:q23_month}
+  AND inv2.d_moy = ${hiveconf:q23_month} + 1
+  AND inv1.cov > ${hiveconf:q23_coefficient}
 )
 ORDER BY
   inv1_w_warehouse_sk,

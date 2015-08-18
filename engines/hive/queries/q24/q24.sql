@@ -6,28 +6,31 @@
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
 
---For a given product, measure the effect of competitor's prices on
---products' in-store and online sales. (Compute the cross-price elasticity of demand
---for a given product.
+-- For a given product, measure the effect of competitor's prices on
+-- products' in-store and online sales. (Compute the cross-price elasticity of demand
+-- for a given product.
+
+-- IMPLEMENTATION NOTICE:
+
 -- Step1 :
---Calculating the Percentage Change in Quantity Demanded of Good X : [QDemand(NEW) - QDemand(OLD)] / QDemand(OLD)
---Step 2:
+-- Calculating the Percentage Change in Quantity Demanded of Good X : [QDemand(NEW) - QDemand(OLD)] / QDemand(OLD)
+
+-- Step 2:
 -- Calculating the Percentage Change in Price of Good Y: [Price(NEW) - Price(OLD)] / Price(OLD)
+
 -- Step 3 final:
---Cross-Price Elasticity of Demand (CPEoD) is given by: CPEoD = (% Change in Quantity Demand for Good X)/(% Change in Price for Good Y))
+-- Cross-Price Elasticity of Demand (CPEoD) is given by: CPEoD = (% Change in Quantity Demand for Good X)/(% Change in Price for Good Y))
 
 -- Resources
 
 
-
-
--- compute the price change % for the competitor itmes
+-- compute the price change % for the competitor times
 DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE1};
 CREATE VIEW ${hiveconf:TEMP_TABLE1} AS
 SELECT
-  i_item_sk, 
+  i_item_sk,
   (imp_competitor_price - i_current_price)/i_current_price AS price_change,
-  imp_start_date, 
+  imp_start_date,
   (imp_end_date - imp_start_date) AS no_days_comp_price
 FROM item i
 JOIN item_marketprices imp ON i.i_item_sk = imp.imp_item_sk
@@ -35,6 +38,7 @@ WHERE i.i_item_sk IN (${hiveconf:q24_i_item_sk_IN})
 AND imp.imp_competitor_price < i.i_current_price
 ORDER BY i_item_sk, imp_start_date
 ;
+
 
 --websales items sold quantity before and after competitor price change
 DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE2};
@@ -82,7 +86,6 @@ GROUP BY ss_item_sk
 ;
 
 
-
 --Result  --------------------------------------------------------------------
 --keep result human readable
 set hive.exec.compress.output=false;
@@ -91,8 +94,8 @@ set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
-  i_item_sk               BIGINT,
-  cross_price_elasticity  decimal(15,7)
+  i_item_sk              BIGINT,
+  cross_price_elasticity decimal(15,7)
 )
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}';
@@ -110,6 +113,6 @@ JOIN ${hiveconf:TEMP_TABLE3} ss ON c.i_item_sk = ss.ss_item_sk
 
 
 -- clean up -----------------------------------
+DROP VIEW ${hiveconf:TEMP_TABLE1};
 DROP VIEW ${hiveconf:TEMP_TABLE2};
 DROP VIEW ${hiveconf:TEMP_TABLE3};
-DROP VIEW ${hiveconf:TEMP_TABLE1};

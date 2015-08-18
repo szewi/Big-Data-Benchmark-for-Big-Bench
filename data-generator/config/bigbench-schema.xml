@@ -1561,12 +1561,48 @@ Please contact info@bankmark.de for an evaluation license.
   </field>
   
   <field name="imp_competitor" size="20" type="VARCHAR" primary="false">
+  
+  <!-- limit to only 1000 unique competitor names -->
+  <gen_ConvertNumberToStringGenerator>
+     <gen_LongGenerator>
+      <min>1.0</min>
+      <max>1000.0</max>
+     </gen_LongGenerator>
+    <size>16.0</size>
+    <characters>ABCDEFGHIJKLMNOPQRSTUVWXYZ</characters>
+   </gen_ConvertNumberToStringGenerator>
+   
+   
+    <!-- street names would make nice Company names , but we have to limit to ~1000 unique ones -->
+    <!-- 
+   <gen_TemplateGenerator>
+     <getValue><!- 
+      StringBuilder sb = new StringBuilder();
+      sb.append(generator[0].toString());
+      //in 50% add a second name
+      if(rng.nextDouble()>0.5){
+        sb.append('-');
+        sb.append(generator[1].toString());
+      }
+      //truncate to length
+      if(sb.length() >20){
+        sb.setLength(20);
+      }
+                     
+       fvdto.setBothValues(sb.toString()); 
+     -></getValue>
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="street_names" valueColumn="0" weightColumn="0" />
+    <gen_WeightedListGenerator filename="dicts/bigbench/ds-genProbabilities.txt" list="street_names" valueColumn="0" weightColumn="0" />
+   </gen_TemplateGenerator>
+    -->
+   <!-- 
    <gen_NullGenerator probability="${NULL_CHANCE}">
     <gen_RandomAString>
      <min>1.0</min>
      <max>20.0</max>
     </gen_RandomAString>
    </gen_NullGenerator>
+    -->
   </field>
   
   <!-- used by Q24 -->

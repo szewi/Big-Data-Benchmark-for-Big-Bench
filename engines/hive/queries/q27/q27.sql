@@ -15,7 +15,6 @@ ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/opennlp-tools-1.5.3.jar;
 ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
 CREATE TEMPORARY FUNCTION find_company AS 'io.bigdatabenchmark.v1.queries.q27.CompanyUDF';
 
--- !echo Extract competitor product names and model names (if any) from online product reviews for a given product: (item_sk: '${hiveconf:q27_pr_item_sk}');
 
 --Result  --------------------------------------------------------------------
 --keep result human readable
@@ -34,8 +33,8 @@ set hive.optimize.sampling.orderby.percent;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
-  review_sk    BIGINT,
-  item_sk      BIGINT,
+  review_sk       BIGINT,
+  item_sk         BIGINT,
   company_name    STRING,
   review_sentence STRING
 )
@@ -45,15 +44,16 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 -- the real query part
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
 SELECT review_sk, item_sk, company_name, review_sentence
-FROM ( --wrap in additional FOR(), because Sorting/distribute by with UDTF in select clause is not allowed
+FROM ( --wrap in additional FROM(), because sorting/distribute by with UDTF in select clause is not allowed
+  -- find_company() searches for competitor products in the reviews of q27_pr_item_sk
   SELECT find_company(pr_review_sk, pr_item_sk, pr_review_content) AS (review_sk, item_sk, company_name, review_sentence)
   FROM (
     SELECT pr_review_sk, pr_item_sk, pr_review_content
     FROM product_reviews
     WHERE pr_item_sk = ${hiveconf:q27_pr_item_sk}
   ) subtable
-)extracted
+) extracted
 ORDER BY review_sk, item_sk, company_name, review_sentence
 --CLUSTER BY instead of ORDER BY does not work to achieve global ordering. e.g. 2 reducers: first reducer will write keys 0,2,4,6.. into file 000000_0 and reducer 2 will write keys 1,3,5,7,.. into file 000000_1.concatenating these files does not produces a deterministic result if number of reducer changes.
---Solution: parallel "order by" as non parallel version only uses a single reducer and we cant use "limit
+--Solution: parallel "order by" as non parallel version only uses a single reducer and we cant use "limit"
 ;

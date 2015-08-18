@@ -6,25 +6,24 @@
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
 
---Perform category affinity analysis for products viewed together online.  
---Note that the order of products viewed does not matter,
---and "viewed together" relates to a click_session of a user with a session timeout of 60min.
+-- Perform category affinity analysis for products viewed together online.
+-- Note that the order of products viewed does not matter,
+-- and "viewed together" relates to a click_session of a user with a session timeout of 60min.
+-- If the duration between two clicks of a user is greater then the session time-out, a new session begins.
 
 
-
---IMPLEMENTATION NOTICE:
--- "Market basket analysis"   
+-- IMPLEMENTATION NOTICE:
+-- "Market basket analysis"
 -- First difficult part is to create pairs of "viewed together" items within one sale
 -- There are are several ways to to "basketing", implemented is way A)
--- A) collect all pairs per session (same sales_sk) in list and employ a UDF'S to produce pairwise combinations of all list elements
--- B) distribute by sales_sk end employ reducer streaming script to aggregate all items per session and produce the pairs
+-- A) collect distinct viewed items per session (same sales_sk) in list and employ a UDTF to produce pairwise combinations of all list elements
+-- B) distribute by sales_sk and employ reducer streaming script to aggregate all items per session and produce the pairs
 -- C) pure SQL: produce pairings by self joining on sales_sk and filtering out left.item_sk < right.item_sk
 --
--- The second difficulty is to reconstruct a users browsing session from the web_clickstreams  table
+-- The second difficulty is to reconstruct a users browsing session from the web_clickstreams table
 -- There are are several ways to to "sessionize", common to all is the creation of a unique virtual time stamp from the date and time serial
--- key's as we know they are both strictly monotonic increasing in order of time: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk 
--- Implemented is way B)
--- A) sessionize using SQL-windowing functions => partition by user and  sort by virtual time stamp. 
+-- key's as we know they are both strictly monotonic increasing in order of time: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk)
+-- A) sessionize using SQL-windowing functions => partition by user and sort by virtual time stamp.
 --    Step1: compute time difference to preceding click_session
 --    Step2: compute session id per user by defining a session as: clicks no father apart then q02_session_timeout_inSec
 --    Step3: make unique session identifier <user_sk>_<user_session_ID>
@@ -42,21 +41,19 @@ ADD FILE ${hiveconf:QUERY_DIR}/q30-sessionize.py;
 -- Step1: compute time difference to preceeding click_session
 -- Step2: compute session id per user by defining a session as: clicks no father apppart then q30_session_timeout_inSec
 -- Step3: make unique session identifier <user_sk>_<user_seesion_ID>
-DROP view IF EXISTS ${hiveconf:TEMP_TABLE};
-CREATE view ${hiveconf:TEMP_TABLE} AS
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE};
+CREATE VIEW ${hiveconf:TEMP_TABLE} AS
 SELECT *
-FROM 
-(
-  FROM 
-  (
-	SELECT 	wcs_user_sk ,
-			    (wcs_click_date_sk*24*60*60 + wcs_click_time_sk) AS tstamp_inSec ,
-			    i_category_id
-	FROM web_clickstreams wcs, item i
-  WHERE wcs.wcs_item_sk = i.i_item_sk 
-	AND i.i_category_id IS NOT NULL
-  AND wcs.wcs_user_sk IS NOT NULL
-	DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec -- "sessionize" reducer script requires the cluster by uid and sort by tstamp
+FROM (
+  FROM (
+    SELECT wcs_user_sk,
+      (wcs_click_date_sk*24*60*60 + wcs_click_time_sk) AS tstamp_inSec,
+      i_category_id
+    FROM web_clickstreams wcs, item i
+    WHERE wcs.wcs_item_sk = i.i_item_sk
+    AND i.i_category_id IS NOT NULL
+    AND wcs.wcs_user_sk IS NOT NULL
+    DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec -- "sessionize" reducer script requires the cluster by uid and sort by tstamp
   ) clicksAnWebPageType
   REDUCE
     wcs_user_sk,
@@ -65,7 +62,8 @@ FROM
   USING 'python q30-sessionize.py ${hiveconf:q30_session_timeout_inSec}'
   AS (
     category_id BIGINT,
-    sessionid STRING)
+    sessionid STRING
+  )
 ) q02_tmp_sessionize
 --Cluster by sessionid
 ;
@@ -80,7 +78,7 @@ DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
   category_id_1 BIGINT,
   category_id_2 BIGINT,
-  cnt  BIGINT
+  cnt BIGINT
 )
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hiveconf:RESULT_DIR}';
@@ -91,20 +89,20 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
 SELECT  category_id_1, category_id_2, COUNT (*) AS cnt
 FROM (
-  --Make category "viewed together" pairs
-	-- combining collect_set + sorting + makepairs(array, noSelfParing) 
-	-- ensures we get no pairs with swapped places like: (12,24),(24,12). 
-	-- We only produce tuples (12,24) ensuring that the smaller number is always on the left side
+  -- Make category "viewed together" pairs
+  -- combining collect_set + sorting + makepairs(array, noSelfParing)
+  -- ensures we get no pairs with swapped places like: (12,24),(24,12).
+  -- We only produce tuples (12,24) ensuring that the smaller number is always on the left side
   SELECT makePairs(sort_array(itemArray), false) AS (category_id_1,category_id_2)
-	FROM (
-		SELECT collect_set(category_id) as itemArray --(_list= with duplicates, _set = distinct)
-		FROM  ${hiveconf:TEMP_TABLE}
-		GROUP BY sessionid
-	) collectedList
+  FROM (
+    SELECT collect_set(category_id) as itemArray --(_list= with duplicates, _set = distinct)
+    FROM ${hiveconf:TEMP_TABLE}
+    GROUP BY sessionid
+  ) collectedList
 ) pairs
 GROUP BY category_id_1, category_id_2
-ORDER BY cnt DESC, category_id_1 ,category_id_2
-LIMIT  ${hiveconf:q30_limit};		
+ORDER BY cnt DESC, category_id_1, category_id_2
+LIMIT ${hiveconf:q30_limit};
 
--- cleanup		
-drop view if exists ${hiveconf:TEMP_TABLE};
+-- cleanup
+DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE};
