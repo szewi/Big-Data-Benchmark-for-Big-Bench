@@ -58,24 +58,34 @@ query_run_main_method () {
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 3 ]] ; then
 		echo "========================="
 		echo "$QUERY_NAME Step 3/5: Calculating k-means"
-		echo "Command "mahout kmeans -i "$TEMP_RESULT_DIR/Vec" -c "$TEMP_RESULT_DIR/init-clusters" -o "$TEMP_RESULT_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl  -xm $BIG_BENCH_ENGINE_HIVE_MAHOUT_EXECUTION
+		echo "Command "mahout kmeans -i "$TEMP_RESULT_DIR/Vec" -c "$TEMP_RESULT_DIR/init-clusters" -o "$TEMP_RESULT_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -ow -cl  -xm $BIG_BENCH_ENGINE_HIVE_MAHOUT_EXECUTION
 		echo "tmp output: $TEMP_RESULT_DIR/kmeans-clusters"
 		echo "========================="
+		echo "upload initial clusters $QUERY_DIR/initialClusters  to hdfs: $TEMP_DIR/init-clusters"
+     	hadoop fs -put -f $QUERY_DIR/init-clusters $TEMP_RESULT_DIR/init-clusters
 
-		runCmdWithErrorCheck mahout kmeans --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_RESULT_DIR/Vec" -c "$TEMP_RESULT_DIR/init-clusters" -o "$TEMP_RESULT_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl  -xm $BIG_BENCH_ENGINE_HIVE_MAHOUT_EXECUTION
+	
+		runCmdWithErrorCheck mahout kmeans --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_RESULT_DIR/Vec" -c "$TEMP_RESULT_DIR/init-clusters" -o "$TEMP_RESULT_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10  -ow -cl  -xm $BIG_BENCH_ENGINE_HIVE_MAHOUT_EXECUTION
 		RETURN_CODE=$?
 		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 4 ]] ; then
+		local CLUSTERS_OUT="`mktemp`"
+		
 		echo "========================="
 		echo "$QUERY_NAME Step 4/5: Converting result and store in hdfs $HDFS_RESULT_FILE"
-		echo "command: mahout clusterdump -i $TEMP_RESULT_DIR/kmeans-clusters/clusters-*-final  -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT | hadoop fs -copyFromLocal - $HDFS_RESULT_FILE"
+		echo "command: unCmdWithErrorCheck mahout clusterdump --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR"/kmeans-clusters/clusters-*-final -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT -o $CLUSTERS_OUT ; hadoop fs -copyFromLocal $CLUSTERS_OUT \"$HDFS_RESULT_FILE\" "
 		echo "========================="
 	
-		runCmdWithErrorCheck mahout clusterdump --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_RESULT_DIR"/kmeans-clusters/clusters-*-final  -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT | hadoop fs -copyFromLocal - "$HDFS_RESULT_FILE"
-		#runCmdWithErrorCheck mahout seqdumper --tempDir "$MAHOUT_TEMP_DIR" -i $TEMP_RESULT_DIR/Vec/ -c $TEMP_RESULT_DIR/kmeans-clusters -o $TEMP_RESULT_DIR/results -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -k 8 -ow -cl
+		#runCmdWithErrorCheck mahout clusterdump --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_RESULT_DIR"/kmeans-clusters/clusters-*-final  -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT | hadoop fs -copyFromLocal - "$HDFS_RESULT_FILE"
+		runCmdWithErrorCheck mahout clusterdump --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_RESULT_DIR"/kmeans-clusters/clusters-*-final -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT -o $CLUSTERS_OUT
 		RETURN_CODE=$?
+		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+		
+		hadoop fs -copyFromLocal -f $CLUSTERS_OUT "$HDFS_RESULT_FILE"
+		RETURN_CODE=$?
+		rm -rf "$CLUSTERS_OUT"
 		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
 
