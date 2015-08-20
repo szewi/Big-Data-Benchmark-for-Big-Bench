@@ -12,49 +12,50 @@
 --year.
 
 -- Resources
-ADD FILE ${hiveconf:QUERY_DIR}/q8_reducer.py;
+ADD FILE ${hiveconf:QUERY_DIR}/q08_filter_sales_with_reviews_viewed_before.py;
 
-CREATE VIEW IF NOT EXISTS ${hiveconf:TEMP_TABLE1} AS
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE2};
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE3};
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE1};
+
+
+--DateFilter
+CREATE TABLE ${hiveconf:TEMP_TABLE1} AS
 SELECT d_date_sk
 FROM date_dim d
 WHERE d.d_date >= '${hiveconf:q08_startDate}'
 AND   d.d_date <= '${hiveconf:q08_endDate}'
 ;
 
-
---PART 1 - sales that users have viewed the review pages--------------------------------------------------------
--- recreate clicksession in specified year to and return users who read reviews in theirs session
-DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE2};
-CREATE VIEW IF not exists ${hiveconf:TEMP_TABLE2} AS
-SELECT DISTINCT s_sk
-FROM (
-  FROM (
-    SELECT
-      c.wcs_user_sk       AS uid,
-      c.wcs_click_date_sk AS c_date,
-      c.wcs_click_time_sk AS c_time,
-      c.wcs_sales_sk      AS sales_sk,
-      w.wp_type           AS wpt
-    FROM web_clickstreams c
-    JOIN ${hiveconf:TEMP_TABLE1} d ON (c.wcs_click_date_sk = d.d_date_sk) --where exists
-    INNER JOIN web_page w ON c.wcs_web_page_sk = w.wp_web_page_sk
-    WHERE c.wcs_user_sk IS NOT NULL
-    CLUSTER BY uid, c_date, c_time, sales_sk, wpt
+--PART 1 - sales_sk's that users have visited a review page before in a given time period --------------------------------------------------------
+CREATE TABLE ${hiveconf:TEMP_TABLE2} AS
+SELECT DISTINCT wcs_sales_sk
+FROM ( -- sessionize clickstreams and filter "viewed reviews" by looking at the web_page page type using a python script
+  FROM ( -- select only webclicks in relevant time frame and get the type
+    SELECT  wcs_user_sk,
+            (wcs_click_date_sk * 86400L + wcs_click_time_sk) AS tstamp_inSec, --every wcs_click_date_sk equals one day => convert to seconds date*24*60*60=date*86400 and add time_sk
+            wcs_sales_sk,
+            wp_type          
+    FROM web_clickstreams 
+    LEFT SEMI JOIN ${hiveconf:TEMP_TABLE1} date_filter ON (wcs_click_date_sk = date_filter.d_date_sk and wcs_user_sk IS NOT NULL)
+    JOIN web_page w ON wcs_web_page_sk = w.wp_web_page_sk
+    --WHERE wcs_user_sk IS NOT NULL
+    DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk,tstamp_inSec,wcs_sales_sk,wp_type -- cluster by uid and sort by tstamp required by following python script
   ) q08_map_output
-  REDUCE q08_map_output.uid,
-    q08_map_output.c_date,
-    q08_map_output.c_time,
-    q08_map_output.sales_sk,
-    q08_map_output.wpt
-  USING 'python q8_reducer.py ${hiveconf:q08_category}' --recreate click session per user and return only if seesion contained clicks to review page wp.type 
-  AS (s_date BIGINT, s_sk BIGINT)
-) q08npath
+  -- input: web_clicks in a given year
+  REDUCE  wcs_user_sk,
+          tstamp_inSec,
+          wcs_sales_sk,
+          wp_type
+  USING 'python q08_filter_sales_with_reviews_viewed_before.py review ${hiveconf:q08_seconds_before_purchase}'
+  AS (wcs_sales_sk BIGINT)
+) sales_which_read_reviews
 ;
 
 
 --PART 2 - helper table: sales within one year starting 1999-09-02  ---------------------------------------
-DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE3};
-CREATE VIEW IF NOT EXISTS ${hiveconf:TEMP_TABLE3} AS
+--DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE3};
+CREATE TABLE IF NOT EXISTS ${hiveconf:TEMP_TABLE3} AS
 SELECT ws_net_paid, ws_order_number
 FROM web_sales ws
 JOIN ${hiveconf:TEMP_TABLE1} d ON ( ws.ws_sold_date_sk = d.d_date_sk)
@@ -84,7 +85,7 @@ SELECT
 FROM (
   SELECT 1 AS id, SUM(ws_net_paid) as amount
   FROM ${hiveconf:TEMP_TABLE3} allSalesInYear
-  INNER JOIN ${hiveconf:TEMP_TABLE2} salesWithViewedReviews ON allSalesInYear.ws_order_number = salesWithViewedReviews.s_sk
+  LEFT SEMI JOIN ${hiveconf:TEMP_TABLE2} salesWithViewedReviews ON allSalesInYear.ws_order_number = salesWithViewedReviews.wcs_sales_sk
 ) q08_review_sales
 JOIN (
   SELECT 1 AS id, SUM(ws_net_paid) as amount
@@ -96,6 +97,6 @@ ON q08_review_sales.id = q08_all_sales.id
 
 
 --cleanup-------------------------------------------------------------------
-DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE3};
-DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE2};
-DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE1};
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE2};
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE3};
+DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE1};
