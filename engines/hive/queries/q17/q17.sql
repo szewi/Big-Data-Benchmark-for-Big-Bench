@@ -63,7 +63,6 @@ JOIN (
   AND d_moy = ${hiveconf:q17_month}
 ) all_sales
 -- we don't need a 'ON' join condition. result is just two numbers.
--- original was ORDER BY  promotions, total , but CLUSTER BY is hives cluster scale counter part
-CLUSTER BY promotions, total
+ORDER BY promotions, total
 LIMIT 100 -- kinda useless, result is one line with two numbers, but original tpc-ds query has it too.
 ;

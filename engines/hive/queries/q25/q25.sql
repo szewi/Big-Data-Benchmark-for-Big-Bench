@@ -91,7 +91,7 @@ SELECT
   SUM(amount) AS totalspend
 FROM ${hiveconf:TEMP_TABLE}
 GROUP BY cid 
-CLUSTER BY cid
+--CLUSTER BY cid --cluster by preceeded by group by is silently ignored by hive but fails in spark
 --no total ordering with ORDER BY required, further processed by clustering algorithm
 ;
 
