@@ -7,7 +7,7 @@
 
 
 --For online sales, compare the total sales monetary amount in which customers checked
---online reviews before making the purchase and that of sales in which customers
+--online reviews 3 days before making the purchase and that of sales in which customers
 --did not read reviews. Consider only online sales for a specific category in a given
 --year.
 

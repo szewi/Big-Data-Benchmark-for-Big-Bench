@@ -73,12 +73,12 @@ SET q07_HAVING_COUNT_GE=10;
 SET q07_LIMIT=10;
 
 -------- Q08 -----------
-set q08_category=review;
 -- web_clickstreams date range
 set q08_startDate=2001-09-02;
 -- + 1year
 set q08_endDate=2002-09-02;
-set q08_days_before_purchase=1;
+-- 3 days in sec = 3*24*60*60
+set q08_seconds_before_purchase=259200;
 
 
 -------- Q09 -----------
