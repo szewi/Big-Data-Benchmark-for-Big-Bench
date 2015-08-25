@@ -314,7 +314,7 @@ Look inside your hdfs-site.xml and locate this property value:
 ```
 
 ## Where do i put benchmark specific hive options?
-Big-Bench/engines/hive/conf/hiveSettings.sql
+Big-Bench/engines/hive/conf/engineSettings.sql
 
 There are already a number of documented settings in there.
 
@@ -324,7 +324,7 @@ You can place an optional file "hiveLocalSettings.sql" into a queries folder e.g
 
 Big-Bench/engines/hive/queries/q??/hiveLocalSettings.sql
 
-You can put your query specific settings into this file, and the benchmark will automatically load the file. The hiveLocalSettings.sql file gets loaded last, which allows you to override any previously made settings in ,e.g., Big-Bench/engines/hive/conf/hiveSettings.sql.
+You can put your query specific settings into this file, and the benchmark will automatically load the file. The hiveLocalSettings.sql file gets loaded last, which allows you to override any previously made settings in ,e.g., Big-Bench/engines/hive/conf/engineSettings.sql.
 This way your settings are not overwritten by future github updates and there won't be any conflicts when updating the query files. 
 
 
@@ -440,7 +440,7 @@ hive.exec.parallel.thread.number=8
 
 They allow hive to run multiple uncorrelated jobs in parallel (like creating tables). But be warned, this feature is still considered unstable (Hive 0.12).
 If you cant modify your hive-site.xml cluster globally, you can uncomment/add these options in:
-  Big-Bench/engines/hive/conf/hiveSettings.sql
+  Big-Bench/engines/hive/conf/engineSettings.sql
 to enable them for the whole benchmark, including the queries.
 
 ### Hive Query's are running slow
@@ -467,7 +467,7 @@ But don't generalize this. Some stages simply don't have enough data to justify 
 Or the processed table is just to small (like the time or date table).
 Remember that more map/reduce tasks also implies more overhead. So don't overdo it as to much map tasks can hurt performance just like to few tasks.
 
-You can tune some parameters in the hive/hiveSettings.sql file. 
+You can tune some parameters in the hive/engineSettings.sql file. 
 Hive determines the number of map/reduce tasks based on the tables size. If you have a table of 670MB and set the max.split.size to 67000000 bytes, hive will start 10 map tasks to process this table (or maybe less if hive is able to reduce the dataset by using partitioning/bucketing)
 
 ```
@@ -482,7 +482,7 @@ MR guide (does not apply to TEZ or SPARK)
 The most important tuning parameter is  mapreduce.input.fileinputformat.split.maxsize which determines the number of map tasks started for a job. 
 
 For SF1 start with rather small values:
-* set  values for in \Big-Data-Benchmark-for-Big-Bench\engines\hive\conf\hiveSettings.sql to: (4Mb/8MB)
+* set  values for in \Big-Data-Benchmark-for-Big-Bench\engines\hive\conf\engineSettings.sql to: (4Mb/8MB)
 set mapreduce.input.fileinputformat.split.minsize=4198400
 set mapreduce.input.fileinputformat.split.maxsize=8396800
 set hive.exec.reducers.bytes.per.reducer=8396800
