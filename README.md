@@ -30,7 +30,7 @@ Java 1.7 is required. 64 bit is recommended. A suitable JDK is installed along w
 
 * Hadoop 2.3. A suitable hadoop version is installed along with Cloudera (if using the parcel installation method)
 * Hive 0.14 recommended. A suitable hive version is installed along with Cloudera (if using the parcel installation method)
-* Mahout. A suitable mahout version is installed along with Cloudera (if using the parcel installation method)
+* Mahout 0.9 A suitable mahout version is installed along with Cloudera (if using the parcel installation method)
 
 **Other necessary system packages**
 
