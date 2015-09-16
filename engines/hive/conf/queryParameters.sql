@@ -46,7 +46,7 @@ set q03_days_in_sec_before_purchase=864000;
 set q03_views_before_purchase=5;
 set q03_purchased_item_IN=10001;
 --see q1 for categories
-set q03_purchased_item_category_IN=2,3; 
+set q03_purchased_item_category_IN=2,3;
 set q03_limit=30;
 
 -------- Q04 -----------
@@ -60,7 +60,7 @@ set q05_cd_gender='M';
 
 -------- Q06 -----------
 SET q06_LIMIT=100;
---web_sales and store_sales date 
+--web_sales and store_sales date
 SET q06_YEAR=2001; 
 
 
@@ -119,9 +119,9 @@ set q09_part3_sales_price_max=200;
 --web_sales date range
 set q11_startDate=2003-01-02;
 -- +30days
-set q11_endDate=2003-02-02; 
-	
-	
+set q11_endDate=2003-02-02;
+
+
 -------- Q12 -----------
 --web_clickstreams start_date - endDate1
 --store_sales      start_date - endDate2
@@ -131,8 +131,8 @@ set q12_endDate2=2001-12-02;
 set q12_i_category_IN='Books', 'Electronics';
 
 -------- Q13 -----------
---store_sales date 
-set q13_Year=2001; 
+--store_sales date
+set q13_Year=2001;
 
 set q13_limit=100;
 
@@ -160,7 +160,7 @@ set q16_date=2001-03-16;
 -------- Q17 -----------
 set q17_gmt_offset=-5;
 --store_sales date
-set q17_year=2001; 
+set q17_year=2001;
 set q17_month=12;
 set q17_i_category_IN='Books', 'Music';
 
