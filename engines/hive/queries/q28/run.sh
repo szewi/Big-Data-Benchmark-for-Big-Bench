@@ -95,7 +95,7 @@ query_run_main_method () {
 		echo "tmp result in: $TEMP_DIR/result"
 		echo "========================="
 
-		runCmdWithErrorCheck mahout testnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_2/tfidf-vectors" -m "$TEMP_DIR/model" -l "$TEMP_DIR/labelindex" -ow -o "$TEMP_DIR/result" |& tee >( grep -A 300 "Standard NB Results:" | hadoop fs  -copyFromLocal -f - "$HDFS_RESULT_FILE" )
+		runCmdWithErrorCheck mahout testnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_2/tfidf-vectors" -m "$TEMP_DIR/model" -l "$TEMP_DIR/labelindex" -ow -o "$TEMP_DIR/result" | tee >( grep -A 300 "Standard NB Results:" | hadoop fs  -copyFromLocal -f - "$HDFS_RESULT_FILE" )
 		RETURN_CODE=$?
 		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
