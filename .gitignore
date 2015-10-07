@@ -1,3 +1,4 @@
 logs/
 derby.log
 TempStatsStore/
+.idea/
