@@ -18,13 +18,13 @@
 -- There are are several ways to to "basketing", implemented is way A)
 -- A) collect distinct viewed items per session (same sales_sk) in list and employ a UDTF to produce pairwise combinations of all list elements
 -- B) distribute by sales_sk end employ reducer streaming script to aggregate all items per session and produce the pairs
--- C) pure SQL: produce pairings by self joining on sales_sk and filtering out left.item_sk < right.item_sk (elimiates dupplicates and switched posistions)
+-- C) pure SQL: produce pairings by self joining on sales_sk and filtering out left.item_sk < right.item_sk (eliminates duplicates and switched positions)
 --
 --
 -- The second difficulty is to reconstruct a users browsing session from the web_clickstreams table
 -- There are are several ways to to "sessionize", common to all is the creation of a unique virtual time stamp from the date and time serial
 -- key's as we know they are both strictly monotonic increasing in order of time and one wcs_click_date_sk relates to excatly one day
---  the following code works: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk)
+-- the following code works: (wcs_click_date_sk*24*60*60 + wcs_click_time_sk)
 -- Implemented is way B) as A) proved to be inefficient
 -- A) sessionize using SQL-windowing functions => partition by user and  sort by virtual time stamp.
 --    Step1: compute time difference to preceding click_session
@@ -40,13 +40,15 @@ CREATE TEMPORARY FUNCTION makePairs AS 'io.bigdatabenchmark.v1.queries.udf.Pairw
 ADD FILE ${hiveconf:QUERY_DIR}/q2-sessionize.py;
 
 
--- SESSIONZIE by streaming
+-- SESSIONIZE by streaming
 -- Step1: compute time difference to preceeding click_session
--- Step2: compute session id per user by defining a session as: clicks no father apppart then q02_session_timeout_inSec
--- Step3: make unique session identifier <user_sk>_<user_seesion_ID>
+-- Step2: compute session id per user by defining a session as: clicks no farther apart then q02_session_timeout_inSec
+-- Step3: make unique session identifier <user_sk>_<user_session_ID>
 DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE VIEW ${hiveconf:TEMP_TABLE} AS
-SELECT *
+SELECT DISTINCT
+  sessionid,
+  wcs_item_sk
 FROM
 (
   FROM
@@ -58,7 +60,10 @@ FROM
     FROM web_clickstreams
     WHERE wcs_item_sk IS NOT NULL
     AND   wcs_user_sk IS NOT NULL
-    DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec -- "sessionize" reducer script requires the cluster by uid and sort by tstamp
+    DISTRIBUTE BY wcs_user_sk
+    SORT BY
+      wcs_user_sk,
+      tstamp_inSec -- "sessionize" reducer script requires the cluster by uid and sort by tstamp
   ) clicksAnWebPageType
   REDUCE
     wcs_user_sk,
@@ -90,28 +95,28 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 
 -- the real query part
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
-SELECT item_sk_1, item_sk_2, COUNT(*) AS cnt
+SELECT
+  item_sk_1,
+  ${hiveconf:q02_item_sk} AS item_sk_2,
+  COUNT (*) AS cnt
 FROM
 (
   -- Make item "viewed together" pairs
   -- combining collect_set + sorting + makepairs(array, noSelfParing)
   -- ensuers we get no pairs with swapped places like: (12,24),(24,12).
-  -- We only produce tuples (12,24) ensuring that the smaller number is allways on the left side
-  SELECT makePairs(sort_array(itemArray), false) AS (item_sk_1, item_sk_2)
+  -- We only produce tuples (12,24) ensuring that the smaller number is always on the left side
+  SELECT explode(itemArray) AS item_sk_1
   FROM
   (
-    SELECT collect_set(wcs_item_sk) AS itemArray --(_list= with dupplicates, _set = distinct)
+    SELECT collect_list(wcs_item_sk) AS itemArray --(_list= with duplicates, _set = distinct)
     FROM ${hiveconf:TEMP_TABLE}
     GROUP BY sessionid
     HAVING array_contains(itemArray, cast(${hiveconf:q02_item_sk} AS BIGINT) ) -- eager filter out groups that dont contain the searched item
   ) collectedList
 ) pairs
-WHERE (
-     item_sk_1 = ${hiveconf:q02_item_sk} --Note that the order of products viewed does not matter,
-  OR item_sk_2 = ${hiveconf:q02_item_sk}
-)
-GROUP BY item_sk_1, item_sk_2
-ORDER BY cnt DESC, item_sk_1, item_sk_2
+WHERE item_sk_1 <> ${hiveconf:q02_item_sk}
+GROUP BY item_sk_1
+ORDER BY cnt DESC, item_sk_1
 LIMIT ${hiveconf:q02_limit};
 
 -- cleanup

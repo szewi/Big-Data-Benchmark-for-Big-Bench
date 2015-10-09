@@ -15,7 +15,7 @@
 --    hasCollegeEducation [0,1]
 --    isMale              [0,1]
 --    hasClicksInCategory [0,1]
--- TODO: updated this description once improved q5 with more features is merged
+-- TODO: update this description once improved q5 with more features is merged
 
 
 -- Resources
@@ -43,30 +43,44 @@ SELECT
   q05_tmp_Cust.c_customer_sk,
   q05_tmp_Cust.college_education,
   q05_tmp_Cust.male,
-  CASE WHEN q05_tmp_Cust.clicks_in_category > 2 THEN 1 ELSE 0 END AS label
-FROM (
+  q05_tmp_Cust.label
+FROM
+(
   SELECT
     q05_tmp_cust_clicks.c_customer_sk AS c_customer_sk,
     q05_tmp_cust_clicks.college_education AS college_education,
     q05_tmp_cust_clicks.male AS male,
-    SUM(
-      CASE WHEN q05_tmp_cust_clicks.i_category = ${hiveconf:q05_i_category}
-      THEN 1
-      ELSE 0 END
-    ) AS clicks_in_category
-  FROM (
+    CASE WHEN SUM(q05_tmp_cust_clicks.i_category) > 2
+      THEN 1 ELSE 0 END AS label
+  FROM
+  (
     SELECT
-      ct.c_customer_sk AS c_customer_sk,
-      CASE WHEN cdt.cd_education_status IN (${hiveconf:q05_cd_education_status_IN})
-        THEN 1 ELSE 0 END AS college_education,
-      CASE WHEN cdt.cd_gender = ${hiveconf:q05_cd_gender}
-        THEN 1 ELSE 0 END AS male,
-      it.i_category AS i_category
-    FROM customer ct
-    INNER JOIN customer_demographics cdt ON ct.c_current_cdemo_sk = cdt.cd_demo_sk
-    INNER JOIN web_clickstreams wcst ON (wcst.wcs_user_sk = ct.c_customer_sk
+      part_a.c_customer_sk,
+      part_a.college_education,
+      part_a.male,
+      part_b.i_category
+    FROM
+    (
+      SELECT
+        ct.c_customer_sk,
+        CASE WHEN cdt.cd_education_status IN (${hiveconf:q05_cd_education_status_IN})
+          THEN 1 ELSE 0 END AS college_education,
+        CASE WHEN cdt.cd_gender = ${hiveconf:q05_cd_gender}
+          THEN 1 ELSE 0 END AS male,
+        wcst.wcs_item_sk
+      FROM customer ct
+      INNER JOIN customer_demographics cdt ON ct.c_current_cdemo_sk = cdt.cd_demo_sk
+      INNER JOIN web_clickstreams wcst ON (wcst.wcs_user_sk = ct.c_customer_sk
       AND wcst.wcs_user_sk IS NOT NULL)
-    INNER JOIN item it ON wcst.wcs_item_sk = it.i_item_sk
+    ) part_a
+    INNER JOIN (
+      SELECT
+        it.i_item_sk,
+        CASE WHEN it.i_category = ${hiveconf:q05_i_category}
+          THEN 1 ELSE 0 END AS i_category
+      FROM item it
+    ) part_b
+    ON part_a.wcs_item_sk = part_b.i_item_sk
   ) q05_tmp_cust_clicks
   GROUP BY
     q05_tmp_cust_clicks.c_customer_sk,
