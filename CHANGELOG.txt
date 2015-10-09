@@ -1,3 +1,10 @@
+BigBench v0.6 beta changes:
+
+* Some files and directories were renamed to be more consistent
+* Minor bugfixes in kit and Java driver
+* Code cleanup in bash kit parts
+* Performance updates for query 2 and 5
+
 BigBench v0.5 beta changes:
 
 * Java driver
