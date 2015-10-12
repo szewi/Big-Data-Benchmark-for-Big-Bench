@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #"INTEL CONFIDENTIAL"
-#Copyright 2015  Intel Corporation All Rights Reserved. 
+#Copyright 2015  Intel Corporation All Rights Reserved.
 #
 #The source code contained or described herein and all documents related to the source code ("Material") are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with Intel Corporation or its suppliers and licensors. The Material contains trade secrets and proprietary and confidential information of Intel or its suppliers and licensors. The Material is protected by worldwide copyright and trade secret laws and treaty provisions. No part of the Material may be used, copied, reproduced, modified, published, uploaded, posted, transmitted, distributed, or disclosed in any way without Intel's prior express written permission.
 #
@@ -83,6 +83,11 @@ logEnvInformation ()
   > "$ENV_INFO_FILE"
   if [ -w "$ENV_INFO_FILE" ]
   then
+    echo "##############################" >> "$ENV_INFO_FILE" 2>&1
+    echo "#      BigBench Version      #" >> "$ENV_INFO_FILE" 2>&1
+    echo "##############################" >> "$ENV_INFO_FILE" 2>&1
+    echo "Version $BIG_BENCH_VERSION" >> "$ENV_INFO_FILE" 2>&1
+
     echo "##############################" >> "$ENV_INFO_FILE" 2>&1
     echo "#          Hardware          #" >> "$ENV_INFO_FILE" 2>&1
     echo "##############################" >> "$ENV_INFO_FILE" 2>&1
@@ -182,6 +187,7 @@ cd "$OLDPWD"
 ## ===================================================
 ## BEGIN OF SETTINGS
 ## ===================================================
+export BIG_BENCH_VERSION="0.6-beta"
 export BIG_BENCH_BIN_DIR="$BIG_BENCH_HOME/bin"
 export BIG_BENCH_CONF_DIR="$BIG_BENCH_HOME/conf"
 export BIG_BENCH_DATA_GENERATOR_DIR="$BIG_BENCH_HOME/data-generator"

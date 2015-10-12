@@ -116,7 +116,9 @@ FROM
 ) pairs
 WHERE item_sk_1 <> ${hiveconf:q02_item_sk}
 GROUP BY item_sk_1
-ORDER BY cnt DESC, item_sk_1
+ORDER BY
+  cnt DESC,
+  item_sk_1
 LIMIT ${hiveconf:q02_limit};
 
 -- cleanup
