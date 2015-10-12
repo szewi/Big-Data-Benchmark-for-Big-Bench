@@ -19,16 +19,14 @@ query_run_main_method () {
 
 	#EXECUTION Plan:
 	#step 1.  hive q26.sql		:	Run hive querys to extract kmeans input data
-	#step 2.  mahout input		:	Generating sparse vectors
-	#step 3.  mahout kmeans		:	Calculating k-means"
-	#step 4.  mahout dump > hdfs/res:	Converting result and copy result do hdfs query result folder
-	#step 5.  hive && hdfs 		:	cleanup.sql && hadoop fs rm MH
+	#step 2.  do clustering 
+	#step 3.  hive && hdfs 		:	cleanup.sql && hadoop fs rm MH
 
 	MAHOUT_TEMP_DIR="$TEMP_DIR/mahout_temp"
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 1 ]] ; then
 		echo "========================="
-		echo "$QUERY_NAME Step 1/5: Executing hive queries"
+		echo "$QUERY_NAME Step 1/3: Executing hive queries"
 		echo "tmp output: ${TEMP_DIR}"
 		echo "========================="
 		# Write input for k-means into temp table
@@ -38,60 +36,95 @@ query_run_main_method () {
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 2 ]] ; then
-		echo "========================="
-		echo "$QUERY_NAME Step 2/5: Generating sparse vectors"
-		echo "Command "mahout org.apache.mahout.clustering.conversion.InputDriver -i "${TEMP_DIR}" -o "${TEMP_DIR}/Vec" -v org.apache.mahout.math.RandomAccessSparseVector #-c UTF-8 
-		echo "tmp output: ${TEMP_DIR}/Vec"
-		echo "========================="
 
-		runCmdWithErrorCheck mahout org.apache.mahout.clustering.conversion.InputDriver -i "${TEMP_DIR}" -o "${TEMP_DIR}/Vec" -v org.apache.mahout.math.RandomAccessSparseVector #-c UTF-8 
-		RETURN_CODE=$?
-		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-	fi
+    ##########################
+    #run with spark (default) 
+    ##########################
+    if [[ -z "$BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK" || "$BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK" == "spark" ]] ; then
+        echo "========================="
+        echo "$QUERY_NAME Step 2/3: Calculating KMeans with spark"
+        echo "intput: ${TEMP_DIR}"
+        echo "result output: ${HDFS_RESULT_FILE}"
+        echo "========================="
+
+        #hive intermediate result is stored in ${TEMP_DIR}
+        intputFolder="${TEMP_DIR}/*"
+        outputFolder="${RESULT_DIR}/"
+        #fromHiveMetastore="false"
+        echo  $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.KMeansClustering "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" -if "$intputFolder" -of  "$outputFolder" -c 8 -q $QUERY_NAME -i 20
+
+        runCmdWithErrorCheck $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.KMeansClustering "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" -if "$intputFolder" -of "$outputFolder" -c 8 -q $QUERY_NAME -i 20
+
+        RETURN_CODE=$?
+        if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+
+        #concatenate $sparkClusteringResult folder contents into one file: $HDFS_RESULT_FILE to match mahout result file format
+      	if [[ -z "$DEBUG_QUERY_PART" ]] ; then  hadoop fs -rm -r -f "$HDFS_RESULT_FILE"; fi
+        #hadoop fs -cat  ${TEMP_DIR}/clusterResult/* | hadoop fs -put - $HDFS_RESULT_FILE
+
+    ##########################
+    #run with mahout
+    ##########################
+    elif [[ $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK == 'mahout' ]] ; then
+        echo "========================="
+        echo "$QUERY_NAME Step 2/3: Calculating KMeans with mahout"
+        echo "result output: ${HDFS_RESULT_FILE}"
+        echo "========================="
+
+		    echo "----------------------------------------------------------"
+		    echo "$QUERY_NAME Step 2/3: part 1: Generating sparse vectors for mahout"
+		    echo "Command "mahout org.apache.mahout.clustering.conversion.InputDriver -i "${TEMP_DIR}" -o "${TEMP_DIR}/Vec" -v org.apache.mahout.math.RandomAccessSparseVector #-c UTF-8 
+		    echo "tmp output: ${TEMP_DIR}/Vec"
+		    echo "----------------------------------------------------------"
+		    runCmdWithErrorCheck mahout org.apache.mahout.clustering.conversion.InputDriver -i "${TEMP_DIR}" -o "${TEMP_DIR}/Vec" -v org.apache.mahout.math.RandomAccessSparseVector #-c UTF-8 
+		    RETURN_CODE=$?
+		    if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+	    
+
+		    echo "----------------------------------------------------------"
+		    echo "$QUERY_NAME Step 2/3: part 2: Calculating k-means"
+		    echo "Command "mahout kmeans -i "$TEMP_DIR/Vec" -c "$TEMP_DIR/init-clusters" -o "$TEMP_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -ow -cl  -xm $BIG_BENCH_ENGINE_HIVE_MAHOUT_EXECUTION
+		    echo "tmp output: $TEMP_DIR/kmeans-clusters"
+		    echo "----------------------------------------------------------"
+		    echo "upload initial clusters $QUERY_DIR/initialClusters  to hdfs: $TEMP_DIR/init-clusters"
+        hadoop fs -put -f $QUERY_DIR/init-clusters $TEMP_DIR/init-clusters
+
+		    runCmdWithErrorCheck mahout kmeans --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR/Vec" -c "$TEMP_DIR/init-clusters" -o "$TEMP_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -ow -cl  -xm $BIG_BENCH_ENGINE_HIVE_MAHOUT_EXECUTION
+		    RETURN_CODE=$?
+		    if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+	    
+
+		    local CLUSTERS_OUT="`mktemp`"
+		    echo "----------------------------------------------------------"
+		    echo "$QUERY_NAME Step 2/3: part 3: Converting result and store in hdfs $HDFS_RESULT_FILE"
+		    echo "command: unCmdWithErrorCheck mahout clusterdump --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR"/kmeans-clusters/clusters-*-final -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT -o $CLUSTERS_OUT ; hadoop fs -copyFromLocal $CLUSTERS_OUT \"$HDFS_RESULT_FILE\" "
+		    echo "----------------------------------------------------------"
+		    runCmdWithErrorCheck mahout clusterdump --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR"/kmeans-clusters/clusters-*-final -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT -o $CLUSTERS_OUT
+		    RETURN_CODE=$?
+		    if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+		
+		    hadoop fs -copyFromLocal -f $CLUSTERS_OUT "$HDFS_RESULT_FILE"
+		    RETURN_CODE=$?
+		    if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+	  
+    else
+      echo "BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK parameter has no matching implmentation or was empty: $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK  "
+      return 1
+		fi
+  fi	    
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 3 ]] ; then
-		echo "========================="
-		echo "$QUERY_NAME Step 3/5: Calculating k-means"
-		echo "Command "mahout kmeans -i "$TEMP_DIR/Vec" -c "$TEMP_DIR/init-clusters" -o "$TEMP_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -ow -cl  -xm $BIG_BENCH_ENGINE_HIVE_MAHOUT_EXECUTION
-		echo "tmp output: $TEMP_DIR/kmeans-clusters"
-		echo "========================="
-		echo "upload initial clusters $QUERY_DIR/initialClusters  to hdfs: $TEMP_DIR/init-clusters"
-     	hadoop fs -put -f $QUERY_DIR/init-clusters $TEMP_DIR/init-clusters
-
-		runCmdWithErrorCheck mahout kmeans --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR/Vec" -c "$TEMP_DIR/init-clusters" -o "$TEMP_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -ow -cl  -xm $BIG_BENCH_ENGINE_HIVE_MAHOUT_EXECUTION
-		RETURN_CODE=$?
-		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-	fi
-
-	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 4 ]] ; then
-		local CLUSTERS_OUT="`mktemp`"
-		
-		echo "========================="
-		echo "$QUERY_NAME Step 4/5: Converting result and store in hdfs $HDFS_RESULT_FILE"
-		echo "command: unCmdWithErrorCheck mahout clusterdump --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR"/kmeans-clusters/clusters-*-final -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT -o $CLUSTERS_OUT ; hadoop fs -copyFromLocal $CLUSTERS_OUT \"$HDFS_RESULT_FILE\" "
-		echo "========================="
-	
-		runCmdWithErrorCheck mahout clusterdump --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR"/kmeans-clusters/clusters-*-final -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT -o $CLUSTERS_OUT
-		RETURN_CODE=$?
-		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-		
-		hadoop fs -copyFromLocal -f $CLUSTERS_OUT "$HDFS_RESULT_FILE"
-		RETURN_CODE=$?
-		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-	fi
-
-	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 5 ]] ; then
-		echo "========================="
-		echo "$QUERY_NAME Step 5/5: Clean up"
-		echo "========================="
-		runCmdWithErrorCheck runEngineCmd -f "${QUERY_DIR}/cleanup.sql"
-		RETURN_CODE=$?
-		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-		runCmdWithErrorCheck hadoop fs -rm -r -f "$TEMP_DIR"
-		RETURN_CODE=$?
-		rm -rf "$CLUSTERS_OUT"
-		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-	fi
+		    echo "========================="
+		    echo "$QUERY_NAME Step 3/3: Clean up"
+		    echo "========================="
+		    runCmdWithErrorCheck runEngineCmd -f "${QUERY_DIR}/cleanup.sql"
+		    RETURN_CODE=$?
+		    if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+		    runCmdWithErrorCheck hadoop fs -rm -r -f "$TEMP_DIR"
+		    RETURN_CODE=$?
+		    rm -rf "$CLUSTERS_OUT"
+		    if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+	fi    
 }
 
 query_run_clean_method () {

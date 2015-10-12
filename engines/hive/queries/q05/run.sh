@@ -36,57 +36,79 @@ query_run_main_method () {
 		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
 	
+
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 2 ]] ; then
-	
-		echo "========================="
-		echo "$QUERY_NAME Step 2/3: log regression"
-		echo "========================="
 
-		TMP_LOG_REG_IN_FILE="`mktemp`"
-		TMP_LOG_REG_MODEL_FILE="`mktemp`"
+    #run with spark (default) 
+		if [[ -z "$BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK" || "$BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK" == "spark" ]] ; then
+			echo "========================="
+			echo "$QUERY_NAME Step 2/3: log regression with spark-mllib"
+			echo "========================="
+      intputFolder=${TEMP_DIR}
+      fromHiveMetastore="false"
+      echo $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q05.LogisticRegression "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" -if "${intputFolder}" -of "${RESULT_DIR}/" --fromMetastore $fromHiveMetastore
 
-		echo "-------------------------"
-		echo "$QUERY_NAME Step 2/3 Part 1: Copy hive result to local csv file"
-		echo "tmp output: ${TMP_LOG_REG_IN_FILE}"
-		echo "-------------------------"
-
-		echo "streaming result from hive ..."
-		#write header
-		runCmdWithErrorCheck echo '"c_customer_sk","college_education","male","label"' > "${TMP_LOG_REG_IN_FILE}"
-		# append hive result
-		runCmdWithErrorCheck hadoop fs -cat "${TEMP_DIR}"/* >> "${TMP_LOG_REG_IN_FILE}"
-		echo "streaming result from hive ... done"
-		echo "sample:"
-		echo "size: " `du -bh "${TMP_LOG_REG_IN_FILE}"`
-		echo "------"
-		head "${TMP_LOG_REG_IN_FILE}"
-		echo "..." 
-		echo "-------------------------"
-
-		echo "$QUERY_NAME Step 2/3 Part 2: Train logistic model"
-		echo "Command " mahout trainlogistic --input "$TMP_LOG_REG_IN_FILE" --output "$TMP_LOG_REG_MODEL_FILE" --target c_customer_sk --categories 2 --predictors college_education male label --types n n n --passes 20 --features 20 --rate 1 --lambda 0.5
-		echo "tmp output: ${TMP_LOG_REG_MODEL_FILE}"
-		echo "-------------------------"
-	
-		runCmdWithErrorCheck mahout trainlogistic --input "$TMP_LOG_REG_IN_FILE" --output "$TMP_LOG_REG_MODEL_FILE" --target c_customer_sk --categories 2 --predictors college_education male label --types n n n --passes 20 --features 20 --rate 1 --lambda 0.5	
-		RETURN_CODE=$?
-		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+     runCmdWithErrorCheck $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q05.LogisticRegression "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" -if "${intputFolder}" -of "${RESULT_DIR}/" --fromMetastore $fromHiveMetastore
 		
-		echo "-------------------------"
-		echo "$QUERY_NAME Step 2/3 Part 3: Calculating Logistic Regression"
-		echo "Command: " mahout runlogistic --input "$TMP_LOG_REG_IN_FILE" --model "$TMP_LOG_REG_MODEL_FILE" --auc --confusion --quiet 
-		echo "output: hdfs://"$HDFS_RESULT_FILE
-		echo "-------------------------"
+			RETURN_CODE=$?
+			if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 
-		runCmdWithErrorCheck mahout runlogistic --input "$TMP_LOG_REG_IN_FILE" --model "$TMP_LOG_REG_MODEL_FILE" --auc --confusion --quiet 2> /dev/null | grep -A 3 "AUC =" | hadoop fs -copyFromLocal -f - "$HDFS_RESULT_FILE"
-		RETURN_CODE=$?
-		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+		elif [[ $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK == 'mahout' ]] ; then
+			echo "========================="
+			echo "$QUERY_NAME Step 2/3: log regression with mahout"
+			echo "========================="
+
+			TMP_LOG_REG_IN_FILE="`mktemp`"
+			TMP_LOG_REG_MODEL_FILE="`mktemp`"
+
+		  echo "----------------------------------------------------------"
+			echo "$QUERY_NAME Step 2/3 Part 1: Copy hive result to local csv file"
+			echo "tmp output: ${TMP_LOG_REG_IN_FILE}"
+		  echo "----------------------------------------------------------"
+
+			echo "streaming result from hive ..."
+			#write header
+			runCmdWithErrorCheck echo '"c_customer_sk","college_education","male","label"' > "${TMP_LOG_REG_IN_FILE}"
+			# append hive result
+			runCmdWithErrorCheck hadoop fs -cat "${TEMP_DIR}"/* >> "${TMP_LOG_REG_IN_FILE}"
+			echo "streaming result from hive ... done"
+			echo "sample:"
+			echo "size: " `du -bh "${TMP_LOG_REG_IN_FILE}"`
+			echo "------"
+			head "${TMP_LOG_REG_IN_FILE}"
+			echo "..." 
+
+		  echo "----------------------------------------------------------"
+			echo "$QUERY_NAME Step 2/3 Part 2: Train logistic model"
+			echo "Command " mahout trainlogistic --input "$TMP_LOG_REG_IN_FILE" --output "$TMP_LOG_REG_MODEL_FILE" --target c_customer_sk --categories 2 --predictors college_education male label --types n n n --passes 20 --features 20 --rate 1 --lambda 0.5
+			echo "tmp output: ${TMP_LOG_REG_MODEL_FILE}"
+		  echo "----------------------------------------------------------"
+	
+			runCmdWithErrorCheck mahout trainlogistic --input "$TMP_LOG_REG_IN_FILE" --output "$TMP_LOG_REG_MODEL_FILE" --target c_customer_sk --categories 2 --predictors college_education male label --types n n n --passes 20 --features 20 --rate 1 --lambda 0.5	
+			RETURN_CODE=$?
+			if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 		
-		echo "-------------------------"
-		echo "$QUERY_NAME Step 2/3 Part 4: Cleanup tmp files"
-		echo "-------------------------"
-		rm -f "$TMP_LOG_REG_IN_FILE"
-		rm -f "$TMP_LOG_REG_MODEL_FILE"
+
+		  echo "----------------------------------------------------------"
+			echo "$QUERY_NAME Step 2/3 Part 3: Calculating Logistic Regression"
+			echo "Command: " mahout runlogistic --input "$TMP_LOG_REG_IN_FILE" --model "$TMP_LOG_REG_MODEL_FILE" --auc --confusion --quiet 
+			echo "output: hdfs://"$HDFS_RESULT_FILE
+		  echo "----------------------------------------------------------"
+
+			runCmdWithErrorCheck mahout runlogistic --input "$TMP_LOG_REG_IN_FILE" --model "$TMP_LOG_REG_MODEL_FILE" --auc --confusion --quiet 2> /dev/null | grep -A 3 "AUC =" | hadoop fs -copyFromLocal -f - "$HDFS_RESULT_FILE"
+			RETURN_CODE=$?
+			if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+		
+		  echo "----------------------------------------------------------"
+			echo "$QUERY_NAME Step 2/3 Part 4: Cleanup tmp files"
+		  echo "----------------------------------------------------------"
+			rm -f "$TMP_LOG_REG_IN_FILE"
+			rm -f "$TMP_LOG_REG_MODEL_FILE"
+
+    else
+      echo "BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK parameter has no matching implmentation or was empty: $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK  "
+      return 1
+		fi
 	fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 3 ]] ; then

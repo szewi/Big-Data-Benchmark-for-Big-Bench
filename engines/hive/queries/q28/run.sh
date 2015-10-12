@@ -27,9 +27,9 @@ query_run_main_method () {
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 1 ]] ; then
 		echo "========================="
-		echo "$QUERY_NAME step 1/7: Executing hive queries"
-		echo "tmp result in" ${TEMP_DIR1}
-		echo "tmp result in" ${TEMP_DIR2}
+		echo "$QUERY_NAME step 1/3: Executing hive queries"
+		echo "tmp result1 (training data) in:" ${TEMP_DIR1}
+		echo "tmp result2 (test data)     in:" ${TEMP_DIR2}
 		echo "========================="
 
 		# Write input for k-means into temp tables
@@ -43,78 +43,116 @@ query_run_main_method () {
 	VEC_FILE_1="$TEMP_DIR/Vec1"
 	VEC_FILE_2="$TEMP_DIR/Vec2"
 
-	MAHOUT_TEMP_DIR="$TEMP_DIR/mahout_temp"
+  if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 2 ]] ; then
 
-	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 2 ]] ; then
-		echo "========================="
-		echo "$QUERY_NAME step 2/7: Generating sequence files"
-		echo 'Used Command: hadoop jar "${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar" io.bigdatabenchmark.v1.queries.q28.ToSequenceFile "${TEMP_DIR1}" "$SEQ_FILE_1"'
-		echo 'Used Command: hadoop jar "${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar" io.bigdatabenchmark.v1.queries.q28.ToSequenceFile "${TEMP_DIR2}" "$SEQ_FILE_2"'
-		echo "tmp result in: $SEQ_FILE_1"
-		echo "tmp result in: $SEQ_FILE_2"
-		echo "========================="
-		runCmdWithErrorCheck hadoop jar "${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar" io.bigdatabenchmark.v1.queries.q28.ToSequenceFile "${TEMP_DIR1}" "$SEQ_FILE_1"
-		RETURN_CODE=$?
-		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-		runCmdWithErrorCheck hadoop jar "${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar" io.bigdatabenchmark.v1.queries.q28.ToSequenceFile "${TEMP_DIR2}" "$SEQ_FILE_2"
-		RETURN_CODE=$?
-		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-	fi
+    ##########################
+    #run with spark (default) 
+    ##########################
+    if [[ -z "$BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK" || "$BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK" == "spark" ]] ; then
+
+		    echo "========================="
+      	echo "$QUERY_NAME step 2/3: Train and Test Naive Bayes Classifier with spark"
+		    echo "training data:" ${TEMP_DIR1}
+		    echo "test data    :" ${TEMP_DIR2}
+		    echo "OUT: $HDFS_RAW_RESULT_FILE"
+		    echo "========================="
+
+        #pre-split by hive:        
+       echo $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" --inputTraining "${TEMP_DIR1}"  --inputTesting "${TEMP_DIR2}"  --out-folder ${RESULT_DIR}/
+        $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" --inputTraining "${TEMP_DIR1}" --inputTesting "${TEMP_DIR2}" --out-folder ${RESULT_DIR}/
+
+        #not pre-split by hive:
+        #runCmdWithErrorCheck "$BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY" --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" --inputTraining "${TEMP_DIR1}/*" --ratio 0.2 --out-folder ${RESULT_DIR}/
+
+		    RETURN_CODE=$?
+		    if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+
+
+    ##########################
+    #run with mahout
+    ##########################
+    elif [[ $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK == 'mahout' ]] ; then
+
+	      MAHOUT_TEMP_DIR="$TEMP_DIR/mahout_temp"
+		    echo "========================="
+	      echo "$QUERY_NAME step 2/3: Train and Test Naive Bayes Classifier with mahout"
+		    echo "training data:" ${TEMP_DIR1}
+		    echo "test data    :" ${TEMP_DIR2}
+		    echo "OUT: $HDFS_RAW_RESULT_FILE"
+		    echo "========================="
+
+		    echo "----------------------------------------------------------"
+		    echo "$QUERY_NAME step 2/3: part 1: Generating sequence files"
+		    echo "training data:" ${TEMP_DIR1}
+		    echo "test data    :" ${TEMP_DIR2}
+		    echo 'Used Command: hadoop jar "${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar" io.bigdatabenchmark.v1.queries.q28.ToSequenceFile "${TEMP_DIR1}" "$SEQ_FILE_1"'
+		    echo 'Used Command: hadoop jar "${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar" io.bigdatabenchmark.v1.queries.q28.ToSequenceFile "${TEMP_DIR2}" "$SEQ_FILE_2"'
+		    echo "tmp result in: $SEQ_FILE_1"
+		    echo "tmp result in: $SEQ_FILE_2"
+		    echo "----------------------------------------------------------"
+		    runCmdWithErrorCheck hadoop jar "${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar" io.bigdatabenchmark.v1.queries.q28.ToSequenceFile "${TEMP_DIR1}" "$SEQ_FILE_1"
+		    RETURN_CODE=$?
+		    if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+		    runCmdWithErrorCheck hadoop jar "${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar" io.bigdatabenchmark.v1.queries.q28.ToSequenceFile "${TEMP_DIR2}" "$SEQ_FILE_2"
+		    RETURN_CODE=$?
+		    if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+
+
+		    echo "----------------------------------------------------------"
+		    echo "$QUERY_NAME step 2/3: part 2: Generating sparse vectors from sequence files"
+		    echo 'Used Command: mahout seq2sparse -i "$SEQ_FILE_1" -o "$VEC_FILE_1" -ow -lnorm -nv -wt tfidf'
+		    echo 'Used Command: mahout seq2sparse -i "$SEQ_FILE_1" -o "$VEC_FILE_1" -ow -lnorm -nv -wt tfidf'
+		    echo "tmp result in: $VEC_FILE_1" 
+		    echo "tmp result in: $VEC_FILE_2"
+		    echo "----------------------------------------------------------"
+		    runCmdWithErrorCheck mahout seq2sparse -i "$SEQ_FILE_1" -o "$VEC_FILE_1" -ow -lnorm -nv -wt tfidf
+		    RETURN_CODE=$?
+		    if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+		    runCmdWithErrorCheck mahout seq2sparse -i "$SEQ_FILE_2" -o "$VEC_FILE_2" -ow -lnorm -nv -wt tfidf
+		    RETURN_CODE=$?
+		    if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+
+		    echo "----------------------------------------------------------"
+		    echo "$QUERY_NAME step 2/3: part 3: Training Classifier"
+		    echo 'Used Command:  mahout trainnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_1/tfidf-vectors" -o "$TEMP_DIR/model" -el -li "$TEMP_DIR/labelindex" -ow'
+		    echo "tmp result in: $TEMP_DIR/model"
+		    echo "----------------------------------------------------------"
+		    runCmdWithErrorCheck mahout trainnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_1/tfidf-vectors" -o "$TEMP_DIR/model" -el -li "$TEMP_DIR/labelindex" -ow
+		    RETURN_CODE=$?
+		    if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+	   
+
+		    echo "----------------------------------------------------------"
+		    echo "$QUERY_NAME step 2/3: part 4: Testing Classifier"
+		    echo 'Used Command:  mahout testnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_2/tfidf-vectors" -m "$TEMP_DIR/model" -l "$TEMP_DIR/labelindex" -ow -o "$TEMP_DIR/result" '
+		    echo "tmp result in: $TEMP_DIR/result"
+		    echo "----------------------------------------------------------"
+
+		    runCmdWithErrorCheck mahout testnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_2/tfidf-vectors" -m "$TEMP_DIR/model" -l "$TEMP_DIR/labelindex" -ow -o "$TEMP_DIR/result" |& tee >( grep -A 300 "Standard NB Results:" | hadoop fs  -copyFromLocal -f - "$HDFS_RESULT_FILE" )
+		    RETURN_CODE=$?
+		    if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+
+		    echo "----------------------------------------------------------"
+		    echo "$QUERY_NAME step 2/3: part 5: dump result to hdfs"
+        echo 'Used Command: mahout seqdumper --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR/result/part-m-00000" | hadoop fs -copyFromLocal -f - "$HDFS_RAW_RESULT_FILE"'
+		    echo "IN: $TEMP_DIR/result/part-m-00000"
+		    echo "OUT: $HDFS_RAW_RESULT_FILE"
+		    echo "----------------------------------------------------------"
+
+		    runCmdWithErrorCheck mahout seqdumper --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR/result/part-m-00000" | hadoop fs -copyFromLocal -f - "$HDFS_RAW_RESULT_FILE"
+		    RETURN_CODE=$?
+		    if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+
+
+    else
+        echo "BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK parameter has no matching implmentation or was empty: $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK  "
+        return 1
+	  fi
+  fi
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 3 ]] ; then
 		echo "========================="
-		echo "$QUERY_NAME step 3/7: Generating sparse vectors from sequence files"
-		echo 'Used Command: mahout seq2sparse -i "$SEQ_FILE_1" -o "$VEC_FILE_1" -ow -lnorm -nv -wt tfidf'
-		echo 'Used Command: mahout seq2sparse -i "$SEQ_FILE_1" -o "$VEC_FILE_1" -ow -lnorm -nv -wt tfidf'
-		echo "tmp result in: $VEC_FILE_1" 
-		echo "tmp result in: $VEC_FILE_2"
-		echo "========================="
-		runCmdWithErrorCheck mahout seq2sparse -i "$SEQ_FILE_1" -o "$VEC_FILE_1" -ow -lnorm -nv -wt tfidf
-		RETURN_CODE=$?
-		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-		runCmdWithErrorCheck mahout seq2sparse -i "$SEQ_FILE_2" -o "$VEC_FILE_2" -ow -lnorm -nv -wt tfidf
-		RETURN_CODE=$?
-		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-	fi
-
-	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 4 ]] ; then
-		echo "========================="
-		echo "$QUERY_NAME step 4/7: Training Classifier"
-		echo 'Used Command:  mahout trainnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_1/tfidf-vectors" -o "$TEMP_DIR/model" -el -li "$TEMP_DIR/labelindex" -ow'
-		echo "tmp result in: $TEMP_DIR/model"
-		echo "========================="
-		runCmdWithErrorCheck mahout trainnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_1/tfidf-vectors" -o "$TEMP_DIR/model" -el -li "$TEMP_DIR/labelindex" -ow
-		RETURN_CODE=$?
-		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-	fi
-
-	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 5 ]] ; then
-		echo "========================="
-		echo "$QUERY_NAME step 5/7: Testing Classifier"
-		echo 'Used Command:  mahout testnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_2/tfidf-vectors" -m "$TEMP_DIR/model" -l "$TEMP_DIR/labelindex" -ow -o "$TEMP_DIR/result" '
-		echo "tmp result in: $TEMP_DIR/result"
-		echo "========================="
-
-		runCmdWithErrorCheck mahout testnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_2/tfidf-vectors" -m "$TEMP_DIR/model" -l "$TEMP_DIR/labelindex" -ow -o "$TEMP_DIR/result" | tee >( grep -A 300 "Standard NB Results:" | hadoop fs  -copyFromLocal -f - "$HDFS_RESULT_FILE" )
-		RETURN_CODE=$?
-		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-	fi
-
-	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 6 ]] ; then
-		echo "========================="
-		echo "$QUERY_NAME step 6/7: dump result to hdfs"
-		echo "IN: $TEMP_DIR/result/part-m-00000"
-		echo "OUT: $HDFS_RAW_RESULT_FILE"
-		echo "========================="
-
-		runCmdWithErrorCheck mahout seqdumper --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR/result/part-m-00000" | hadoop fs -copyFromLocal -f - "$HDFS_RAW_RESULT_FILE"
-		RETURN_CODE=$?
-		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-	fi
-
-	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 7 ]] ; then
-		echo "========================="
-		echo "$QUERY_NAME Step 7/7: Clean up"
+		echo "$QUERY_NAME Step 3/3: Clean up"
 		echo "========================="
 		runCmdWithErrorCheck runEngineCmd -f "${QUERY_DIR}/cleanup.sql"
 		RETURN_CODE=$?

@@ -28,32 +28,71 @@ set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE} (
-  c_customer_sk     STRING,
+  label             STRING,
   college_education STRING,
   male              STRING,
-  label             STRING
+  clicks_in_1       STRING,
+  clicks_in_2       STRING,
+  clicks_in_7       STRING,
+  clicks_in_4       STRING,
+  clicks_in_5       STRING,
+  clicks_in_6       STRING
 )
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ' ' LINES TERMINATED BY '\n'
 STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}';
 
 -- the real query part
 
 INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
 SELECT
-  q05_tmp_Cust.c_customer_sk,
+  q05_tmp_Cust.clicks_in_category,
   q05_tmp_Cust.college_education,
   q05_tmp_Cust.male,
-  CASE WHEN q05_tmp_Cust.clicks_in_category > 2 THEN 1 ELSE 0 END AS label
+  q05_tmp_Cust.clicks_in_1,
+  q05_tmp_Cust.clicks_in_2,
+  q05_tmp_Cust.clicks_in_7,
+  q05_tmp_Cust.clicks_in_4,
+  q05_tmp_Cust.clicks_in_5,
+  q05_tmp_Cust.clicks_in_6
 FROM (
   SELECT
-    q05_tmp_cust_clicks.c_customer_sk AS c_customer_sk,
     q05_tmp_cust_clicks.college_education AS college_education,
     q05_tmp_cust_clicks.male AS male,
     SUM(
       CASE WHEN q05_tmp_cust_clicks.i_category = ${hiveconf:q05_i_category}
       THEN 1
       ELSE 0 END
-    ) AS clicks_in_category
+    ) AS clicks_in_category,
+    SUM(
+      CASE WHEN q05_tmp_cust_clicks.i_category_id = 1
+      THEN 1
+      ELSE 0 END
+    ) AS clicks_in_1,
+    SUM(
+      CASE WHEN q05_tmp_cust_clicks.i_category_id = 2
+      THEN 1
+      ELSE 0 END
+    ) AS clicks_in_2,
+    SUM(
+      CASE WHEN q05_tmp_cust_clicks.i_category_id = 7
+      THEN 1
+      ELSE 0 END
+    ) AS clicks_in_7,
+    SUM(
+      CASE WHEN q05_tmp_cust_clicks.i_category_id = 4
+      THEN 1
+      ELSE 0 END
+    ) AS clicks_in_4,
+    SUM(
+      CASE WHEN q05_tmp_cust_clicks.i_category_id = 5
+      THEN 1
+      ELSE 0 END
+    ) AS clicks_in_5,
+    SUM(
+      CASE WHEN q05_tmp_cust_clicks.i_category_id = 6
+      THEN 1
+      ELSE 0 END
+    ) AS clicks_in_6
   FROM (
     SELECT
       ct.c_customer_sk AS c_customer_sk,
@@ -61,16 +100,18 @@ FROM (
         THEN 1 ELSE 0 END AS college_education,
       CASE WHEN cdt.cd_gender = ${hiveconf:q05_cd_gender}
         THEN 1 ELSE 0 END AS male,
-      it.i_category AS i_category
+      it.i_category AS i_category,
+      it.i_category_id AS i_category_id
     FROM customer ct
     INNER JOIN customer_demographics cdt ON ct.c_current_cdemo_sk = cdt.cd_demo_sk
     INNER JOIN web_clickstreams wcst ON (wcst.wcs_user_sk = ct.c_customer_sk
-      AND wcst.wcs_user_sk IS NOT NULL)
+       AND wcst.wcs_user_sk IS NOT NULL)
     INNER JOIN item it ON wcst.wcs_item_sk = it.i_item_sk
-  ) q05_tmp_cust_clicks
-  GROUP BY
+  ) q05_tmp_cust_clicks  
+    GROUP BY
     q05_tmp_cust_clicks.c_customer_sk,
     q05_tmp_cust_clicks.college_education,
     q05_tmp_cust_clicks.male
 ) q05_tmp_Cust
 ;
+
