@@ -8,13 +8,18 @@
 
 -- TASK:
 -- Build a model using logistic regression: based on existing users online
--- activities and demographics, for a visitor to an online store, predict the visitors
+-- activities (interest in items of different categories) and demographics, for a visitor to an online store, predict the visitors
 -- likelihood to be interested in a given item category.
--- input vectors to the machine learing algorithm are:
---    user_sk             serial
---    hasCollegeEducation [0,1]
---    isMale              [0,1]
---    hasClicksInCategory [0,1]
+-- input vectors to the machine learning algorithm are:
+--  label             STRING, -- number of clicks in specified category "q05_i_category"
+--  college_education STRING, -- has college education [0,1]
+--  male              STRING, -- isMale [0,1]
+--  clicks_in_1       STRING, -- number of clicks in category id 1
+--  clicks_in_2       STRING, -- number of clicks in category id 2
+--  clicks_in_7       STRING, -- number of clicks in category id 7
+--  clicks_in_4       STRING, -- number of clicks in category id 4
+--  clicks_in_5       STRING, -- number of clicks in category id 5
+--  clicks_in_6       STRING  -- number of clicks in category id 6
 -- TODO: updated this description once improved q5 with more features is merged
 
 
