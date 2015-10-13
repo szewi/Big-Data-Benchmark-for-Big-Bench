@@ -59,7 +59,7 @@ query_run_main_method () {
 
         #pre-split by hive:        
        echo $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" --inputTraining "${TEMP_DIR1}"  --inputTesting "${TEMP_DIR2}"  --out-folder ${RESULT_DIR}/
-        $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" --inputTraining "${TEMP_DIR1}" --inputTesting "${TEMP_DIR2}" --out-folder ${RESULT_DIR}/
+        $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" --inputTraining "${TEMP_DIR1}" --inputTesting "${TEMP_DIR2}" --out-folder ${RESULT_DIR}/ --outputTestingClassification false
 
         #not pre-split by hive:
         #runCmdWithErrorCheck "$BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY" --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" --inputTraining "${TEMP_DIR1}/*" --ratio 0.2 --out-folder ${RESULT_DIR}/

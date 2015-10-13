@@ -112,14 +112,17 @@ object LogisticRegression {
     val confMat = multMetrics.confusionMatrix
 
     //print and save result
-    println("Precision: " + prec)
-    println("AUC: " + auc)
-    println("Confusion Matrix:")
-    println(confMat)
+    val result =
+      s"""Precision: $prec
+         |AUC: $auc
+         |Confusion Matrix:
+         |$confMat
+       """.stripMargin
+
+    println(result)
 
     println("save to " + options('of))
-    sc.parallelize(List(("Precision: " + prec, "\nAUC: " + auc,
-      "\nConfusion Matrix:\n" + confMat)), 1).saveAsTextFile(options('of))
+    sc.parallelize(List((result)), 1).saveAsTextFile(options('of))
     sc.stop()
   }
 
@@ -148,8 +151,10 @@ object LogisticRegression {
     println(s"load data from metastore table ${options('if)} ...")
     val sqlCtx = new HiveContext(sc)
     val inputTable = sqlCtx.table(options('if))
-    println(s"first 10 lines of ${options('if)}:")
-    inputTable.show(10)
+    if (options('verbose).toBoolean) {
+      println(s"first 10 lines of ${options('if)}:")
+      inputTable.show(10)
+    }
     val firstRow = inputTable.select(avg(inputTable.col("label"))).head()
     println(s"firstRow: $firstRow")
     val average = firstRow.getDouble(0)

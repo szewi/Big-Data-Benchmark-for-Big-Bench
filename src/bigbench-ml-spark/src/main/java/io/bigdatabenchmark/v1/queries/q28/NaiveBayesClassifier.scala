@@ -25,6 +25,7 @@ package io.bigdatabenchmark.v1.queries.q28
 
 import io.bigdatabenchmark.v1.queries.OptionMap.OptionMap
 import org.apache.log4j.{Level, Logger}
+import org.apache.spark.ml.feature.Tokenizer
 import org.apache.spark.mllib.classification.NaiveBayes
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.feature.{HashingTF, IDF}
@@ -44,7 +45,8 @@ object NaiveBayesClassifier {
   def main (args: Array[String]) {
 
     Logger.getLogger("org").setLevel(Level.OFF)
-    val options = parseOption(Map('ratio -> ""), args.toList)
+    val options = parseOption(Map('splitRatio -> "",
+                                  'outputTestingClassification -> "false"), args.toList)
 
     //pre-cleanup of output file/folder
     val hadoopConf = new org.apache.hadoop.conf.Configuration()
@@ -52,18 +54,20 @@ object NaiveBayesClassifier {
     try { hdfs.delete(new org.apache.hadoop.fs.Path(options('of)), true) } catch { case _ : Throwable => { } }
 
     val sc = new SparkContext(new SparkConf().setAppName("q28_nb_classifier"))
-    val preSplit=options('ratio).isEmpty
+    val preSplit=options('splitRatio).isEmpty
 
     //testdata allready in two separate files trainging/testing? if not => split
     val (trainingData, testingData) = if(preSplit){
       println(s"Input is pre-split, read 'training' from: ${options('inputTrain)} and 'testing' from:  ${options('inputTest)}")
+      println("Reading training data")
       val trainingData = createLabledPoints(options('inputTrain), sc)
+      println("Reading testing data")
       val testingData = createLabledPoints(options('inputTest), sc)
       (trainingData, testingData)
     }else {
-      println(s"Input not pre-split, read from: ${options('inputTrain)} and random split into 'training' and 'testing' with ratio: ${options('ratio)}")
+      println(s"Input not pre-split, read from: ${options('inputTrain)} and random split into 'training' and 'testing' with ratio: ${options('splitRatio)}")
       val points = createLabledPoints(options('inputTrain), sc)
-      val ratio=options('ratio).toDouble
+      val ratio=options('splitRatio).toDouble
       val splits = points.randomSplit(Array(ratio,1.0-ratio), seed = 7623425465362456L)
       val trainingData = splits(0)
       val testingData = splits(1)
@@ -80,17 +84,36 @@ object NaiveBayesClassifier {
     val prec = multMetrics.precision
     val confMat = multMetrics.confusionMatrix
 
-    println("Precision: " + prec)
-    println("Confusion Matrix")
-    println(confMat)
-    println("save to " + options('of))
-    sc.parallelize(List(("Precision: " + prec,
-      "\nConfusion Matrix:\n" + confMat)), 1).saveAsTextFile(options('of))
+    //print and store
+    val metaInformation=s"""Precision: $prec
+        |Confusion Matrix:
+        |$confMat
+        |""".stripMargin
+
+    println(s"save to ${options('of)}")
+    println(metaInformation)
+
+    if(options('outputTestingClassification).toBoolean) {
+      pred.zip(testingData).map(p => List(createSentiment(p._1._1), createSentiment(p._1._2), createSentiment(p._2.label)).toSeq).saveAsTextFile(options('of))
+    }
+
+    //save meta information file into same directory
+    val metaInfoOutputPath = new org.apache.hadoop.fs.Path(options('of),"metainfo.txt")
+    val out = hdfs.create(metaInfoOutputPath)
+    out.writeChars(metaInformation)
+    out.close()
+
     sc.stop()
   }
 
-
+  /**
+   * IN: <pr_review_sk>\t<pr_rating>\t<pr_review_content>
+   * OUT: (<pr_rating>\t<pr_review_content>)
+   * @param inputLine
+   * @return
+   */
   def parseInputDataLine(inputLine:String): Try[(String,String)] ={
+
     val splits = inputLine.split("\t")
     val tr = util.Try{
       (splits(1), splits(2))
@@ -100,11 +123,14 @@ object NaiveBayesClassifier {
   }
 
   def createLabledPoints(input:String, sc: SparkContext): RDD[LabeledPoint] = {
-    val seq = sc.textFile(input).map(parseInputDataLine).collect{case Success(tuple) => tuple }
+
+    //parse input and remove bad lines
+    val cleandInput = sc.textFile(input).map(parseInputDataLine).collect{case Success(tuple) => tuple }
 
     //println(seq.take(10).deep.mkString("Sample:\n==================\n", "\n" , "\n...\n==============="))
 
-    val terms: RDD[(String, Seq[String])] = seq.mapValues(_.split(" ").toSeq).cache()
+    //split review text into terms using delimiter " " (simplistic)
+    val terms: RDD[(String, Seq[String])] = cleandInput.mapValues(_.split(" ").toSeq).cache()
 
     println(s"calculcate TF")
     val hashingTF = new HashingTF()
@@ -142,9 +168,9 @@ object NaiveBayesClassifier {
       case "--inputTesting" :: value :: tail => parseOption(map ++ Map('inputTest -> value), tail)
       case "-of" :: value :: tail => parseOption(map ++ Map('of -> value), tail)
       case "--out-folder" :: value :: tail => parseOption(map ++ Map('of -> value), tail)
-      case "-r" :: value :: tail => parseOption(map ++ Map('ratio -> value), tail)
-      case "--ratio" :: value :: tail => parseOption(map ++ Map('ratio -> value), tail)
-
+      case "-r" :: value :: tail => parseOption(map ++ Map('splitRatio -> value), tail)
+      case "--ratio" :: value :: tail => parseOption(map ++ Map('splitRatio -> value), tail)
+      case "--outputTestingClassification"  :: value :: tail => parseOption(map ++ Map('outputTestingClassification -> value), tail)
       case option :: optionTwo :: tail =>
         println("Bad Option " + option)
         println(usage)
@@ -157,6 +183,14 @@ object NaiveBayesClassifier {
       case "NEG" => -1.0
       case "POS" => 1.0
       case _ => 0.0
+    }
+  }
+
+  def createSentiment(value: Double): String = {
+    value match {
+      case -1.0  => "NEG"
+      case 1.0  => "POS"
+      case _ =>  "NEUT"
     }
   }
 }

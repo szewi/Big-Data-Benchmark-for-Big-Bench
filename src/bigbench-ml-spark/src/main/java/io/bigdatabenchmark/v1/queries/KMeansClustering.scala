@@ -41,7 +41,8 @@ object KMeansClustering {
 
     //parse cmd line options and pass defaults for parameters
     val options = parseOption(Map('iter -> "20",
-                                  'ic -> ""), args.toList)
+                                  'ic -> "",
+                                  'verbose -> "false"), args.toList)
 
     println(s"Run kmeans clustering with options: $options")
     val sc = new SparkContext(new SparkConf().setAppName(options('qnum) + "_KMeansClustering"))
@@ -51,14 +52,17 @@ object KMeansClustering {
     val hdfs = org.apache.hadoop.fs.FileSystem.get(hadoopConf)
     try { hdfs.delete(new org.apache.hadoop.fs.Path(options('of)), true) } catch { case _ : Throwable => { } }
 
-    println(s"read vectors from ${options('if)} first 10:" )
-    val data = sc.textFile(options('if))
-    println(data.take(10).deep.mkString("\n")+"\n...")
 
-    val vectors = data.map(s => Vectors.dense(s.split(" ").drop(1).map(_.toDouble)))
+    println(s"read vectors from ${options('if)}")
+    val raw_input_data = sc.textFile(options('if))
 
+    if (options('verbose).toBoolean) {
+      println("first 10 line from input:")
+      println(raw_input_data.take(10).deep.mkString("\n") + "\n...")
+    }
 
-    var centersArray: List[Object] = Nil
+    //convert input to dense vectors for kmeans
+    val vectors = raw_input_data.map(s => Vectors.dense(s.split(" ").drop(1).map(_.toDouble)))
 
     //configure KMeans
     val means = new KMeans().setK(options('numclust).toInt).setMaxIterations(options('iter).toInt)
@@ -82,6 +86,7 @@ object KMeansClustering {
     val wwge = clusters.computeCost(vectors)
 
     //print and write result
+    var centersArray: List[Object] = Nil
     centersArray = clusters.clusterCenters.toList ::: List("WWGE:" + wwge, "Number of Clusters: " + clusters.k, "") ::: centersArray
     println(centersArray.reverse.mkString("Clusters:\n", "\n",""))
     println("save to " + options('of))
@@ -96,6 +101,7 @@ object KMeansClustering {
       [-ic | --initialClusters initialClustersFile (initial clusters prohibit -i > 1)]
       [-c  | --num-clusters clusters] [-i | --iterations iterations]
       [-q  | --query-num number for job identification ]
+      [-v  | --verbose]
       Defaults:
         iterations: 20
     """.stripMargin
@@ -115,6 +121,8 @@ object KMeansClustering {
       case "--query-num" :: value :: tail => parseOption(map ++ Map('qnum -> value), tail)
       case "--initialClustersFile"  :: value :: tail => parseOption(map ++ Map('ic -> value), tail)
       case "-ic"  :: value :: tail => parseOption(map ++ Map('ic -> value), tail)
+      case "-v" :: value :: tail => parseOption(map ++ Map('verbose -> value), tail)
+      case "--verbose" :: value :: tail => parseOption(map ++ Map('verbose -> value), tail)
       case option :: optionTwo :: tail =>
         println("Bad Option " + option)
         println(usage)
