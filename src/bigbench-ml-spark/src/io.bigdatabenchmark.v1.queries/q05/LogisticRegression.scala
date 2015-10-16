@@ -214,7 +214,7 @@ object LogisticRegression {
       [-l | --lambda regularizationParameter]
       [-v | --verbose]
       Defaults:
-        step size: 1.0 (only used with --type sgd
+        step size: 1.0 (only used with --type sgd)
         type: LBFGS
         iterations: 20
         lambda: 0
