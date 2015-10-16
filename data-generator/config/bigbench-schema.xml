@@ -4513,7 +4513,7 @@ Please contact info@bankmark.de for an evaluation license.
     <probability value="1 - ${visitor_likelihood}">
       <gen_BuildListGenerator flattenSubList="true"><!-- merges the two sublists into one list  -->
       
-        <!-- List 1 random additional clicks-->
+        <!-- List 1: random additional clicks-->
         <gen_ForGenerator id="additionalBuyerClicksChooser">
          <sameChoiceAs field="wcs_sales_sk" generatorByID="additionalBuyerClicksChooser"/>
          <do>
@@ -4523,7 +4523,7 @@ Please contact info@bankmark.de for an evaluation license.
          </do>
         </gen_ForGenerator>
         
-        <!-- list 2 clicks on purchased items-->
+        <!-- list 2: clicks on purchased items-->
          <gen_ForGenerator id="salesTimePadding">
           <i>
             <gen_LongGenerator>

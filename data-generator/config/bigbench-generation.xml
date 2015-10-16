@@ -73,7 +73,7 @@
 	
 	<!-- DEFAULT output for all Tables, if no table specific output is specified-->
 	<output name="CSVRowOutput">
-		<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+Integer.toString(nodeNumber):"")+ fileEnding</fileTemplate>
+		<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
 		<outputDir>output/</outputDir>
 		<fileEnding>.dat</fileEnding>
 		<delimiter>|</delimiter>
@@ -311,7 +311,7 @@
 				<output name ="MultiLineOutput">
 					<multilineFieldId>2</multilineFieldId>
 					<interleaveMultilines>false</interleaveMultilines>
-					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+Integer.toString(nodeNumber):"")+ fileEnding</fileTemplate>
+					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
 					<outputDir>output/</outputDir>
 					<fileEnding>.dat</fileEnding>
 					<delimiter>|</delimiter>
@@ -360,7 +360,7 @@
 				<output name ="MultiLineOutput">
 					<multilineFieldId>2</multilineFieldId>
 					<interleaveMultilines>false</interleaveMultilines>
-					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+Integer.toString(nodeNumber):"")+ fileEnding</fileTemplate>
+					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
 					<outputDir>output/</outputDir>
 					<fileEnding>.dat</fileEnding>
 					<delimiter>|</delimiter>
@@ -408,7 +408,7 @@
 				<output name ="MultiLineOutput">
 					<multilineFieldId>3</multilineFieldId>
 					<interleaveMultilines>false</interleaveMultilines>
-					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+Integer.toString(nodeNumber):"")+ fileEnding</fileTemplate>
+					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
 					<outputDir>output/</outputDir>
 					<fileEnding>.dat</fileEnding>
 					<delimiter>|</delimiter>
@@ -457,7 +457,7 @@
 				<output name ="MultiLineOutput">
 					<multilineFieldId>2</multilineFieldId>
 					<interleaveMultilines>false</interleaveMultilines>
-					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+Integer.toString(nodeNumber):"")+ fileEnding</fileTemplate>
+					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
 					<outputDir>output/</outputDir>
 					<fileEnding>.dat</fileEnding>
 					<delimiter>|</delimiter>
@@ -506,7 +506,7 @@
 				<output name ="MultiLineOutput">
 					<multilineFieldId>3</multilineFieldId>
 					<interleaveMultilines>true</interleaveMultilines>
-					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+Integer.toString(nodeNumber):"")+ fileEnding</fileTemplate>
+					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
 					<outputDir>output/</outputDir>
 					<fileEnding>.dat</fileEnding>
 					<delimiter>|</delimiter>
