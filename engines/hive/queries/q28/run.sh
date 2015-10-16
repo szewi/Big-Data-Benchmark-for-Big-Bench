@@ -15,7 +15,7 @@ TEMP_DIR2="$TEMP_DIR/$TEMP_TABLE2"
 BINARY_PARAMS+=(--hiveconf TEMP_TABLE1=$TEMP_TABLE1 --hiveconf TEMP_DIR1=$TEMP_DIR1 --hiveconf TEMP_TABLE2=$TEMP_TABLE2 --hiveconf TEMP_DIR2=$TEMP_DIR2)
 
 HDFS_RESULT_FILE="${RESULT_DIR}/classifierResult.txt"
-HDFS_RAW_RESULT_FILE="${RESULT_DIR}/classifierResult_raw.txt"
+##HDFS_RAW_RESULT_FILE="${RESULT_DIR}/classifierResult_raw.txt"
 
 query_run_main_method () {
 	QUERY_SCRIPT="$QUERY_DIR/$QUERY_NAME.sql"
@@ -132,16 +132,15 @@ query_run_main_method () {
 		    RETURN_CODE=$?
 		    if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 
-		    echo "----------------------------------------------------------"
-		    echo "$QUERY_NAME step 2/3: part 5: dump result to hdfs"
-        echo 'Used Command: mahout seqdumper --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR/result/part-m-00000" | hadoop fs -copyFromLocal -f - "$HDFS_RAW_RESULT_FILE"'
-		    echo "IN: $TEMP_DIR/result/part-m-00000"
-		    echo "OUT: $HDFS_RAW_RESULT_FILE"
-		    echo "----------------------------------------------------------"
-
-		    runCmdWithErrorCheck mahout seqdumper --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR/result/part-m-00000" | hadoop fs -copyFromLocal -f - "$HDFS_RAW_RESULT_FILE"
-		    RETURN_CODE=$?
-		    if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+		   # echo "----------------------------------------------------------"
+		   # echo "$QUERY_NAME step 2/3: part 5: dump result to hdfs"
+       # echo 'Used Command: mahout seqdumper --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR/result/part-m-00000" | hadoop fs -copyFromLocal -f - "$HDFS_RAW_RESULT_FILE"'
+		   # echo "IN: $TEMP_DIR/result/part-m-00000"
+		   # echo "OUT: $HDFS_RAW_RESULT_FILE"
+		   # echo "----------------------------------------------------------"
+		   # runCmdWithErrorCheck mahout seqdumper --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR/result/part-m-00000" | hadoop fs -copyFromLocal -f - "$HDFS_RAW_RESULT_FILE"
+		   # RETURN_CODE=$?
+		   # if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 
 
     else
@@ -162,16 +161,16 @@ query_run_main_method () {
 		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
 
-	echo "========================="
-	echo "to display : hadoop fs -cat $HDFS_RESULT_FILE"
-	echo "to display raw : hadoop fs -cat $HDFS_RAW_RESULT_FILE"
-	echo "========================="
+	#echo "========================="
+	#echo "to display : hadoop fs -cat $HDFS_RESULT_FILE"
+	#echo "to display raw : hadoop fs -cat $HDFS_RAW_RESULT_FILE"
+	#echo "========================="
 }
 
 query_run_clean_method () {
 	runCmdWithErrorCheck runEngineCmd -e "DROP TABLE IF EXISTS $TEMP_TABLE1; DROP TABLE IF EXISTS $TEMP_TABLE2; DROP TABLE IF EXISTS $RESULT_TABLE;"
 	runCmdWithErrorCheck hadoop fs -rm -r -f "$HDFS_RESULT_FILE"
-	runCmdWithErrorCheck hadoop fs -rm -r -f "$HDFS_RAW_RESULT_FILE"
+	#runCmdWithErrorCheck hadoop fs -rm -r -f "$HDFS_RAW_RESULT_FILE"
 	return $?
 }
 
@@ -188,7 +187,7 @@ query_run_validate_method () {
 		fi
 		
 		#just validate the raw classifier numbers. The other, human readable, file would require some parsing before being diff-able (includes timestamps)
-		if diff -q "$VALIDATION_RESULTS_FILENAME" <(hadoop fs -cat "$RESULT_DIR/classifierResult_raw.txt")
+		if diff -q "$VALIDATION_RESULTS_FILENAME" <(hadoop fs -cat "$RESULT_DIR/*")
 		then
 			echo "Validation of $VALIDATION_RESULTS_FILENAME passed: Query returned correct results"
 		else
