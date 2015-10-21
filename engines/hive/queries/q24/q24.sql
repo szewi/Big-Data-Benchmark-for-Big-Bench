@@ -34,7 +34,7 @@ SELECT
   (imp_end_date - imp_start_date) AS no_days_comp_price
 FROM item i ,item_marketprices imp 
 WHERE i.i_item_sk = imp.imp_item_sk
-AND i.i_item_sk = 10000 -- ${hiveconf:q24_i_item_sk}
+AND i.i_item_sk = ${hiveconf:q24_i_item_sk}
 AND imp.imp_competitor_price < i.i_current_price
 ORDER BY i_item_sk, imp_sk, imp_competitor, imp_start_date
 ;
