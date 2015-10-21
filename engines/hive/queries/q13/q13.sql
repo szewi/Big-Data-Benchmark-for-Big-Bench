@@ -75,7 +75,7 @@ SELECT
       c_customer_sk,
       c_first_name,
       c_last_name,
-      --(store.second_year_total / store.first_year_total) AS storeSalesIncreaseRatio ,
+      (store.second_year_total / store.first_year_total) AS storeSalesIncreaseRatio ,
       (web.second_year_total / web.first_year_total) AS webSalesIncreaseRatio 
 FROM ${hiveconf:TEMP_TABLE1} store ,
      ${hiveconf:TEMP_TABLE2} web ,
