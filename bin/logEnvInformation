@@ -31,8 +31,8 @@ runModule () {
     local HOST_LIST="`mktemp`"
     yarn node -list -all | sed -e '1d' -e '2d' | cut -d: -f1 > "$HOST_LIST"
 
-    "$BIG_BENCH_PSCP_BINARY" -h "$HOST_LIST" -t0 "$BIG_BENCH_BIN_DIR/getEnvInfo.sh" /tmp/
+    "$BIG_BENCH_PSSH_BINARY" -h "$HOST_LIST" -t0 "scp $HOSTNAME:$BIG_BENCH_BIN_DIR/getEnvInfo.sh /tmp/"
     "$BIG_BENCH_PSSH_BINARY" -h "$HOST_LIST" -t0 '/tmp/getEnvInfo.sh'
-    "$BIG_BENCH_PSCP_BINARY" -h "$HOST_LIST" -t0 /tmp/envInfo*.zip "$BIG_BENCH_LOGS_DIR"
+    "$BIG_BENCH_PSSH_BINARY" -h "$HOST_LIST" -t0 "scp /tmp/envInfo*.zip $HOSTNAME:$BIG_BENCH_LOGS_DIR/"
   fi
 }
