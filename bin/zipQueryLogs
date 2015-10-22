@@ -29,7 +29,7 @@ runModule () {
 
     # move all run logs to run-logs folder
     # exclude special log file times.csv as this file has to be continuously updated
-    find "$BIG_BENCH_LOGS_DIR" -maxdepth 1 -type f ! -name times.csv ! -name 'logs-*.zip' -exec mv {} "$RUN_LOGS_FOLDER" \;
+    find "$BIG_BENCH_LOGS_DIR" -maxdepth 1 -type f ! -name times.csv ! -name 'logs-*.zip' ! -name '*.lck' -exec mv {} "$RUN_LOGS_FOLDER" \;
 
     # copy all configuration files of the bigBench kit to the configuration folder
     cp -a "$BIG_BENCH_CONF_DIR" "$BIG_BENCH_CONFIGURATION_FOLDER/"
