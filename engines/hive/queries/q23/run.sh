@@ -7,14 +7,6 @@
 #
 #No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
-RESULT_TABLE1="${RESULT_TABLE}1"
-RESULT_DIR1="$RESULT_DIR/$RESULT_TABLE1"
-RESULT_TABLE2="${RESULT_TABLE}2"
-RESULT_DIR2="$RESULT_DIR/$RESULT_TABLE2"
-
-BINARY_PARAMS+=(--hiveconf RESULT_TABLE1=$RESULT_TABLE1 --hiveconf RESULT_DIR1=$RESULT_DIR1 --hiveconf RESULT_TABLE2=$RESULT_TABLE2 --hiveconf RESULT_DIR2=$RESULT_DIR2)
-
-
 query_run_main_method () {
 	QUERY_SCRIPT="$QUERY_DIR/$QUERY_NAME.sql"
 	if [ ! -r "$QUERY_SCRIPT" ]
@@ -23,13 +15,12 @@ query_run_main_method () {
 		exit 1
 	fi
 
-    runCmdWithErrorCheck runEngineCmd -f "$QUERY_SCRIPT"
+ runCmdWithErrorCheck runEngineCmd -f "$QUERY_SCRIPT"
 	return $?
 }
 
-
 query_run_clean_method () {
-	runCmdWithErrorCheck runEngineCmd -e "DROP VIEW IF EXISTS $TEMP_TABLE; DROP TABLE IF EXISTS $RESULT_TABLE1; DROP TABLE IF EXISTS $RESULT_TABLE2;"
+	runCmdWithErrorCheck runEngineCmd -e "DROP TABLE IF EXISTS $TEMP_TABLE; DROP TABLE IF EXISTS $RESULT_TABLE;"
 	return $?
 }
 
@@ -38,37 +29,20 @@ query_run_validate_method () {
 	if [ "$BIG_BENCH_SCALE_FACTOR" -eq 1 ]
 	then
 		local VALIDATION_PASSED="1"
-		local VALIDATION_RESULTS_FILENAME_1="$VALIDATION_RESULTS_FILENAME-1"
-		local VALIDATION_RESULTS_FILENAME_2="$VALIDATION_RESULTS_FILENAME-2"
 
-		if [ ! -f "$VALIDATION_RESULTS_FILENAME_1" ]
+		if [ ! -f "$VALIDATION_RESULTS_FILENAME" ]
 		then
-			echo "Golden result set file $VALIDATION_RESULTS_FILENAME_1 not found"
+			echo "Golden result set file $VALIDATION_RESULTS_FILENAME not found"
 			VALIDATION_PASSED="0"
 		fi
 
-		if diff -q "$VALIDATION_RESULTS_FILENAME_1" <(hadoop fs -cat "$RESULT_DIR1/*")
+		if diff -q "$VALIDATION_RESULTS_FILENAME" <(hadoop fs -cat "$RESULT_DIR/*")
 		then
-			echo "Validation of $VALIDATION_RESULTS_FILENAME_1 passed: Query returned correct results"
+			echo "Validation of $VALIDATION_RESULTS_FILENAME passed: Query returned correct results"
 		else
-			echo "Validation of $VALIDATION_RESULTS_FILENAME_1 failed: Query returned incorrect results"
+			echo "Validation of $VALIDATION_RESULTS_FILENAME failed: Query returned incorrect results"
 			VALIDATION_PASSED="0"
 		fi
-
-		if [ ! -f "$VALIDATION_RESULTS_FILENAME_2" ]
-		then
-			echo "Golden result set file $VALIDATION_RESULTS_FILENAME_2 not found"
-			VALIDATION_PASSED="0"
-		fi
-
-		if diff -q "$VALIDATION_RESULTS_FILENAME_2" <(hadoop fs -cat "$RESULT_DIR2/*")
-		then
-			echo "Validation of $VALIDATION_RESULTS_FILENAME_2 passed: Query returned correct results"
-		else
-			echo "Validation of $VALIDATION_RESULTS_FILENAME_2 failed: Query returned incorrect results"
-			VALIDATION_PASSED="0"
-		fi
-
 		if [ "$VALIDATION_PASSED" -eq 1 ]
 		then
 			echo "Validation passed: Query results are OK"
@@ -76,17 +50,11 @@ query_run_validate_method () {
 			echo "Validation failed: Query results are not OK"
 		fi
 	else
-		if [ `hadoop fs -cat "$RESULT_DIR1/*" | head -n 10 | wc -l` -ge 1 ]
+		if [ `hadoop fs -cat "$RESULT_DIR/*" | head -n 10 | wc -l` -ge 1 ]
 		then
-			echo "Validation passed: Query 1 returned results"
+			echo "Validation passed: Query returned results"
 		else
-			echo "Validation failed: Query 1 did not return results"
-		fi
-		if [ `hadoop fs -cat "$RESULT_DIR2/*" | head -n 10 | wc -l` -ge 1 ]
-		then
-			echo "Validation passed: Query 2 returned results"
-		else
-			echo "Validation failed: Query 2 did not return results"
+			echo "Validation failed: Query did not return results"
 		fi
 	fi
 }
