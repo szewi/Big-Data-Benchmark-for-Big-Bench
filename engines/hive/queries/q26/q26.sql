@@ -26,6 +26,15 @@
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
 
+-- This query requires parallel order by for fast and deterministic global ordering of final result
+set hive.optimize.sampling.orderby=${hiveconf:bigbench.hive.optimize.sampling.orderby};
+set hive.optimize.sampling.orderby.number=${hiveconf:bigbench.hive.optimize.sampling.orderby.number};
+set hive.optimize.sampling.orderby.percent=${hiveconf:bigbench.hive.optimize.sampling.orderby.percent};
+--debug print
+set hive.optimize.sampling.orderby;
+set hive.optimize.sampling.orderby.number;
+set hive.optimize.sampling.orderby.percent;
+
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE} (
   cid  INT,
@@ -73,6 +82,7 @@ GROUP BY ss.ss_customer_sk
 HAVING count(ss.ss_item_sk) > ${hiveconf:q26_count_ss_item_sk}
 --CLUSTER BY cid --cluster by preceeded by group by is silently ignored by hive but fails in spark
 --no total ordering with ORDER BY required, further processed by clustering algorithm
+ORDER BY cid
 ;
 
 -------------------------------------------------------------------------------

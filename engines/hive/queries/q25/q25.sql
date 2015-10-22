@@ -73,6 +73,15 @@ GROUP BY
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
 
+-- This query requires parallel order by for fast and deterministic global ordering of final result
+set hive.optimize.sampling.orderby=${hiveconf:bigbench.hive.optimize.sampling.orderby};
+set hive.optimize.sampling.orderby.number=${hiveconf:bigbench.hive.optimize.sampling.orderby.number};
+set hive.optimize.sampling.orderby.percent=${hiveconf:bigbench.hive.optimize.sampling.orderby.percent};
+--debug print
+set hive.optimize.sampling.orderby;
+set hive.optimize.sampling.orderby.number;
+set hive.optimize.sampling.orderby.percent;
+
 DROP TABLE IF EXISTS ${hiveconf:TEMP_RESULT_TABLE};
 CREATE TABLE ${hiveconf:TEMP_RESULT_TABLE} (
   cid        INT,
@@ -93,6 +102,7 @@ FROM ${hiveconf:TEMP_TABLE}
 GROUP BY cid 
 --CLUSTER BY cid --cluster by preceeded by group by is silently ignored by hive but fails in spark
 --no total ordering with ORDER BY required, further processed by clustering algorithm
+ORDER BY cid
 ;
 
 
