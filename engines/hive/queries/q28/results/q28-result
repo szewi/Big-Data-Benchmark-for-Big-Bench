@@ -1,6 +1,6 @@
 MAHOUT_LOCAL is not set; adding HADOOP_CONF_DIR to classpath.
-Running on hadoop, using /usr/hdp/2.3.0.0-2525/hadoop/bin/hadoop and HADOOP_CONF_DIR=/usr/hdp/2.3.0.0-2525/hadoop/conf
-MAHOUT-JOB: /usr/hdp/2.3.0.0-2525/mahout/mahout-examples-0.9.0.2.3.0.0-2525-job.jar
+Running on hadoop, using /usr/hdp/2.3.2.0-2950/hadoop/bin/hadoop and HADOOP_CONF_DIR=/usr/hdp/2.3.2.0-2950/hadoop/conf
+MAHOUT-JOB: /usr/hdp/2.3.2.0-2950/mahout/mahout-examples-0.9.0.2.3.2.0-2950-job.jar
 Input Path: /user/ec2-user/benchmarks/bigbench/temp/q28_hive_power_test_0_temp/result/part-m-00000
 Key class: class org.apache.hadoop.io.Text Value Class: class org.apache.mahout.math.VectorWritable
 Key: NEG: Value: {0:-1226.0158179189966,1:-1166.8436039797043,2:-1189.2710146799975}
