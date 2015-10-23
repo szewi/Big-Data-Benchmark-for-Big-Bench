@@ -51,6 +51,7 @@ query_run_validate_method () {
 			echo "Validation passed: Query results are OK"
 		else
 			echo "Validation failed: Query results are not OK"
+			return 1
 		fi
 	else
 		if [ `hadoop fs -cat "$RESULT_DIR/*" | head -n 10 | wc -l` -ge 1 ]
@@ -58,6 +59,7 @@ query_run_validate_method () {
 			echo "Validation passed: Query returned results"
 		else
 			echo "Validation failed: Query did not return results"
+			return 1
 		fi
 	fi
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #"INTEL CONFIDENTIAL"
-#Copyright 2015  Intel Corporation All Rights Reserved. 
+#Copyright 2015  Intel Corporation All Rights Reserved.
 #
 #The source code contained or described herein and all documents related to the source code ("Material") are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with Intel Corporation or its suppliers and licensors. The Material contains trade secrets and proprietary and confidential information of Intel or its suppliers and licensors. The Material is protected by worldwide copyright and trade secret laws and treaty provisions. No part of the Material may be used, copied, reproduced, modified, published, uploaded, posted, transmitted, distributed, or disclosed in any way without Intel's prior express written permission.
 #
@@ -35,9 +35,9 @@ query_run_main_method () {
 		RETURN_CODE=$?
 		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
-	
+
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 2 ]] ; then
-	
+
 		echo "========================="
 		echo "$QUERY_NAME Step 2/3: log regression"
 		echo "========================="
@@ -60,28 +60,28 @@ query_run_main_method () {
 		echo "size: " `du -bh "${TMP_LOG_REG_IN_FILE}"`
 		echo "------"
 		head "${TMP_LOG_REG_IN_FILE}"
-		echo "..." 
+		echo "..."
 		echo "-------------------------"
 
 		echo "$QUERY_NAME Step 2/3 Part 2: Train logistic model"
-		echo "Command " mahout trainlogistic --input "$TMP_LOG_REG_IN_FILE" --output "$TMP_LOG_REG_MODEL_FILE" --target c_customer_sk --categories 2 --predictors college_education male label --types n n n --passes 20 --features 20 --rate 1 --lambda 0.5
+		echo "Command mahout trainlogistic --input $TMP_LOG_REG_IN_FILE --output $TMP_LOG_REG_MODEL_FILE --target c_customer_sk --categories 2 --predictors college_education male label --types n n n --passes 20 --features 20 --rate 1 --lambda 0.5"
 		echo "tmp output: ${TMP_LOG_REG_MODEL_FILE}"
 		echo "-------------------------"
-	
-		runCmdWithErrorCheck mahout trainlogistic --input "$TMP_LOG_REG_IN_FILE" --output "$TMP_LOG_REG_MODEL_FILE" --target c_customer_sk --categories 2 --predictors college_education male label --types n n n --passes 20 --features 20 --rate 1 --lambda 0.5	
+
+		runCmdWithErrorCheck mahout trainlogistic --input "$TMP_LOG_REG_IN_FILE" --output "$TMP_LOG_REG_MODEL_FILE" --target c_customer_sk --categories 2 --predictors college_education male label --types n n n --passes 20 --features 20 --rate 1 --lambda 0.5
 		RETURN_CODE=$?
 		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-		
+
 		echo "-------------------------"
 		echo "$QUERY_NAME Step 2/3 Part 3: Calculating Logistic Regression"
-		echo "Command: " mahout runlogistic --input "$TMP_LOG_REG_IN_FILE" --model "$TMP_LOG_REG_MODEL_FILE" --auc --confusion --quiet 
+		echo "Command: mahout runlogistic --input $TMP_LOG_REG_IN_FILE --model $TMP_LOG_REG_MODEL_FILE --auc --confusion --quiet"
 		echo "output: hdfs://"$HDFS_RESULT_FILE
 		echo "-------------------------"
 
 		runCmdWithErrorCheck mahout runlogistic --input "$TMP_LOG_REG_IN_FILE" --model "$TMP_LOG_REG_MODEL_FILE" --auc --confusion --quiet 2> /dev/null | grep -A 3 "AUC =" | hadoop fs -copyFromLocal -f - "$HDFS_RESULT_FILE"
 		RETURN_CODE=$?
 		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-		
+
 		echo "-------------------------"
 		echo "$QUERY_NAME Step 2/3 Part 4: Cleanup tmp files"
 		echo "-------------------------"
@@ -93,15 +93,15 @@ query_run_main_method () {
 		echo "========================="
 		echo "$QUERY_NAME Step 3/3: Clean up"
 		echo "========================="
-	
+
 		runCmdWithErrorCheck runEngineCmd -f "${QUERY_DIR}/cleanup.sql"
 		RETURN_CODE=$?
 		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-		
+
 		runCmdWithErrorCheck hadoop fs -rm -r -f "$TEMP_DIR"
 		RETURN_CODE=$?
 		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-		
+
 	fi
 }
 
@@ -134,6 +134,7 @@ query_run_validate_method () {
 			echo "Validation passed: Query results are OK"
 		else
 			echo "Validation failed: Query results are not OK"
+			return 1
 		fi
 	else
 		if [ `hadoop fs -cat "$RESULT_DIR/*" | head -n 10 | wc -l` -ge 1 ]
@@ -141,6 +142,7 @@ query_run_validate_method () {
 			echo "Validation passed: Query returned results"
 		else
 			echo "Validation failed: Query did not return results"
+			return 1
 		fi
 	fi
 }

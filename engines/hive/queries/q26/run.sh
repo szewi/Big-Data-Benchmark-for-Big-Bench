@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #"INTEL CONFIDENTIAL"
-#Copyright 2015  Intel Corporation All Rights Reserved. 
+#Copyright 2015  Intel Corporation All Rights Reserved.
 #
 #The source code contained or described herein and all documents related to the source code ("Material") are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with Intel Corporation or its suppliers and licensors. The Material contains trade secrets and proprietary and confidential information of Intel or its suppliers and licensors. The Material is protected by worldwide copyright and trade secret laws and treaty provisions. No part of the Material may be used, copied, reproduced, modified, published, uploaded, posted, transmitted, distributed, or disclosed in any way without Intel's prior express written permission.
 #
@@ -40,11 +40,11 @@ query_run_main_method () {
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 2 ]] ; then
 		echo "========================="
 		echo "$QUERY_NAME Step 2/5: Generating sparse vectors"
-		echo "Command "mahout org.apache.mahout.clustering.conversion.InputDriver -i "${TEMP_DIR}" -o "${TEMP_DIR}/Vec" -v org.apache.mahout.math.RandomAccessSparseVector #-c UTF-8 
+		echo "Command mahout org.apache.mahout.clustering.conversion.InputDriver -i ${TEMP_DIR} -o ${TEMP_DIR}/Vec -v org.apache.mahout.math.RandomAccessSparseVector" #-c UTF-8
 		echo "tmp output: ${TEMP_DIR}/Vec"
 		echo "========================="
 
-		runCmdWithErrorCheck mahout org.apache.mahout.clustering.conversion.InputDriver -i "${TEMP_DIR}" -o "${TEMP_DIR}/Vec" -v org.apache.mahout.math.RandomAccessSparseVector #-c UTF-8 
+		runCmdWithErrorCheck mahout org.apache.mahout.clustering.conversion.InputDriver -i "${TEMP_DIR}" -o "${TEMP_DIR}/Vec" -v org.apache.mahout.math.RandomAccessSparseVector #-c UTF-8
 		RETURN_CODE=$?
 		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
 	fi
@@ -52,11 +52,11 @@ query_run_main_method () {
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 3 ]] ; then
 		echo "========================="
 		echo "$QUERY_NAME Step 3/5: Calculating k-means"
-		echo "Command "mahout kmeans -i "$TEMP_DIR/Vec" -c "$TEMP_DIR/init-clusters" -o "$TEMP_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -ow -cl  -xm $BIG_BENCH_ENGINE_HIVE_MAHOUT_EXECUTION
+		echo "Command mahout kmeans -i $TEMP_DIR/Vec -c $TEMP_DIR/init-clusters -o $TEMP_DIR/kmeans-clusters -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -ow -cl  -xm $BIG_BENCH_ENGINE_HIVE_MAHOUT_EXECUTION"
 		echo "tmp output: $TEMP_DIR/kmeans-clusters"
 		echo "========================="
 		echo "upload initial clusters $QUERY_DIR/initialClusters  to hdfs: $TEMP_DIR/init-clusters"
-     	hadoop fs -put -f $QUERY_DIR/init-clusters $TEMP_DIR/init-clusters
+		hadoop fs -put -f $QUERY_DIR/init-clusters $TEMP_DIR/init-clusters
 
 		runCmdWithErrorCheck mahout kmeans --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR/Vec" -c "$TEMP_DIR/init-clusters" -o "$TEMP_DIR/kmeans-clusters" -dm org.apache.mahout.common.distance.CosineDistanceMeasure -x 10 -ow -cl  -xm $BIG_BENCH_ENGINE_HIVE_MAHOUT_EXECUTION
 		RETURN_CODE=$?
@@ -65,16 +65,16 @@ query_run_main_method () {
 
 	if [[ -z "$DEBUG_QUERY_PART" || $DEBUG_QUERY_PART -eq 4 ]] ; then
 		local CLUSTERS_OUT="`mktemp`"
-		
+
 		echo "========================="
 		echo "$QUERY_NAME Step 4/5: Converting result and store in hdfs $HDFS_RESULT_FILE"
 		echo "command: unCmdWithErrorCheck mahout clusterdump --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR"/kmeans-clusters/clusters-*-final -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT -o $CLUSTERS_OUT ; hadoop fs -copyFromLocal $CLUSTERS_OUT \"$HDFS_RESULT_FILE\" "
 		echo "========================="
-	
+
 		runCmdWithErrorCheck mahout clusterdump --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR"/kmeans-clusters/clusters-*-final -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT -o $CLUSTERS_OUT
 		RETURN_CODE=$?
 		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
-		
+
 		hadoop fs -copyFromLocal -f $CLUSTERS_OUT "$HDFS_RESULT_FILE"
 		RETURN_CODE=$?
 		if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
@@ -124,6 +124,7 @@ query_run_validate_method () {
 			echo "Validation passed: Query results are OK"
 		else
 			echo "Validation failed: Query results are not OK"
+			return 1
 		fi
 	else
 		if [ `hadoop fs -cat "$RESULT_DIR/*" | head -n 10 | wc -l` -ge 1 ]
@@ -131,6 +132,7 @@ query_run_validate_method () {
 			echo "Validation passed: Query returned results"
 		else
 			echo "Validation failed: Query did not return results"
+			return 1
 		fi
 	fi
 }
