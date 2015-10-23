@@ -80,7 +80,7 @@ query_run_main_method () {
 
 		  echo "----------------------------------------------------------"
 			echo "$QUERY_NAME Step 2/3 Part 2: Train logistic model"
-			echo "Command " mahout trainlogistic --input "$TMP_LOG_REG_IN_FILE" --output "$TMP_LOG_REG_MODEL_FILE" --target c_customer_sk --categories 2 --predictors college_education male label --types n n n --passes 20 --features 20 --rate 1 --lambda 0.5
+		echo "Command mahout trainlogistic --input $TMP_LOG_REG_IN_FILE --output $TMP_LOG_REG_MODEL_FILE --target c_customer_sk --categories 2 --predictors college_education male label --types n n n --passes 20 --features 20 --rate 1 --lambda 0.5"
 			echo "tmp output: ${TMP_LOG_REG_MODEL_FILE}"
 		  echo "----------------------------------------------------------"
 	
@@ -91,7 +91,7 @@ query_run_main_method () {
 
 		  echo "----------------------------------------------------------"
 			echo "$QUERY_NAME Step 2/3 Part 3: Calculating Logistic Regression"
-			echo "Command: " mahout runlogistic --input "$TMP_LOG_REG_IN_FILE" --model "$TMP_LOG_REG_MODEL_FILE" --auc --confusion --quiet 
+		echo "Command: mahout runlogistic --input $TMP_LOG_REG_IN_FILE --model $TMP_LOG_REG_MODEL_FILE --auc --confusion --quiet"
 			echo "output: hdfs://"$HDFS_RESULT_FILE
 		  echo "----------------------------------------------------------"
 
@@ -156,6 +156,7 @@ query_run_validate_method () {
 			echo "Validation passed: Query results are OK"
 		else
 			echo "Validation failed: Query results are not OK"
+			return 1
 		fi
 	else
 		if [ `hadoop fs -cat "$RESULT_DIR/*" | head -n 10 | wc -l` -ge 1 ]
@@ -163,6 +164,7 @@ query_run_validate_method () {
 			echo "Validation passed: Query returned results"
 		else
 			echo "Validation failed: Query did not return results"
+			return 1
 		fi
 	fi
 }

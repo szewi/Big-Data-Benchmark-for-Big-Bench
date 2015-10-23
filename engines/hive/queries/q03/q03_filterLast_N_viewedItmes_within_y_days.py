@@ -93,14 +93,11 @@ if __name__ == "__main__":
 			for i in xrange(0,last_n_ViewsBuffer.size()):  
 				cur_item_sk, cur_date = last_n_ViewsBuffer.get(i)
 				#print "3)cur buffer content["+str(i)+"]: item: " + cur_item_sk + " item_date: " + str(cur_date) + " line date: " + str(wcs_date)
-				#is clicke before?
+				#is clicked before?
 				if cur_date <= wcs_date  and cur_date >= ( wcs_date - days_param ) :
-					#print "4)result: %s\t%s" % (purchasedItemFilter, cur_item_sk)
 					print "%s\t%s" % (purchasedItemFilter, cur_item_sk)
 					
 	
-		#append to buffer after checkt to dont add current checkt sold item to buffer
+		#append to buffer after check. This ensures that currently checked sold item itself is not in the buffer when writing buffer contents to hive. Avoids self paring: {x,x} e.g: {12,12}
 		last_n_ViewsBuffer.append((item_key_str,wcs_date))
-			
-	
-				
+

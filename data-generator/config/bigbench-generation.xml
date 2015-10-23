@@ -53,12 +53,14 @@
 	
 	
 	 -->
+   
+   <property name="${interleaveWebClicks}" type="double">0</property>
 	
 	<!-- DEFAULT Scheduler for all Tables, if no table specific scheduler is specified-->
 	<!--  used for "normal" tables. Normal "non-refresh" tables are excluded from generation during refresh phase  -->
 	<scheduler name="DefaultScheduler">
 			<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner" staticTableOnAllNodes="false">
-				<prePartition><!--  
+				<prePartition><!--   
 				pdgf.core.dataGenerator.scheduler.Partition partition =getParentPartitioner().getDefaultPrePartition(project, table);	
 				
 				//exclude non-refresh tables from generation during refresh phase.
@@ -73,7 +75,7 @@
 	
 	<!-- DEFAULT output for all Tables, if no table specific output is specified-->
 	<output name="CSVRowOutput">
-		<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+Integer.toString(nodeNumber):"")+ fileEnding</fileTemplate>
+		<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
 		<outputDir>output/</outputDir>
 		<fileEnding>.dat</fileEnding>
 		<delimiter>|</delimiter>
@@ -311,7 +313,7 @@
 				<output name ="MultiLineOutput">
 					<multilineFieldId>2</multilineFieldId>
 					<interleaveMultilines>false</interleaveMultilines>
-					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+Integer.toString(nodeNumber):"")+ fileEnding</fileTemplate>
+					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
 					<outputDir>output/</outputDir>
 					<fileEnding>.dat</fileEnding>
 					<delimiter>|</delimiter>
@@ -360,7 +362,7 @@
 				<output name ="MultiLineOutput">
 					<multilineFieldId>2</multilineFieldId>
 					<interleaveMultilines>false</interleaveMultilines>
-					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+Integer.toString(nodeNumber):"")+ fileEnding</fileTemplate>
+					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
 					<outputDir>output/</outputDir>
 					<fileEnding>.dat</fileEnding>
 					<delimiter>|</delimiter>
@@ -408,7 +410,7 @@
 				<output name ="MultiLineOutput">
 					<multilineFieldId>3</multilineFieldId>
 					<interleaveMultilines>false</interleaveMultilines>
-					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+Integer.toString(nodeNumber):"")+ fileEnding</fileTemplate>
+					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
 					<outputDir>output/</outputDir>
 					<fileEnding>.dat</fileEnding>
 					<delimiter>|</delimiter>
@@ -457,7 +459,7 @@
 				<output name ="MultiLineOutput">
 					<multilineFieldId>2</multilineFieldId>
 					<interleaveMultilines>false</interleaveMultilines>
-					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+Integer.toString(nodeNumber):"")+ fileEnding</fileTemplate>
+					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
 					<outputDir>output/</outputDir>
 					<fileEnding>.dat</fileEnding>
 					<delimiter>|</delimiter>
@@ -505,8 +507,8 @@
 			<table name ="web_clickstreams">
 				<output name ="MultiLineOutput">
 					<multilineFieldId>3</multilineFieldId>
-					<interleaveMultilines>true</interleaveMultilines>
-					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+Integer.toString(nodeNumber):"")+ fileEnding</fileTemplate>
+					<interleaveMultilines>${interleaveWebClicks}</interleaveMultilines>
+					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
 					<outputDir>output/</outputDir>
 					<fileEnding>.dat</fileEnding>
 					<delimiter>|</delimiter>

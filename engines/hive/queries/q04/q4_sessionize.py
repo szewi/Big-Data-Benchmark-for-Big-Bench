@@ -40,8 +40,7 @@ if __name__ == "__main__":
 				perUser_sessionID_counter += 1
 				
 			last_click_time =tstamp
-			#print "%s\t%s\t%s" % (value,tstamp_str, user_sk+"_"+str(perUser_sessionID_counter) )
-			print "%s\t%s\t%s" % (value,tstamp_str, user_sk+"_"+str(perUser_sessionID_counter) )
+			print "%s\t%s\t%s_%s" % (value, tstamp_str, user_sk, str(perUser_sessionID_counter) )
 
 	except:
 		## should only happen if input format is not correct, like 4 instead of 5 tab separated values
@@ -49,4 +48,4 @@ if __name__ == "__main__":
 		logging.info("sys.argv[1] timeout: " +str(timeout) + " line from hive: \"" + line + "\"")
 		logging.exception("Oops:") 
 		raise
-		sys.exit(1)		
+		sys.exit(1)

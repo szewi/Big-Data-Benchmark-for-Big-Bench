@@ -26,7 +26,7 @@ if __name__ == "__main__":
 		# algorithm expects input lines to be clustered by user_sk and sorted by <timestamp> ascending
 		for line in sys.stdin:
 		
-			user_sk,  tstamp_str, item_sk  = line.strip().split("\t")
+			user_sk, tstamp_str, item_sk  = line.strip().split("\t")
 			tstamp = long(tstamp_str)
 
 			# reset if next partition beginns
@@ -40,7 +40,7 @@ if __name__ == "__main__":
 				perUser_sessionID_counter += 1
 				
 			last_click_time =tstamp
-			print "%s\t%s" % (item_sk, user_sk+"_"+str(perUser_sessionID_counter) )
+			print "%s\t%s_%s" % (item_sk, user_sk, str(perUser_sessionID_counter) )
 
 	except:
 		## should only happen if input format is not correct, like 4 instead of 5 tab separated values

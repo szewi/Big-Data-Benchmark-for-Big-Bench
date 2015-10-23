@@ -108,7 +108,7 @@ query_run_main_method () {
 		    local CLUSTERS_OUT="`mktemp`"
 		    echo "----------------------------------------------------------"
 		    echo "$QUERY_NAME Step 2/3: part 3: Converting result and store in hdfs $HDFS_RESULT_FILE"
-		    echo "command: unCmdWithErrorCheck mahout clusterdump --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_DIR"/kmeans-clusters/clusters-*-final -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT -o $CLUSTERS_OUT ; hadoop fs -copyFromLocal $CLUSTERS_OUT \"$HDFS_RESULT_FILE\" "
+		    echo "command: mahout clusterdump --tempDir \"$MAHOUT_TEMP_DIR\" -i \"$TEMP_DIR\"/kmeans-clusters/clusters-*-final -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT -o $CLUSTERS_OUT ; hadoop fs -copyFromLocal $CLUSTERS_OUT \"$HDFS_RESULT_FILE\" "
 		    echo "----------------------------------------------------------"
 	    
 		    runCmdWithErrorCheck mahout clusterdump --tempDir "$MAHOUT_TEMP_DIR" -i "$TEMP_RESULT_DIR"/kmeans-clusters/clusters-*-final -dm org.apache.mahout.common.distance.CosineDistanceMeasure -of TEXT -o $CLUSTERS_OUT
@@ -170,6 +170,7 @@ query_run_validate_method () {
 			echo "Validation passed: Query results are OK"
 		else
 			echo "Validation failed: Query results are not OK"
+			return 1
 		fi
 	else
 		if [ `hadoop fs -cat "$RESULT_DIR/*" | head -n 10 | wc -l` -ge 1 ]
@@ -177,6 +178,7 @@ query_run_validate_method () {
 			echo "Validation passed: Query returned results"
 		else
 			echo "Validation failed: Query did not return results"
+			return 1
 		fi
 	fi
 }

@@ -51,7 +51,7 @@ query_run_main_method () {
     if [[ -z "$BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK" || "$BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK" == "spark" ]] ; then
 
 		    echo "========================="
-      	echo "$QUERY_NAME step 2/3: Train and Test Naive Bayes Classifier with spark"
+		    echo "$QUERY_NAME step 2/3: Train and Test Naive Bayes Classifier with spark"
 		    echo "training data:" ${TEMP_DIR1}
 		    echo "test data    :" ${TEMP_DIR2}
 		    echo "OUT: $HDFS_RAW_RESULT_FILE"
@@ -75,7 +75,7 @@ query_run_main_method () {
 
 	      MAHOUT_TEMP_DIR="$TEMP_DIR/mahout_temp"
 		    echo "========================="
-	      echo "$QUERY_NAME step 2/3: Train and Test Naive Bayes Classifier with mahout"
+		    echo "$QUERY_NAME step 2/3: Train and Test Naive Bayes Classifier with mahout"
 		    echo "training data:" ${TEMP_DIR1}
 		    echo "test data    :" ${TEMP_DIR2}
 		    echo "OUT: $HDFS_RAW_RESULT_FILE"
@@ -85,8 +85,8 @@ query_run_main_method () {
 		    echo "$QUERY_NAME step 2/3: part 1: Generating sequence files"
 		    echo "training data:" ${TEMP_DIR1}
 		    echo "test data    :" ${TEMP_DIR2}
-		    echo 'Used Command: hadoop jar "${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar" io.bigdatabenchmark.v1.queries.q28.ToSequenceFile "${TEMP_DIR1}" "$SEQ_FILE_1"'
-		    echo 'Used Command: hadoop jar "${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar" io.bigdatabenchmark.v1.queries.q28.ToSequenceFile "${TEMP_DIR2}" "$SEQ_FILE_2"'
+		    echo "Used Command: hadoop jar \"${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar\" io.bigdatabenchmark.v1.queries.q28.ToSequenceFile \"${TEMP_DIR1}\" \"$SEQ_FILE_1\""
+		    echo "Used Command: hadoop jar \"${BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar\" io.bigdatabenchmark.v1.queries.q28.ToSequenceFile \"${TEMP_DIR2}\" \"$SEQ_FILE_2\""
 		    echo "tmp result in: $SEQ_FILE_1"
 		    echo "tmp result in: $SEQ_FILE_2"
 		    echo "----------------------------------------------------------"
@@ -100,9 +100,9 @@ query_run_main_method () {
 
 		    echo "----------------------------------------------------------"
 		    echo "$QUERY_NAME step 2/3: part 2: Generating sparse vectors from sequence files"
-		    echo 'Used Command: mahout seq2sparse -i "$SEQ_FILE_1" -o "$VEC_FILE_1" -ow -lnorm -nv -wt tfidf'
-		    echo 'Used Command: mahout seq2sparse -i "$SEQ_FILE_1" -o "$VEC_FILE_1" -ow -lnorm -nv -wt tfidf'
-		    echo "tmp result in: $VEC_FILE_1" 
+		    echo "Used Command: mahout seq2sparse -i \"$SEQ_FILE_1\" -o \"$VEC_FILE_1\" -ow -lnorm -nv -wt tfidf"
+		     echo "Used Command: mahout seq2sparse -i \"$SEQ_FILE_2\" -o \"$VEC_FILE_2\" -ow -lnorm -nv -wt tfidf"
+		    echo "tmp result in: $VEC_FILE_1"
 		    echo "tmp result in: $VEC_FILE_2"
 		    echo "----------------------------------------------------------"
 		    runCmdWithErrorCheck mahout seq2sparse -i "$SEQ_FILE_1" -o "$VEC_FILE_1" -ow -lnorm -nv -wt tfidf
@@ -114,7 +114,7 @@ query_run_main_method () {
 
 		    echo "----------------------------------------------------------"
 		    echo "$QUERY_NAME step 2/3: part 3: Training Classifier"
-		    echo 'Used Command:  mahout trainnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_1/tfidf-vectors" -o "$TEMP_DIR/model" -el -li "$TEMP_DIR/labelindex" -ow'
+		    echo "Used Command:  mahout trainnb --tempDir \"$MAHOUT_TEMP_DIR\" -i \"$VEC_FILE_1/tfidf-vectors\" -o \"$TEMP_DIR/model\" -el -li \"$TEMP_DIR/labelindex\" -ow"
 		    echo "tmp result in: $TEMP_DIR/model"
 		    echo "----------------------------------------------------------"
 		    runCmdWithErrorCheck mahout trainnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_1/tfidf-vectors" -o "$TEMP_DIR/model" -el -li "$TEMP_DIR/labelindex" -ow
@@ -124,7 +124,7 @@ query_run_main_method () {
 
 		    echo "----------------------------------------------------------"
 		    echo "$QUERY_NAME step 2/3: part 4: Testing Classifier"
-		    echo 'Used Command:  mahout testnb --tempDir "$MAHOUT_TEMP_DIR" -i "$VEC_FILE_2/tfidf-vectors" -m "$TEMP_DIR/model" -l "$TEMP_DIR/labelindex" -ow -o "$TEMP_DIR/result" '
+		    echo "Used Command:  mahout testnb --tempDir \"$MAHOUT_TEMP_DIR\" -i \"$VEC_FILE_2/tfidf-vectors\" -m \"$TEMP_DIR/model\" -l \"$TEMP_DIR/labelindex\" -ow -o \"$TEMP_DIR/result\" "
 		    echo "tmp result in: $TEMP_DIR/result"
 		    echo "----------------------------------------------------------"
 
@@ -199,6 +199,7 @@ query_run_validate_method () {
 			echo "Validation passed: Query results are OK"
 		else
 			echo "Validation failed: Query results are not OK"
+			return 1
 		fi
 	else
 		if [ `hadoop fs -cat "$RESULT_DIR/*" | head -n 10 | wc -l` -ge 1 ]
@@ -206,6 +207,7 @@ query_run_validate_method () {
 			echo "Validation passed: Query returned results"
 		else
 			echo "Validation failed: Query did not return results"
+			return 1
 		fi
 	fi
 }

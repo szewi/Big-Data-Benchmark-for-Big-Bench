@@ -66,9 +66,11 @@ SELECT
   count(CASE WHEN i.i_class_id=14 THEN 1 ELSE NULL END) AS id14,
   count(CASE WHEN i.i_class_id=16 THEN 1 ELSE NULL END) AS id16
 FROM store_sales ss
-INNER JOIN item i ON ss.ss_item_sk = i.i_item_sk
-WHERE i.i_category IN (${hiveconf:q26_i_category_IN})
-AND ss.ss_customer_sk IS NOT NULL
+INNER JOIN item i 
+  ON (ss.ss_item_sk = i.i_item_sk
+  AND i.i_category IN (${hiveconf:q26_i_category_IN})
+  AND ss.ss_customer_sk IS NOT NULL
+)
 GROUP BY ss.ss_customer_sk
 HAVING count(ss.ss_item_sk) > ${hiveconf:q26_count_ss_item_sk}
 --CLUSTER BY cid --cluster by preceeded by group by is silently ignored by hive but fails in spark

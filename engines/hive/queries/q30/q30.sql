@@ -38,8 +38,8 @@ ADD FILE ${hiveconf:QUERY_DIR}/q30-sessionize.py;
 
 
 -- SESSIONZIE by streaming
--- Step1: compute time difference to preceeding click_session
--- Step2: compute session id per user by defining a session as: clicks no father apppart then q30_session_timeout_inSec
+-- Step1: compute time difference to preceding click_session
+-- Step2: compute session id per user by defining a session as: clicks no father appart then q30_session_timeout_inSec
 -- Step3: make unique session identifier <user_sk>_<user_seesion_ID>
 DROP VIEW IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE VIEW ${hiveconf:TEMP_TABLE} AS
@@ -47,13 +47,14 @@ SELECT *
 FROM (
   FROM (
     SELECT wcs_user_sk,
-      (wcs_click_date_sk*24*60*60 + wcs_click_time_sk) AS tstamp_inSec,
+      (wcs_click_date_sk*24L*60L*60L + wcs_click_time_sk) AS tstamp_inSec,
       i_category_id
     FROM web_clickstreams wcs, item i
     WHERE wcs.wcs_item_sk = i.i_item_sk
     AND i.i_category_id IS NOT NULL
     AND wcs.wcs_user_sk IS NOT NULL
-    DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec -- "sessionize" reducer script requires the cluster by uid and sort by tstamp
+    --Hive uses the columns in Distribute By to distribute the rows among reducers. All rows with the same Distribute By columns will go to the same reducer. However, Distribute By does not guarantee clustering or sorting properties on the distributed keys.
+    DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec, i_category_id -- "sessionize" reducer script requires the cluster by uid and sort by tstamp ASCENDING
   ) clicksAnWebPageType
   REDUCE
     wcs_user_sk,
@@ -65,7 +66,7 @@ FROM (
     sessionid STRING
   )
 ) q02_tmp_sessionize
---Cluster by sessionid
+Cluster by sessionid
 ;
 
 

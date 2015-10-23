@@ -197,10 +197,10 @@ set q22_i_current_price_max=1.5;
 --inventory date
 set q23_year=2001;
 set q23_month=1;
-set q23_coefficient=1.5;
+set q23_coefficient=1.3;
 
 -------- Q24 -----------
-set q24_i_item_sk_IN=10000, 10001;
+set q24_i_item_sk=10000;
 
 -------- Q25 -----------
 -- store_sales and web_sales date

@@ -13,7 +13,7 @@
 
 
 ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/opennlp-maxent-3.0.3.jar;
-ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/opennlp-tools-1.5.3.jar;
+ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/opennlp-tools-1.6.0.jar;
 ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
 CREATE TEMPORARY FUNCTION extract_sentiment AS 'io.bigdatabenchmark.v1.queries.q10.SentimentUDF';
 
@@ -59,7 +59,7 @@ FROM
     --store returns in week ending given date
     SELECT sr_item_sk, SUM(sr_return_quantity) sr_item_qty
     FROM store_returns sr,
-    ( 
+    (
       -- within the week ending a given date
       SELECT d1.d_date_sk
       FROM date_dim d1, date_dim d2
@@ -84,7 +84,7 @@ FROM
     WHERE wr.wr_returned_date_sk = d_date_sk
     GROUP BY wr_item_sk  --across all store and web channels
     HAVING wr_item_qty > 0
-  ) fwr 
+  ) fwr
   WHERE fsr.sr_item_sk = fwr.wr_item_sk
   AND pr.pr_item_sk = fsr.sr_item_sk --extract product_reviews for found items
   -- equivalent across all store and web channels (within a tolerance of +/- 10%)
