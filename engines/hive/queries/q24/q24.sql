@@ -8,7 +8,7 @@
 
 --For a given product, measure the effect of competitor's prices on
 --products' in-store and online sales. (Compute the cross-price elasticity of demand
---for a given product.
+--for a given product.)
 -- Step1 :
 --Calculating the Percentage Change in Quantity Demanded of Good X : [QDemand(NEW) - QDemand(OLD)] / QDemand(OLD)
 --Step 2:
@@ -28,7 +28,7 @@ CREATE TABLE ${hiveconf:TEMP_TABLE} AS
 SELECT
   i_item_sk, 
   imp_sk,
-  imp_competitor,
+  --imp_competitor,
   (imp_competitor_price - i_current_price)/i_current_price AS price_change,
   imp_start_date, 
   (imp_end_date - imp_start_date) AS no_days_comp_price
@@ -36,7 +36,10 @@ FROM item i ,item_marketprices imp
 WHERE i.i_item_sk = imp.imp_item_sk
 AND i.i_item_sk = ${hiveconf:q24_i_item_sk}
 AND imp.imp_competitor_price < i.i_current_price
-ORDER BY i_item_sk, imp_sk, imp_competitor, imp_start_date
+ORDER BY i_item_sk, 
+         imp_sk, 
+         --imp_competitor, 
+         imp_start_date
 ;
 
 
@@ -50,7 +53,7 @@ set hive.exec.compress.output;
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
   i_item_sk               BIGINT,
-  imp_competitor          STRING,
+  --imp_competitor          STRING, --add to compute cross_price_elasticity per competitor is instead of a single number 
   cross_price_elasticity  decimal(15,7)
 )
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
@@ -59,14 +62,14 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 -- Begin: the real query part
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
 SELECT ws_item_sk,
-       ws.imp_competitor,
+       --ws.imp_competitor, --add to compute cross_price_elasticity per competitor is instead of a single number 
        avg ( (current_ss_quant + current_ws_quant - prev_ss_quant - prev_ws_quant) / ((prev_ss_quant + prev_ws_quant) * ws.price_change)) AS cross_price_elasticity
 FROM
     ( --websales items sold quantity before and after competitor price change
       SELECT
         ws_item_sk,
         imp_sk,
-        imp_competitor,
+        --imp_competitor, --add to compute cross_price_elasticity per competitor is instead of a single number 
         price_change,
         SUM( CASE WHEN  ( (ws_sold_date_sk >= c.imp_start_date) AND (ws_sold_date_sk < (c.imp_start_date + c.no_days_comp_price))) THEN ws_quantity ELSE 0 END ) AS current_ws_quant,
         SUM( CASE WHEN  ( (ws_sold_date_sk >= (c.imp_start_date - c.no_days_comp_price)) AND (ws_sold_date_sk < c.imp_start_date)) THEN ws_quantity ELSE 0 END ) AS prev_ws_quant
@@ -74,7 +77,7 @@ FROM
       JOIN ${hiveconf:TEMP_TABLE} c ON ws.ws_item_sk = c.i_item_sk
       GROUP BY ws_item_sk, 
               imp_sk, 
-              imp_competitor,
+              --imp_competitor,
               price_change
     ) ws
 JOIN
@@ -82,7 +85,7 @@ JOIN
       SELECT
         ss_item_sk,
         imp_sk,
-        imp_competitor,
+        --imp_competitor, --add to compute cross_price_elasticity per competitor is instead of a single number 
         price_change,
         SUM( CASE WHEN ((ss_sold_date_sk >= c.imp_start_date) AND (ss_sold_date_sk < (c.imp_start_date + c.no_days_comp_price))) THEN ss_quantity ELSE 0 END) AS current_ss_quant,
         SUM( CASE WHEN ((ss_sold_date_sk >= (c.imp_start_date - c.no_days_comp_price)) AND (ss_sold_date_sk < c.imp_start_date)) THEN ss_quantity ELSE 0 END) AS prev_ss_quant
@@ -90,12 +93,14 @@ JOIN
       JOIN ${hiveconf:TEMP_TABLE} c ON c.i_item_sk = ss.ss_item_sk
       GROUP BY ss_item_sk, 
               imp_sk, 
-              imp_competitor,
+              --imp_competitor, --add to compute cross_price_elasticity per competitor is instead of a single number 
               price_change
     ) ss
  ON (ws.ws_item_sk = ss.ss_item_sk and ws.imp_sk = ss.imp_sk)
-GROUP BY  ws.ws_item_sk, 
-          ws.imp_competitor
+GROUP BY  ws.ws_item_sk
+         --,ws.imp_competitor --add to compute cross_price_elasticity per competitor is instead of a single number 
+--ORDER BY ws.ws_item_sk, 
+--         ws.imp_competitor       
 ;
 
 
