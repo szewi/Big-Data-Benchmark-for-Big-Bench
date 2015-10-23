@@ -31,6 +31,15 @@
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
 
+-- This query requires parallel order by for fast and deterministic global ordering of final result
+set hive.optimize.sampling.orderby=${hiveconf:bigbench.hive.optimize.sampling.orderby};
+set hive.optimize.sampling.orderby.number=${hiveconf:bigbench.hive.optimize.sampling.orderby.number};
+set hive.optimize.sampling.orderby.percent=${hiveconf:bigbench.hive.optimize.sampling.orderby.percent};
+--debug print
+set hive.optimize.sampling.orderby;
+set hive.optimize.sampling.orderby.number;
+set hive.optimize.sampling.orderby.percent;
+
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE} (
   user_sk       BIGINT,
@@ -78,8 +87,9 @@ FROM
     FROM store_returns
     GROUP BY sr_customer_sk
   ) returned ON ss_customer_sk=sr_customer_sk
-CLUSTER BY user_sk
+--CLUSTER BY user_sk
 --no total ordering with ORDER BY required, further processed by clustering algorithm
+ORDER BY user_sk
 ;
 
 
