@@ -149,8 +149,9 @@ query_run_validate_method () {
 			VALIDATION_PASSED="0"
 		fi
 
-		#just validate the raw classifier numbers. The other, human readable, file would require some parsing before being diff-able (includes timestamps)
-		if diff -q "$VALIDATION_RESULTS_FILENAME" <(hadoop fs -cat "$RESULT_DIR/classifierResult_raw.txt")
+		# just validate the raw classifier numbers. The other, human readable, file would require some parsing before being diff-able (includes timestamps)
+		# strip off the first 5 lines from the result as this is a cluster specific mahout header
+		if diff -q <(sed -e 1,5d "$VALIDATION_RESULTS_FILENAME") <(hadoop fs -cat "$RESULT_DIR/classifierResult_raw.txt" | sed -e 1,5d)
 		then
 			echo "Validation of $VALIDATION_RESULTS_FILENAME passed: Query returned correct results"
 		else
@@ -165,7 +166,7 @@ query_run_validate_method () {
 			return 1
 		fi
 	else
-		if [ `hadoop fs -cat "$RESULT_DIR/*" | head -n 10 | wc -l` -ge 1 ]
+		if [ `hadoop fs -cat "$RESULT_DIR/classifierResult_raw.txt"  | sed -e 1,5d | head -n 10 | wc -l` -ge 1 ]
 		then
 			echo "Validation passed: Query returned results"
 		else
