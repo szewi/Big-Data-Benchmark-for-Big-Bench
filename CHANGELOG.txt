@@ -1,9 +1,39 @@
 BigBench v0.6 beta changes:
 
-* Some files and directories were renamed to be more consistent
 * Minor bugfixes in kit and Java driver
+  * Fixed github issue #52 in driver
+  * Removed error check on hdfs delete operations as they might fail if no files are present
+  * Added missing bigBench options in validation phases to the driver
+  * Fixed q27 validation for scale factor != 1
+  * Fixed github issue #49 in driver
+  * Merge pull request #46
+  * validate-functions in all run.sh files return exit code 1 on error now
 * Code cleanup in bash kit parts
-* Performance updates for query 2 and 5
+  * Moved unused population/refresh hive scripts to deprecated subfolder
+  * Added empty engineLocalSettings.(sql,conf) files in all query directories
+  * Renamed previous hiveLocalSettings.sql to engineLocalSettings.sql
+  * Adapted kit to only read engineLocalSettings.(sql,conf) files when they are not empty
+  * Renamed hiveSettings.sql to engineSettings.sql for consistency reasons
+  * Changed the default database name from bigbenchORC to bigbench
+  * Switched INIT_PARAMS from a variable to an array to be more robust towards parameters which might contain whitespaces
+  * Removed deprecated comments in engineSettings.conf
+  * Some more code cleanup in engineSettings.conf
+  * Renamed the "variants" folders in the query directories to "deprecated"
+* New features and updates in kit and Java driver
+  * Added BigBench version information to bigBench script
+  * Switched from opennlp-1.5.3 to opennlp-1.6.0
+  * Added new script getEnvInfo.sh which collects system information
+  * Added new module logEnvInformation which performs the environment information collection
+  * getEnvInfo.sh is pulled and executed by the participating nodes
+  * The resulting zip files with the system information are placed into logs/
+  * All files within logs/ are moved into a timestamped subfolder at the end of a benchmark run
+  * The used conf/ and engine-subdirectory are added to the log subfolder as well
+  * The log subfolder is zipped
+  * Log subfolders older than a day (but not the corresponding zip files) are automatically deleted after a benchmark run
+  * Modify driver to call logEnvInformation module after the benchmark run but before moving/zipping the logs
+* Integrated Intel query optimizations for 2, 5 and 21
+  * Updated result set for query 2
+    * result data did not change, only the order of the columns is different
 
 BigBench v0.5 beta changes:
 
