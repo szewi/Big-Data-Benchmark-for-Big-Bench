@@ -42,8 +42,5 @@ runModule () {
     # zip the log folder
     cd "$BIG_BENCH_LOGS_DIR"
     runCmdWithErrorCheck zip -r "$CURRENT_LOG_FOLDER_RELATIVE.zip" "$CURRENT_LOG_FOLDER_RELATIVE"
-
-    # delete log folders older than a day
-    find "$BIG_BENCH_LOGS_DIR" -mtime +0 -type d -name 'logs-*' -exec rm {} +
   fi
 }

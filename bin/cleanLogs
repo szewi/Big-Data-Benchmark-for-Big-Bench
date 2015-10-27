@@ -15,30 +15,13 @@ helpModule () {
 }
 
 runModule () {
-  local ENV_INFO_FILE="$BIG_BENCH_LOGS_DIR/envInfoBigBench.log"
-
   if [ -d "$BIG_BENCH_LOGS_DIR" ]
   then
-    > "$ENV_INFO_FILE"
-    if [ -w "$ENV_INFO_FILE" ]
-    then
-      echo "##############################" >> "$ENV_INFO_FILE" 2>&1
-      echo "#      BigBench Version      #" >> "$ENV_INFO_FILE" 2>&1
-      echo "##############################" >> "$ENV_INFO_FILE" 2>&1
-      echo "Version $BIG_BENCH_VERSION" >> "$ENV_INFO_FILE" 2>&1
-    fi
+    # clean leftover logs from main logs folder
+    # exclude special log file times.csv as this file has to be continuously updated
+    find "$BIG_BENCH_LOGS_DIR" -maxdepth 1 -type f ! -name times.csv ! -name 'logs-*.zip' ! -name '*.lck' -exec rm -rf {} +
 
-    local HOST_LIST="`mktemp`"
-    # ignore the first two lines of the yarn cmd output
-    yarn node -list -all | sed -e '1,2d' | cut -d: -f1 > "$HOST_LIST"
-
-    if [ -s "$HOST_LIST" ]
-    then
-      "$BIG_BENCH_PSSH_BINARY" -h "$HOST_LIST" -t0 "scp $HOSTNAME:$BIG_BENCH_BIN_DIR/getEnvInfo.sh /tmp/"
-      "$BIG_BENCH_PSSH_BINARY" -h "$HOST_LIST" -t0 '/tmp/getEnvInfo.sh'
-      "$BIG_BENCH_PSSH_BINARY" -h "$HOST_LIST" -t0 "scp /tmp/envInfo*.zip $HOSTNAME:$BIG_BENCH_LOGS_DIR/"
-    else
-      echo "Error: yarn was not able to find any hosts."
-    fi
+    # delete log folders older than a day
+    find "$BIG_BENCH_LOGS_DIR" -maxdepth 1 -mtime +0 -type d -name 'logs-*' -exec rm -rf {} +
   fi
 }
