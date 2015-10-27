@@ -22,9 +22,9 @@ runModule () {
     > "$ENV_INFO_FILE"
     if [ -w "$ENV_INFO_FILE" ]
     then
-      echo "##############################" >> "$ENV_INFO_FILE" 2>&1
-      echo "#      BigBench Version      #" >> "$ENV_INFO_FILE" 2>&1
-      echo "##############################" >> "$ENV_INFO_FILE" 2>&1
+      echo "########################################" >> "$ENV_INFO_FILE" 2>&1
+      echo "#      Big Data Benchmark Version      #" >> "$ENV_INFO_FILE" 2>&1
+      echo "########################################" >> "$ENV_INFO_FILE" 2>&1
       echo "Version $BIG_BENCH_VERSION" >> "$ENV_INFO_FILE" 2>&1
     fi
 
