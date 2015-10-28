@@ -9,7 +9,7 @@
 -- This query contains multiple, related iterations:
 -- Iteration 1: Calculate the coefficient of variation and mean of every item
 -- and warehouse of the given and the consecutive month
--- Iteration 2: Find items that had a coefficient of variation of 1.5 or larger
+-- Iteration 2: Find items that had a coefficient of variation of 1.3 or larger
 -- in the given and the consecutive month
 
 
