@@ -5,6 +5,7 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
+
 -- TASK:
 -- Cluster customers into book buddies/club groups based on their in
 -- store book purchasing histories. After model of separation is build, 
@@ -15,9 +16,17 @@
 -- The input format for the clustering is:
 --   customer ID, 
 --   sum of store sales in the item class ids [1,15]
+-- Fields are separated by a single space
+-- Example:
+-- 1 12 3 0 9 5 7 2 9 1 5 9 0 4 3 0\n
 
 
+-- Resources
 
+------ create input table for mahout --------------------------------------
+--keep result human readable
+set hive.exec.compress.output=false;
+set hive.exec.compress.output;
 
 -- This query requires parallel order by for fast and deterministic global ordering of final result
 set hive.optimize.sampling.orderby=${hiveconf:bigbench.hive.optimize.sampling.orderby};
@@ -28,7 +37,6 @@ set hive.optimize.sampling.orderby;
 set hive.optimize.sampling.orderby.number;
 set hive.optimize.sampling.orderby.percent;
 
---ML-algorithms expect double values as input for their Vectors. 
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE} (
   cid  BIGINT,--used as "label", all following values are used as Vector for ML-algorithm
@@ -47,7 +55,10 @@ CREATE TABLE ${hiveconf:TEMP_TABLE} (
   id13 double,
   id14 double,
   id15 double
-);
+)
+-- mahout requires "SPACE_SEPARATED" csv
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ' ' LINES TERMINATED BY '\n'
+STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}';
 
 INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
 SELECT
@@ -78,5 +89,6 @@ HAVING count(ss.ss_item_sk) > ${hiveconf:q26_count_ss_item_sk}
 --CLUSTER BY cid --cluster by preceded by group by is silently ignored by hive but fails in spark
 ORDER BY cid
 ;
+
 
 -------------------------------------------------------------------------------

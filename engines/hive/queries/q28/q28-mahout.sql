@@ -12,33 +12,54 @@
 -- 40% for testing. Display classifier accuracy on testing data 
 -- and classification result for the 10% testing data: <reviewSK>,<originalRating>,<classificationResult>
 
+-- IMPLEMENTATION NOTICE:
+-- All reviews are split as follows:
+-- case (pr_review_sk % 5) in
+--   1|2|3) => use for training
+--   ;;
+--   0|4) => use for testing
+--   ;;
+-- esac
 
+-- The input format for the clustering is:
+-- ID of the review, rating of the review (NEG, NEU, POS), review text
+-- Fields are separated by tabs
+-- Example:
+-- 1\tNEU\tThis is a neutral review text\n
 
--- This query requires parallel order by for fast and deterministic global ordering of final result
-set hive.optimize.sampling.orderby=${hiveconf:bigbench.hive.optimize.sampling.orderby};
-set hive.optimize.sampling.orderby.number=${hiveconf:bigbench.hive.optimize.sampling.orderby.number};
-set hive.optimize.sampling.orderby.percent=${hiveconf:bigbench.hive.optimize.sampling.orderby.percent};
---debug print
-set hive.optimize.sampling.orderby;
-set hive.optimize.sampling.orderby.number;
-set hive.optimize.sampling.orderby.percent;
+-- Query parameters
 
+-- Resources
+--ADD FILE ${hiveconf:QUERY_DIR}/mapper_q28.py;
 
---Result 1 Training table for classification
+--Result 1 Training table for mahout--------------------------------------------------------------------
+--keep result human readable
+set hive.exec.compress.output=false;
+set hive.exec.compress.output;
+
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE1};
 CREATE TABLE ${hiveconf:TEMP_TABLE1} (
   pr_review_sk      BIGINT,
-  pr_rating         INT,
+  pr_rating         STRING,
   pr_review_content STRING
-);
+)
+-- mahout "ToSequenceFile" requires "TAB_SEPARATED" CSV (unlike Kmeans or LogisticRegressionQueries)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' LINES TERMINATED BY '\n'
+STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR1}';
 
---Result 2 Testing table for classification
+--Result 2 Testing table for mahout --------------------------------------------------------------------
+--keep result human readable
+set hive.exec.compress.output=false;
+set hive.exec.compress.output;
+
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE2};
 CREATE TABLE ${hiveconf:TEMP_TABLE2} (
   pr_review_sk      BIGINT,
-  pr_rating         INT,
+  pr_rating         STRING,
   pr_review_content STRING
-);
+)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' LINES TERMINATED BY '\n'
+STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR2}';
 
 --Split reviews table into training and testing
 FROM (

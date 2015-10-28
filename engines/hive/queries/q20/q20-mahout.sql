@@ -5,6 +5,7 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
+
 -- TASK:
 -- Customer segmentation for return analysis: Customers are separated
 -- along the following dimensions: return frequency, return order ratio (total
@@ -22,10 +23,16 @@
 --   item ratio (number of returned items / number of ordered items), 
 --   money ratio (returned money / payed money), 
 --   number of returns
-
+-- Fields are separated by a single space
+-- Example:
+-- 1 0.25 0.5 0.75 42\n
 
 -- Resources
 
+------ create input table for mahout --------------------------------------
+--keep result human readable
+set hive.exec.compress.output=false;
+set hive.exec.compress.output;
 
 -- This query requires parallel order by for fast and deterministic global ordering of final result
 set hive.optimize.sampling.orderby=${hiveconf:bigbench.hive.optimize.sampling.orderby};
@@ -36,7 +43,7 @@ set hive.optimize.sampling.orderby;
 set hive.optimize.sampling.orderby.number;
 set hive.optimize.sampling.orderby.percent;
 
---ML-algorithms expect double values as input for their Vectors. 
+
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE} (
    user_sk       BIGINT, --used as "label", all following values are used as Vector for ML-algorithm
@@ -44,7 +51,10 @@ CREATE TABLE ${hiveconf:TEMP_TABLE} (
    itemsRatio    double,
    monetaryRatio double,
    frequency     double
-);
+)
+-- mahout requires "SPACE_SEPARATED" csv
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ' ' LINES TERMINATED BY '\n'
+STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}';
 
 
 -- there are two possible version. Both are valid points of view

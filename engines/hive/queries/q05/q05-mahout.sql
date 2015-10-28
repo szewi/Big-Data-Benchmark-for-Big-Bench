@@ -7,40 +7,48 @@
 
 
 -- TASK:
--- Build a model using logistic regression for a visitor to an online store: based on existing users online
--- activities (interest in items of different categories) and demographics.
--- This model will be used to predict if the visitor is interested in a given item category.
--- Output the precision, accuracy and confusion matrix of model.
--- Note: no need to actually classify existing users, as it will be later used to predict interests of unknown visitors.
-
+-- Build a model using logistic regression: based on existing users online
+-- activities (interest in items of different categories) and demographics, for a visitor to an online store, predict the visitors
+-- likelihood to be interested in a given item category.
 -- input vectors to the machine learning algorithm are:
---  clicks_in_category BIGINT, -- used as label - number of clicks in specified category "q05_i_category"
---  college_education  BIGINT, -- has college education [0,1]
---  male               BIGINT, -- isMale [0,1]
---  clicks_in_1        BIGINT, -- number of clicks in category id 1
---  clicks_in_2        BIGINT, -- number of clicks in category id 2
---  clicks_in_3        BIGINT, -- number of clicks in category id 3
---  clicks_in_4        BIGINT, -- number of clicks in category id 4
---  clicks_in_5        BIGINT, -- number of clicks in category id 5
---  clicks_in_6        BIGINT  -- number of clicks in category id 6
---  clicks_in_7        BIGINT  -- number of clicks in category id 7
+--  label             STRING, -- number of clicks in specified category "q05_i_category"
+--  college_education STRING, -- has college education [0,1]
+--  male              STRING, -- isMale [0,1]
+--  clicks_in_1       STRING, -- number of clicks in category id 1
+--  clicks_in_2       STRING, -- number of clicks in category id 2
+--  clicks_in_7       STRING, -- number of clicks in category id 7
+--  clicks_in_4       STRING, -- number of clicks in category id 4
+--  clicks_in_5       STRING, -- number of clicks in category id 5
+--  clicks_in_6       STRING  -- number of clicks in category id 6
+-- TODO: updated this description once improved q5 with more features is merged
 
+
+-- Resources
+
+--Result  --------------------------------------------------------------------
+--keep result human readable
+set hive.exec.compress.output=false;
+set hive.exec.compress.output;
 
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE} (
  --wcs_user_sk BIGINT,-- column is used to identify prediction
  clicks_in_category BIGINT, --column is used as label, all following columns are used as input vector to the ml algorithm
- college_education  BIGINT,
- male               BIGINT,
- clicks_in_1        BIGINT,
- clicks_in_2        BIGINT,
- clicks_in_3        BIGINT,
- clicks_in_4        BIGINT,
- clicks_in_5        BIGINT,
- clicks_in_6        BIGINT,
- clicks_in_7        BIGINT
-);
+ college_education BIGINT,
+ male BIGINT,
+ clicks_in_1 BIGINT,
+ clicks_in_2 BIGINT,
+ clicks_in_3 BIGINT,
+ clicks_in_4 BIGINT,
+ clicks_in_5 BIGINT,
+ clicks_in_6 BIGINT,
+ clicks_in_7 BIGINT
+)
+-- mahout requires "SPACE_SEPARATED" csv
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ' ' LINES TERMINATED BY '\n'
+STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}';
+;
 
 INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
 SELECT
