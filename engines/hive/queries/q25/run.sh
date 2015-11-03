@@ -93,8 +93,8 @@ query_run_main_method () {
         echo "result output: $output"
         echo "========================="
        
-                        echo $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY  --class io.bigdatabenchmark.v1.queries.KMeansClustering "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar"  $input --output "$output" --num-clusters $cluster_centers --iterations $clustering_iterations --query-num $QUERY_NAME ${initialClusters} --saveClassificationResult true --saveMetaInfo true --verbose false 
-        runCmdWithErrorCheck $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY  --class io.bigdatabenchmark.v1.queries.KMeansClustering "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar"  $input --output "$output" --num-clusters $cluster_centers --iterations $clustering_iterations --query-num $QUERY_NAME ${initialClusters} --saveClassificationResult true --saveMetaInfo true --verbose false 
+                        echo $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY  --class io.bigdatabenchmark.v1.queries.KMeansClustering "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" --csvInputDelimiter ' ' $input --output "$output" --num-clusters $cluster_centers --iterations $clustering_iterations --query-num $QUERY_NAME ${initialClusters} --saveClassificationResult true --saveMetaInfo true --verbose false 
+        runCmdWithErrorCheck $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY  --class io.bigdatabenchmark.v1.queries.KMeansClustering "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" --csvInputDelimiter ' ' $input --output "$output" --num-clusters $cluster_centers --iterations $clustering_iterations --query-num $QUERY_NAME ${initialClusters} --saveClassificationResult true --saveMetaInfo true --verbose false 
         RETURN_CODE=$?
         if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
         
@@ -103,7 +103,7 @@ query_run_main_method () {
     ##########################
     elif [[ $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK == 'mahout' ]] ; then
         echo "========================="
-        echo "$QUERY_NAME Step 2/3: Calculating KMeans with mahout"
+        echo "$QUERY_NAME Step 2/3: Calculating KMeans with mahout (DEPRECATED)"
         echo "result output: ${HDFS_RESULT_FILE}"
         echo "========================="
 

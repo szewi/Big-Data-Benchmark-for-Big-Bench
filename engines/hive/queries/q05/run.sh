@@ -55,6 +55,7 @@ query_run_main_method () {
       #Options:
       #[-i  | --input <input dir> OR <database>.<table>]
       #[-o  | --output output folder]
+      #[-d  | --csvInputDelimiter <delimiter> (only used if load from csv)]
       #[--type LBFGS|SGD]
       #[-it | --iterations iterations]
       #[-l  | --lambda regularizationParameter]
@@ -101,11 +102,12 @@ query_run_main_method () {
       input="--fromHiveMetastore false -i ${TEMP_DIR}/"
       output="${RESULT_DIR}/"
 
-                      echo $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q05.LogisticRegression "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" ${input} -o "${output}/" --type LBFGS --step-size 1 --iterations 20 --lambda 0 --saveClassificationResult true --saveMetaInfo true --verbose false 
-      runCmdWithErrorCheck $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q05.LogisticRegression "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" ${input} -o "${output}/" --type LBFGS --step-size 1 --iterations 20 --lambda 0 --saveClassificationResult true --saveMetaInfo true --verbose false 
+                      echo $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q05.LogisticRegression "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" --csvInputDelimiter ',' ${input} -o "${output}/" --type LBFGS --step-size 1 --iterations 20 --lambda 0 --saveClassificationResult true --saveMetaInfo true --verbose false 
+      runCmdWithErrorCheck $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q05.LogisticRegression "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" --csvInputDelimiter ',' ${input} -o "${output}/" --type LBFGS --step-size 1 --iterations 20 --lambda 0 --saveClassificationResult true --saveMetaInfo true --verbose false 
     
       RETURN_CODE=$?
       if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi  
+      
     ################################
     # run with mahout (DEPRECATED)
     ################################    
@@ -138,8 +140,8 @@ query_run_main_method () {
       echo "$QUERY_NAME Step 2/3 Part 2: Train logistic model"
       echo "tmp output: ${TMP_LOG_REG_MODEL_FILE}"
       echo "----------------------------------------------------------"
-      echo mahout trainlogistic --input "$TMP_LOG_REG_IN_FILE" --output "$TMP_LOG_REG_MODEL_FILE" --target clicks_in_category --categories 9 --predictors college_education male clicks_in_1 clicks_in_2 clicks_in_3 clicks_in_4 clicks_in_5 clicks_in_6 clicks_in_7  --types n n n n n n n n n --passes 20 --features 20 --rate 1 --lambda 0.5
-      runCmdWithErrorCheck mahout trainlogistic --input "$TMP_LOG_REG_IN_FILE" --output "$TMP_LOG_REG_MODEL_FILE" --target clicks_in_category --categories 9 --predictors college_education male clicks_in_1 clicks_in_2 clicks_in_3 clicks_in_4 clicks_in_5 clicks_in_6 clicks_in_7  --types n n n n n n n n n --passes 20 --features 20 --rate 1 --lambda 0.5  
+      echo mahout trainlogistic --input "$TMP_LOG_REG_IN_FILE" --output "$TMP_LOG_REG_MODEL_FILE" --target clicks_in_category --categories 2 --predictors college_education male clicks_in_1 clicks_in_2 clicks_in_3 clicks_in_4 clicks_in_5 clicks_in_6 clicks_in_7  --types n n n n n n n n n --passes 20 --features 20 --rate 1 --lambda 0.5
+      runCmdWithErrorCheck mahout trainlogistic --input "$TMP_LOG_REG_IN_FILE" --output "$TMP_LOG_REG_MODEL_FILE" --target clicks_in_category --categories 2 --predictors college_education male clicks_in_1 clicks_in_2 clicks_in_3 clicks_in_4 clicks_in_5 clicks_in_6 clicks_in_7  --types n n n n n n n n n --passes 20 --features 20 --rate 1 --lambda 0.5  
       RETURN_CODE=$?
       if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
     

@@ -48,7 +48,6 @@ import scala.util.{Success, Try}
  */
 object NaiveBayesClassifier {
 
-  val CSV_DELIMITER_INPUT = "\t"
   val CSV_DELIMITER_OUTPUT = "," //same as used in hive engine result table to keep result format uniform
 
 
@@ -57,6 +56,7 @@ object NaiveBayesClassifier {
   var options: OptionMap=Map('splitRatio -> "",
                             'lambda -> "1.0",
                             'fromHiveMetastore -> "true",
+                            'csvInputDelimiter -> ",",
                             'saveClassificationResult -> "true",
                             'saveMetaInfo -> "true",
                             'verbose -> "false"
@@ -208,15 +208,16 @@ object NaiveBayesClassifier {
 
   def loadFromTextFile(inputFile: String, sc: SparkContext):RDD[((Long,Int), Seq[String])] = {
     //parse input and remove bad lines
-    println("load from csv file: " + inputFile)
+    println(s"""load from csv file  delimiter("${options('csvInputDelimiter)}"): ${inputFile}""")
     val rawRDD=sc.textFile(inputFile)
     if(options('verbose).toBoolean){
       println(s"""first 10 of ${rawRDD.count()} lines raw data from: "$inputFile" :""")
       rawRDD.take(10).foreach(println)
       println("...")
     }
+    val csvInputDelimiter = options('csvInputDelimiter)
 
-    val cleandInput = rawRDD.map(parseInputCSVLine).collect { case Success(value) => value }
+    val cleandInput = rawRDD.map(parseInputCSVLine(_,csvInputDelimiter)).collect { case Success(value) => value }
 
     if(options('verbose).toBoolean){
       println(s"""first 10 of ${cleandInput.count()} lines of parsed and cleand data from: "$inputFile" :""")
@@ -231,7 +232,7 @@ object NaiveBayesClassifier {
    * @param inputLine
    * @return
    */
-  def parseInputCSVLine(inputLine:String): Try[((Long,Int),Seq[String])] ={
+  def parseInputCSVLine(inputLine:String,delimiter:String): Try[((Long,Int),Seq[String])] ={
 
     val parsed = util.Try{
       //split review text into terms using delimiter " " (simplistic)
@@ -241,11 +242,11 @@ object NaiveBayesClassifier {
 
       //manual split instead of inputLine.split(CSV_DELIMITER_INPUT), in case review texts contains the delimiter
       var nextStart = 0
-      var nextDelim = inputLine.indexOf(CSV_DELIMITER_INPUT)
+      var nextDelim = inputLine.indexOf(delimiter)
 
       val reviewSk = inputLine.substring(nextStart, nextDelim).toLong
       nextStart = nextDelim +1
-      nextDelim = inputLine.indexOf(CSV_DELIMITER_INPUT,nextStart)
+      nextDelim = inputLine.indexOf(delimiter,nextStart)
       val rating=labelToRating(inputLine.substring(nextStart,nextDelim))
       nextStart=nextDelim+1
       val review = inputLine.substring(nextStart,inputLine.length)
@@ -292,6 +293,7 @@ object NaiveBayesClassifier {
       |[-i | --inputTraining <input dir> OR <database>.<table>]
       |[-t | --inputTesting --input <input dir> OR <database>.<table>]
       |[-o | --output outputfolder]
+      |[-d | --csvInputDelimiter <delimiter> (only used if load from csv)]
       |[-r | --training-ratio ratio (if ratio e.g. 0.3 is provided, -t (testing) is ignored and -i (training) is split into training (e.g 0.3) and classification (e.g. 0.7))) ]
       |[-l | --lambda ]
       |[--fromHiveMetastore true=load from hive table | false=load from csv file]
@@ -315,6 +317,8 @@ object NaiveBayesClassifier {
       case "--inputTesting" :: value :: tail => parseOption(map ++ Map('inputTest -> value), tail)
       case "-o" :: value :: tail => parseOption(map ++ Map('output -> value), tail)
       case "--output" :: value :: tail => parseOption(map ++ Map('output -> value), tail)
+      case "-d" :: value :: tail => parseOption(map ++ Map('csvInputDelimiter-> value), tail)
+      case "--csvInputDelimiter" :: value :: tail => parseOption(map ++ Map('csvInputDelimiter-> value), tail)
       case "-r" :: value :: tail => parseOption(map ++ Map('splitRatio -> value), tail)
       case "--training-ratio" :: value :: tail => parseOption(map ++ Map('splitRatio -> value), tail)
       case "-l" :: value :: tail => parseOption(map ++ Map('lambda -> value), tail)

@@ -45,7 +45,6 @@ import org.apache.spark.{SparkConf, SparkContext}
 object LogisticRegression {
   type OptionMap = Map[Symbol, String]
 
-  val CSV_DELIMITER_INPUT = " "
   val CSV_DELIMITER_OUTPUT = "," //same as used in hive engine result table to keep result format uniform
 
 
@@ -81,7 +80,8 @@ object LogisticRegression {
       'fromHiveMetastore -> "true",
       'saveClassificationResult -> "true",
       'saveMetaInfo -> "true",
-      'verbose -> "false"
+      'verbose -> "false",
+      'csvInputDelimiter -> ","
     ), args.toList)
     println(s"Run LogisticRegression with options: $options")
 
@@ -162,14 +162,15 @@ object LogisticRegression {
 
 
   def loadFromTextFile(options: OptionMap, sc: SparkContext): (Double, RDD[LabeledPoint]) = {
-    println(s"""loading data from CSV file: "${options('input)}" ...""")
+    println(s"""load from csv file  delimiter("${options('csvInputDelimiter)}"): ${options('input)}""")
+
     val csvData = sc.textFile(options('input))
     csvData.cache() //don't know yet if caching is beneficial for runtime in this case
+    val csvInputDelimiter = options('csvInputDelimiter)
+    //clicks are in first column, cols delimited by "csvInputDelimiter"
+    val averageClickCount = csvData.map(line => line.substring(0,line.indexOf(csvInputDelimiter)).toDouble ).mean()
 
-    //clicks are in first column, cols delimited by " "
-    val averageClickCount = csvData.map(line => line.substring(0,line.indexOf(CSV_DELIMITER_INPUT)).toDouble ).mean()
-
-    val points: RDD[LabeledPoint] = csvData.map(line => csvLineToLP(line, averageClickCount)).cache()
+    val points: RDD[LabeledPoint] = csvData.map(line => csvLineToLP(line, averageClickCount,csvInputDelimiter)).cache()
     csvData.unpersist(false)
     (averageClickCount, points)
   }
@@ -232,8 +233,8 @@ object LogisticRegression {
    * @param mean
    * @return
    */
-  def csvLineToLP(s: String, mean: Double): LabeledPoint = {
-    val doubleValues = s.split(CSV_DELIMITER_INPUT).map(_.toDouble)
+  def csvLineToLP(s: String, mean: Double, delimiter: String): LabeledPoint = {
+    val doubleValues = s.split(delimiter).map(_.toDouble)
     val label = if (doubleValues(0) > mean) {1.0} else {0.0}
     LabeledPoint(label, Vectors.dense(doubleValues))
   }
@@ -244,6 +245,7 @@ object LogisticRegression {
       |Options:
       |[-i  | --input <input dir> OR <database>.<table>]
       |[-o  | --output output folder]
+      |[-d  | --csvInputDelimiter <delimiter> (only used if load from csv)]
       |[--type LBFGS|SGD]
       |[-it | --iterations iterations]
       |[-l  | --lambda regularizationParameter]
@@ -276,6 +278,8 @@ object LogisticRegression {
       case "--input" :: value :: tail => parseOption(map ++ Map('input -> value), tail)
       case "-o" :: value :: tail => parseOption(map ++ Map('output-> value), tail)
       case "--output" :: value :: tail => parseOption(map ++ Map('output-> value), tail)
+      case "-d" :: value :: tail => parseOption(map ++ Map('csvInputDelimiter-> value), tail)
+      case "--csvInputDelimiter" :: value :: tail => parseOption(map ++ Map('csvInputDelimiter-> value), tail)
       case "--type" :: value :: tail => parseOption(map ++ Map('type -> value), tail)
       case "-s" :: value :: tail => parseOption(map ++ Map('stepsize -> value), tail)
       case "--step-size" :: value :: tail => parseOption(map ++ Map('stepsize -> value), tail)

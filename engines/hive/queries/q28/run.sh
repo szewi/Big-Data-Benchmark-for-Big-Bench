@@ -85,6 +85,8 @@ query_run_main_method () {
     ##########################
     elif [[ -z "$BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK" || "$BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK" == "spark-csv" ]] ; then
       
+      csvDelimiter=`echo -e "\t"` # tab separated 
+      
       # if pre-split by hive:
       inputTableTraining="${TEMP_DIR1}/"
       inputTableTesting="${TEMP_DIR2}/"
@@ -104,22 +106,22 @@ query_run_main_method () {
       echo "========================="
 
       
-                      echo $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" ${input} --output ${output} --saveClassificationResult true --saveMetaInfo true --verbose false
-      runCmdWithErrorCheck $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" ${input} --output ${output} --saveClassificationResult true --saveMetaInfo true --verbose false
+                      echo $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar"  --csvInputDelimiter "${csvDelimiter}" ${input} --output ${output} --saveClassificationResult true --saveMetaInfo true --verbose false
+      runCmdWithErrorCheck $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar"  --csvInputDelimiter "${csvDelimiter}" ${input} --output ${output} --saveClassificationResult true --saveMetaInfo true --verbose false
 
       RETURN_CODE=$?
       if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
     ##########################
-    #run with mahout
+    #run with mahout (DEPRECATED)
     ##########################
     elif [[ $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK == 'mahout' ]] ; then
 
         MAHOUT_TEMP_DIR="$TEMP_DIR/mahout_temp"
         echo "========================="
-        echo "$QUERY_NAME step 2/3: Train and Test Naive Bayes Classifier with mahout"
+        echo "$QUERY_NAME step 2/3: Train and Test Naive Bayes Classifier with mahout (DEPRECATED)"
         echo "training data:" ${TEMP_DIR1}
         echo "test data    :" ${TEMP_DIR2}
-        echo "OUT: $HDFS_RAW_RESULT_FILE"
+        echo "OUT: $HDFS_RESULT_FILE"
         echo "========================="
 
         echo "----------------------------------------------------------"

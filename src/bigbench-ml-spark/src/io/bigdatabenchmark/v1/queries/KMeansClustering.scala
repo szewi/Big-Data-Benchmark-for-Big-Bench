@@ -42,7 +42,6 @@ import org.apache.spark.{SparkConf, SparkContext}
  */
 object KMeansClustering {
 
-  val CSV_DELIMITER_INPUT = " "
   val CSV_DELIMITER_OUTPUT = "," //same as used in hive engine result table to keep result format uniform
 
   type OptionMap = Map[Symbol, String]
@@ -50,6 +49,7 @@ object KMeansClustering {
   var options: OptionMap=Map('iter -> "20",
     'externalInitClusters -> "",
     'fromHiveMetastore -> "true",
+    'csvInputDelimiter -> ",",
     'saveClassificationResult -> "true",
     'saveMetaInfo -> "true",
     'verbose -> "false"
@@ -145,8 +145,12 @@ object KMeansClustering {
   }
 
   def loadFromCSV(sc: SparkContext): RDD[(Long, Array[Double])] = {
+    println(s"""load from csv file  delimiter("${options('csvInputDelimiter)}"): ${options('input)}""")
+
+    val delimiter = options('csvInputDelimiter)
+
     val rawInput = sc.textFile(options('input)).map(s => {
-      val splits = s.split(CSV_DELIMITER_INPUT)
+      val splits = s.split(delimiter)
       (splits(0).toLong, splits.drop(1).map(_.toDouble))
     })
     rawInput
@@ -180,6 +184,7 @@ object KMeansClustering {
       |Options:
       |[-i  | --input <input dir> OR <database>.<table>]
       |[-o  | --output output folder]
+      |[-d  | --csvInputDelimiter <delimiter> (only used if load from csv)]
       |[-ic | --initialClusters initialClustersFile (initial clusters prohibit --iterations > 1)]
       |[-c  | --num-clusters clusters]
       |[-it | --iterations iterations]
@@ -203,6 +208,8 @@ object KMeansClustering {
       case "--input" :: value :: tail => parseOption(map ++ Map('input -> value), tail)
       case "-o" :: value :: tail => parseOption(map ++ Map('output -> value), tail)
       case "--output" :: value :: tail => parseOption(map ++ Map('output -> value), tail)
+      case "-d" :: value :: tail => parseOption(map ++ Map('csvInputDelimiter-> value), tail)
+      case "--csvInputDelimiter" :: value :: tail => parseOption(map ++ Map('csvInputDelimiter-> value), tail)
       case "-c" :: value :: tail => parseOption(map ++ Map('numclust -> value), tail)
       case "--num-clusters" :: value :: tail => parseOption(map ++ Map('numclust -> value), tail)
       case "-it" :: value :: tail => parseOption(map ++ Map('iter -> value), tail)

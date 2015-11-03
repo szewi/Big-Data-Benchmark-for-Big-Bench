@@ -45,8 +45,8 @@ CREATE TABLE ${hiveconf:TEMP_TABLE} (
  clicks_in_6 BIGINT,
  clicks_in_7 BIGINT
 )
--- mahout requires "SPACE_SEPARATED" csv
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ' ' LINES TERMINATED BY '\n'
+-- mahout requires "," separated csv
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
 STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}';
 ;
 
