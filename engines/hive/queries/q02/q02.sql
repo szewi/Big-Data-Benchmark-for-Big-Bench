@@ -15,12 +15,14 @@
 --IMPLEMENTATION NOTICE:
 -- "Market basket analysis"
 -- First difficult part is to create pairs of "viewed together" items within one sale
--- There are are several ways to to "basketing", implemented is way A)
--- A) collect distinct viewed items per session (same sales_sk) in list and employ a UDTF to produce pairwise combinations of all list elements
--- B) distribute by sales_sk end employ reducer streaming script to aggregate all items per session and produce the pairs
--- C) pure SQL: produce pairings by self joining on sales_sk and filtering out left.item_sk < right.item_sk (eliminates duplicates and switched positions)
---
---
+-- There are are several ways to to "basketing", however as q02 allows for simplification and implements way A)
+-- A) In q02 one side of the viewed-together-pair is known ("viewed together with a given product"), eliminating the need to crate pairings.
+--    We just need to collect all items viewed within click session as array and check if the "given product" is contained in this array.
+--    To create the result table, just explode the collected array again
+-- B) collect distinct viewed items per session (same sales_sk) in list and employ a UDTF to produce pairwise combinations of all list elements
+-- C) distribute by sales_sk end employ reducer streaming script to aggregate all items per session and produce the pairs
+-- D) pure SQL: produce pairings by self joining on sales_sk and filtering out left.item_sk < right.item_sk (eliminates duplicates and switched positions)
+
 -- The second difficulty is to reconstruct a users browsing session from the web_clickstreams table
 -- There are are several ways to to "sessionize", common to all is the creation of a unique virtual time stamp from the date and time serial
 -- key's as we know they are both strictly monotonic increasing in order of time and one wcs_click_date_sk relates to excatly one day
@@ -101,17 +103,14 @@ SELECT
   COUNT (*) AS cnt
 FROM
 (
-  -- Make item "viewed together" pairs
-  -- combining collect_set + sorting + makepairs(array, noSelfParing)
-  -- ensuers we get no pairs with swapped places like: (12,24),(24,12).
-  -- We only produce tuples (12,24) ensuring that the smaller number is always on the left side
+  -- Make item "viewed together" pairs by exploding the itemArray's containing the searched item q02_item_sk
   SELECT explode(itemArray) AS item_sk_1
   FROM
   (
     SELECT collect_list(wcs_item_sk) AS itemArray --(_list= with duplicates, _set = distinct)
     FROM ${hiveconf:TEMP_TABLE}
     GROUP BY sessionid
-    HAVING array_contains(itemArray, cast(${hiveconf:q02_item_sk} AS BIGINT) ) -- eager filter out groups that dont contain the searched item
+    HAVING array_contains(itemArray, cast(${hiveconf:q02_item_sk} AS BIGINT) ) -- eager filter out groups that don't contain the searched item
   ) collectedList
 ) pairs
 WHERE item_sk_1 <> ${hiveconf:q02_item_sk}
