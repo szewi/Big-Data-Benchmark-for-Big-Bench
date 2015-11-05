@@ -26,6 +26,13 @@ runModule () {
       echo "#      Big Data Benchmark Version      #" >> "$ENV_INFO_FILE" 2>&1
       echo "########################################" >> "$ENV_INFO_FILE" 2>&1
       echo "Version $BIG_BENCH_VERSION" >> "$ENV_INFO_FILE" 2>&1
+
+      echo >> "$ENV_INFO_FILE" 2>&1
+
+      echo "########################################" >> "$ENV_INFO_FILE" 2>&1
+      echo "#         Command line options         #" >> "$ENV_INFO_FILE" 2>&1
+      echo "########################################" >> "$ENV_INFO_FILE" 2>&1
+      echo "$LIST_OF_USER_OPTIONS" >> "$ENV_INFO_FILE" 2>&1
     fi
 
     local HOST_LIST="`mktemp`"
@@ -40,5 +47,7 @@ runModule () {
     else
       echo "Error: yarn was not able to find any hosts."
     fi
+
+    rm -rf "$HOST_LIST"
   fi
 }
