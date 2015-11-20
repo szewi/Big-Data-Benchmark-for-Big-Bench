@@ -24,13 +24,16 @@ This document is a development version and describes the BigBench installation a
 
 **Java**
 
-Java 1.7 is required. 64 bit is recommended. A suitable JDK is installed along with Cloudera (if using the parcel installation method)
+Java 1.7 (Oracle/OpenJDK) is required. 64 bit is recommended. A suitable JDK is installed along with Cloudera (if using the parcel installation method)
+Other JVM's are not supported.
 
 **Hadoop**
 
-* Hadoop 2.3. A suitable hadoop version is installed along with Cloudera (if using the parcel installation method)
-* Hive 0.14 recommended. A suitable hive version is installed along with Cloudera (if using the parcel installation method)
-* Mahout 0.9 A suitable mahout version is installed along with Cloudera (if using the parcel installation method)
+* Hadoop 2.3 >= A suitable hadoop version is installed along with Cloudera (if using the parcel installation method)
+* Hive 0.14 >= recommended. A suitable hive version is installed along with Cloudera (if using the parcel installation method)
+* Spark 1.5 >= recommended as ML framework. A suitable Spark version may not be included (yet) in your chosen hadoop distribution
+* (Deprecated) Mahout 0.9 A suitable mahout version is installed along with Cloudera (if using the parcel installation method)
+
 
 **Other necessary system packages**
 
@@ -103,11 +106,14 @@ If you have read and agree to these terms of use, please type (uppercase!): YES 
 YES
 ```
 
-### PDGF
-The data are being generated directly into HDFS (into the $BIG_BENCH_HDFS_RELATIVE_INIT_DATA_DIR directory, absolute HDFS path is $BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR).
+### Data Generation - with PDGF
+The data are being generated parallel directly into HDFS (into the $BIG_BENCH_HDFS_RELATIVE_INIT_DATA_DIR directory, absolute HDFS path is $BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR).
+The degree of parallelism is determined by the driver option "-m" The number of map tasks used for data generation. (default: $BIG_BENCH_DEFAULT_MAP_TASKS)
 
-Default HDFS replication count is 1 (data is only stored on the generating node). You can change this in the $INSTALL_DIR/conf/userSettings.conf file by changing the variable
+Default HDFS replication count is 1 (data is only stored on the generating node). 
 `BIG_BENCH_DATAGEN_DFS_REPLICATION=<Replication count>'.
+
+Default settings can be changed in the $INSTALL_DIR/conf/userSettings.conf file.
 
 ## Using the BigBench driver
 
@@ -295,6 +301,31 @@ This benchmark does not favour any platform and we ran this benchmark on many di
 It is not HIVE specify as well, but hive happens to be the first engine to be implemented.
 
 This FAQ is mostly based on our experiments with Hive on Yarn with CDH 5.x
+
+## DataGeneration stage fails
+
+```
+[..]
+==========
+Please check the log files for details
+==============
+Benchmark run terminated
+Reason: An error occured while running a command
+==============
+java.io.IOException: Error while generating dataset. More information in logfile: bigbench/logs/dataGeneration-run_query.log
+	at io.bigdatabenchmark.v1.driver.BigBench.generateData(BigBench.java:759)
+	at io.bigdatabenchmark.v1.driver.BigBench.run(BigBench.java:415)
+	at io.bigdatabenchmark.v1.driver.RunBigBench.main(RunBigBench.java:52)
+```
+
+The data generation tool stage is the first thing Big-Data-Benchmark-for-Big-Bench executes on your cluster. So its natural that this stage will be the first to hit any miss-configurations and incompatibilities.
+* you tried to run with an JDK other then Oracle/OpenJDK 1.7 64bit.
+* issues with access rights, locally or on the worker nodes.
+* the driver scripts are written for bash. Other shells may goof up. For instance: Mac OS is not compatible.
+
+You may want to check your MR/YARN logs if the data generator job was even started.
+If the job was successfully stared but terminated during execution, please manually check the logs from the yarn containers task attempts or similar logs from the worker nodes.
+
 
 ## Where do i put my cluster specific settings?
 Here: Big-Bench/conf/userSettings.conf
