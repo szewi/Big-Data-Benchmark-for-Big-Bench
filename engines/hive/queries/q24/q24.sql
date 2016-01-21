@@ -16,13 +16,11 @@
 -- Step 3 final:
 --Cross-Price Elasticity of Demand (CPEoD) is given by: CPEoD = (% Change in Quantity Demand for Good X)/(% Change in Price for Good Y))
 
--- Resources
 
 
 
 -- compute the price change % for the competitor items
 -- will give a list of competitor prices changes
-
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE} AS
 SELECT
@@ -35,10 +33,10 @@ SELECT
 FROM item i ,item_marketprices imp 
 WHERE i.i_item_sk = imp.imp_item_sk
 AND i.i_item_sk = ${hiveconf:q24_i_item_sk}
-AND imp.imp_competitor_price < i.i_current_price
+-- AND imp.imp_competitor_price < i.i_current_price --consider all price changes not just where competitor is cheaper
 ORDER BY i_item_sk, 
          imp_sk, 
-         --imp_competitor, 
+         --imp_competitor, --add to compute cross_price_elasticity per competitor is instead of a single number 
          imp_start_date
 ;
 
@@ -98,7 +96,8 @@ JOIN
     ) ss
  ON (ws.ws_item_sk = ss.ss_item_sk and ws.imp_sk = ss.imp_sk)
 GROUP BY  ws.ws_item_sk
-         --,ws.imp_competitor --add to compute cross_price_elasticity per competitor is instead of a single number 
+--uncomment below to compute cross_price_elasticity per competitor is instead of a single number (requires ordering)
+         --,ws.imp_competitor 
 --ORDER BY ws.ws_item_sk, 
 --         ws.imp_competitor       
 ;
