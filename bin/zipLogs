@@ -41,6 +41,6 @@ runModule () {
 
     # zip the log folder
     cd "$BIG_BENCH_LOGS_DIR"
-    runCmdWithErrorCheck zip -r "$CURRENT_LOG_FOLDER_RELATIVE.zip" "$CURRENT_LOG_FOLDER_RELATIVE"
+    runCmdWithErrorCheck zip -q -r "$CURRENT_LOG_FOLDER_RELATIVE.zip" "$CURRENT_LOG_FOLDER_RELATIVE"
   fi
 }
