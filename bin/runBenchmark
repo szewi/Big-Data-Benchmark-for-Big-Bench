@@ -58,7 +58,7 @@ runModule () {
   fi
 
   "${BIG_BENCH_BIN_DIR}/bigBench" cleanLogs -U $LIST_OF_USER_OPTIONS
-  runCmdWithErrorCheck "$BIG_BENCH_JAVA" -jar "${BIG_BENCH_TOOLS_DIR}/RunBigBench.jar"
+  "$BIG_BENCH_JAVA" -jar "${BIG_BENCH_TOOLS_DIR}/RunBigBench.jar"
   "${BIG_BENCH_BIN_DIR}/bigBench" logEnvInformation -U $LIST_OF_USER_OPTIONS
   "${BIG_BENCH_BIN_DIR}/bigBench" zipLogs -U $LIST_OF_USER_OPTIONS
   return $?
