@@ -14,6 +14,8 @@
 
 -- ###########################
 -- parallel order by. required by queries:
+-- Note the "bigbench." prefix! Actual enabling is query statement specific and 
+-- only activated where required to achive a deterministic output.
 -- ###########################
 set bigbench.hive.optimize.sampling.orderby=true;
 set bigbench.hive.optimize.sampling.orderby.number=20000;
@@ -22,6 +24,11 @@ set bigbench.hive.optimize.sampling.orderby.percent=0.1;
 -- ###########################
 -- output and itermediate table settings 
 -- ###########################
+-- BIG_BENCH_hive_default_fileformat_tmp_table is defined in ../engines/hive/conf/engineSettings.conf
+-- all CREATE <NEW/Temporary> TABLES/VIEWS will use the fileformat specified here.
+-- "LOAD_STAGE" file format and query result fileformat can be controlled independently.
+set hive.default.fileformat=${env:BIG_BENCH_hive_default_fileformat_tmp_table};
+
 -- if you cluster has good cpu's but limited network bandwith, this could speed up the exchange of intermediate results (this option should be turund on if you cluster has high 'net wait i/o%'
 -- set hive.exec.compress.intermediate=true;
 -- set mapred.map.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;
@@ -30,7 +37,7 @@ set bigbench.hive.optimize.sampling.orderby.percent=0.1;
 -- set hive.exec.compress.output=false;
 -- set mapred.output.compression.codec=org.apache.hadoop.io.compress.DefaultCodec;
 
--- set hive.default.fileformat=ORC;
+
 
 -- ###########################
 -- mappers settings 
@@ -148,7 +155,7 @@ set hive.optimize.ppd.storage;
 set hive.ppd.recognizetransivity;
 set hive.optimize.index.filter;
 --other
-set hive.optimize.sampling.orderby=true;
+set hive.optimize.sampling.orderby;
 set hive.optimize.sampling.orderby.number;
 set hive.optimize.sampling.orderby.percent;
 set bigbench.hive.optimize.sampling.orderby;
