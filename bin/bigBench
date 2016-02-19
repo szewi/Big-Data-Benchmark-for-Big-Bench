@@ -107,7 +107,7 @@ cd "$OLDPWD"
 ## ===================================================
 ## BEGIN OF SETTINGS
 ## ===================================================
-export BIG_BENCH_VERSION="0.6-beta"
+export BIG_BENCH_VERSION="1.0"
 export BIG_BENCH_BIN_DIR="$BIG_BENCH_HOME/bin"
 export BIG_BENCH_CONF_DIR="$BIG_BENCH_HOME/conf"
 export BIG_BENCH_DATA_GENERATOR_DIR="$BIG_BENCH_HOME/data-generator"
