@@ -22,12 +22,14 @@ helpModule () {
     echo -e "-b\tverbose - print stdout of called bash scripts during execution"
     echo -e "-i\tphases the driver performs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
     echo -e "-j\tqueries the driver runs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
-    echo
 
   if [ "$BIG_BENCH_EXPERT_MODE" -ne 0 ]
   then
     echo
-    echo "INTERNAL options:"
+    echo "EXPERT MODE ACTIVE"
+    echo
+    echo "WARNING-INTERNAL USE ONLY:"
+    echo "Only set manually if you know what you are doing!"
     echo -e "-v\tsql script for metastore population (default: $BIG_BENCH_POPULATE_METASTORE_FILE)"
     echo -e "-w\tsql script for metastore refresh (default: $BIG_BENCH_REFRESH_METASTORE_FILE)"
     echo -e "-y\tfile with additional user defined query parameters (global: $BIG_BENCH_QUERY_PARAMS_FILE)"

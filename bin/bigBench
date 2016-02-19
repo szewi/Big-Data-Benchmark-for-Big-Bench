@@ -11,57 +11,41 @@
 ## function definitions
 ## ===================================================
 showGlobalHelp () {
-  if [ "$BIG_BENCH_EXPERT_MODE" -eq 0 ]
+  echo "Usage: `basename $0` runBenchmark [options]"
+  echo
+  echo "General options:"
+  echo -e "-d\tdatabase to use (default: $BIG_BENCH_DEFAULT_DATABASE)"
+  echo -e "-e\tengine to use (default: $BIG_BENCH_DEFAULT_ENGINE)"
+  echo -e "-f\tscale factor for data set (default: $BIG_BENCH_DEFAULT_SCALE_FACTOR)"
+  echo -e "-h\tshow this help"
+  echo -e "-m\tmap tasks for data generation (default: $BIG_BENCH_DEFAULT_MAP_TASKS)"
+  echo -e "-s\tnumber of parallel streams (default: $BIG_BENCH_DEFAULT_NUMBER_OF_PARALLEL_STREAMS)"
+  echo
+  echo "Driver specific options:"
+  echo -e "-a\tdry-run - pretend command execution"
+  echo -e "-b\tprint stdout of called bash scripts during execution"
+  echo -e "-i\tphases the driver performs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
+  echo -e "-j\tqueries the driver runs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
+  echo
+  echo "Take a look into $BIG_BENCH_CONF_DIR/bigBench.properties for a well documented description how to configure the driver"
+  echo
+  echo "Expert mode:"
+  echo -e "-U\tunlock expert mode - WARNING: run modules manually only if you know what you are doing!"
+  echo
+
+  if [ "$BIG_BENCH_EXPERT_MODE" -ne 0 ]
   then
-    echo "Usage: `basename $0` runBenchmark [options]"
-    echo
-    echo "General options:"
-    echo -e "-d\tdatabase to use (default: $BIG_BENCH_DEFAULT_DATABASE)"
-    echo -e "-e\tengine to use (default: $BIG_BENCH_DEFAULT_ENGINE)"
-    echo -e "-f\tscale factor for data set (default: $BIG_BENCH_DEFAULT_SCALE_FACTOR)"
-    echo -e "-h\tshow this help"
-    echo -e "-m\tmap tasks for data generation (default: $BIG_BENCH_DEFAULT_MAP_TASKS)"
-    echo -e "-s\tnumber of parallel streams (default: $BIG_BENCH_DEFAULT_NUMBER_OF_PARALLEL_STREAMS)"
-    echo
-    echo "Driver specific options:"
-    echo -e "-a\tdry-run - pretend command execution"
-    echo -e "-b\tprint stdout of called bash scripts during execution"
-    echo -e "-i\tphases the driver performs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
-    echo -e "-j\tqueries the driver runs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
-    echo
-    echo "Take a look into $BIG_BENCH_CONF_DIR/bigBench.properties for a well documented description how to configure the driver"
-    echo
-    echo "Expert mode:"
-    echo -e "-U\tunlock expert mode - WARNING: run modules manually only if you know what you are doing!"
-    echo
-  else
     # INTERNAL USE ONLY
-    echo "Usage: `basename $0` module [options]"
+    echo "EXPERT MODE ACTIVE"
     echo
-    echo "General options:"
-    echo -e "-d\tdatabase to use (default: $BIG_BENCH_DEFAULT_DATABASE)"
-    echo -e "-e\tengine to use (default: $BIG_BENCH_DEFAULT_ENGINE)"
-    echo -e "-f\tscale factor for data set (default: $BIG_BENCH_DEFAULT_SCALE_FACTOR)"
-    echo -e "-h\tshow this help"
-    echo -e "-m\tmap tasks for data generation (default: $BIG_BENCH_DEFAULT_MAP_TASKS)"
-    echo -e "-s\tnumber of parallel streams (default: $BIG_BENCH_DEFAULT_NUMBER_OF_PARALLEL_STREAMS)"
-    echo
-    echo "Driver specific options:"
-    echo -e "-a\tdry-run - pretend command execution"
-    echo -e "-b\tprint stdout of called bash scripts during execution"
-    echo -e "-i\tphases the driver performs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
-    echo -e "-j\tqueries the driver runs (see $BIG_BENCH_CONF_DIR/bigBench.properties for details on format)"
-    echo
-    echo "Take a look into $BIG_BENCH_CONF_DIR/bigBench.properties for a well documented description how to configure the driver"
-    echo
-    echo "WARNING"
-    echo "INTERNAL USE ONLY:"
+    echo "WARNING - INTERNAL USE ONLY:"
     echo "Only set manually if you know what you are doing!"
     echo "Ignoring them is probably the best solution"
+    echo 
+    echo "Running individual modules:"
+    echo "Usage: `basename $0` module [options]"
     echo
-    echo -e "-U\tunlock expert mode"
-    echo
-    echo -e "-D\tquery part to debug"
+    echo -e "-D\tquery part to debug. Most queries only have a single part. A few of the queries are multistage with individual parts to step through for debug purposes"
     echo -e "-p\tbenchmark phase to use (default: $BIG_BENCH_DEFAULT_BENCHMARK_PHASE)"
     echo -e "-q\tquery number to run"
     echo -e "-t\tstream number for query run"
