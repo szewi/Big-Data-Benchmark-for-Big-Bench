@@ -11,9 +11,9 @@ helpModule () {
   echo "This module generates a dataset with the PDGF data generator using hadoop"
   echo
   echo "Options:"
-  echo -e "-f\tscale factor for data set"
+  echo -e "-f\tscale factor for data set. -f 1 == 1GB -f 1000 == 1TB"
   echo -e "-h\tshow this help"
-  echo -e "-m\tmap tasks for data generation"
+  echo -e "-m\tmap tasks for data generation. A good value is: NUMBER_OF_YARN_CONTAINERS-1 or NUMBER_OF_CLUSTER_VCORES-1. This setting only influences the data generation."
 }
 
 runModule () {
@@ -22,7 +22,7 @@ runModule () {
 
   if [ -z "$BIG_BENCH_MAP_TASKS" ]
   then
-    echo "The number of map tasks is a required option"
+    echo "dataGen requires -m option, number of map tasks. You have to set this appropiratly to your cluster. A good value is: NUMBER_OF_YARN_CONTAINERS-1 or NUMBER_OF_CLUSTER_VCORES-1. "
     return 1
   fi
 
