@@ -1,5 +1,6 @@
 b993c2a5b3efdd1769edf62e3f085cc23ac16bc4cf48f73f7e8d4d7028b05699  ./engines/impala/wip.txt
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ./engines/impala/.gitignore
+5e5c21ee47e9740218542e3612ba78c3c2e3627aceff5796d54d7160a456c8db  ./engines/spark_sql/conf/engineSettings.conf
 6c17d2d2f56e7d66e04f05f64d47844d64f15280f4bede363384e79140920382  ./engines/hive/bin/dataGen
 a0432a3cca2f955222b5af995e6ac8725e5bbdaa301a0aa41743f775bd50d0f3  ./engines/hive/bin/showTimes
 01db29e72e60b6baf4836ff4834bc8280e1d5f4cab2993748097d991a8a0abc9  ./engines/hive/bin/showErrors
@@ -203,10 +204,9 @@ e421d1fc437632f34d259ba07515f6ed74d4d8d50402a3f9ce16a256fda80a0a  ./engines/hive
 a99de9ce3cb54e612a373a17a2ea99e6a3b27b863df615bc044be622ce04de9d  ./engines/hive/clean/dropTables.sql
 60cbebc189687b800bdbc5fceef090c123ff8c2857d26a56645fe9eb9438795a  ./engines/hive/refresh/deprecated/hiveRefreshCreateLoad_double.sql
 8bcf29362a103cf4c24100342ac0cf1aa74382491884b4b19ca65942002b5730  ./engines/hive/refresh/hiveRefreshCreateLoad.sql
-0ca0369f6e7ba2516f88b64596197f5cb6631ff9562c235471b88a2755513c91  ./engines/hive/conf/engineSettings.conf
+d792bf1ba38bef452332d0f8290b9e63e6fed94d1c1e7013b8f24b939489621a  ./engines/hive/conf/engineSettings.conf
 88315053bd6207d1bb68a51cc931a7dd3e2c3080ef6897491d39c5f436fd566c  ./engines/hive/conf/engineSettings.sql
 f6355a83ad25a6ba13e3f5612f1787811dc71bc54302b060797cb0c0f878b2e0  ./engines/hive/conf/queryParameters.sql
-5e5c21ee47e9740218542e3612ba78c3c2e3627aceff5796d54d7160a456c8db  ./engines/spark-sql/conf/engineSettings.conf
 019b2dec79f9da6f02ed53b31884ecdd4d3a2204cec36fd127808cc310562de3  ./engines/biginsights/wip.txt
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ./engines/biginsights/.gitignore
 d2fff16b7746706591ce27de38bc90006e977969b748f2a4597b78a254eaba74  ./bin/checkIntegrity
@@ -235,15 +235,6 @@ c05e32196ffb398cae0562e8548e8354875e6a0398593685ed5abb66b9bce037  ./tools/Hadoop
 cd711384856ea7c79e206ed424f4e371994c220d3f4c575ae3456fff3a62d871  ./.gitignore
 d0c614c09ad1dbd34d9f354006d4feb56cbe60e6083f34592db76480bb6811bb  ./conf/bigBench.properties
 989ee7f8306cecf6e5e68fd75a8760e37761d53262d1708f77bf85c5c992798c  ./conf/userSettings.conf
-fd58cdb057fdb2af68c33c3142501bb7315d859e8df4774cf3a0ef3e9a517e4c  ./.idea/Big-Data-Benchmark-for-Big-Bench-TPC-PVT-REPO.iml
-d4f19ae6fd4833fdf942c32cc8b40d7cf70db578743a4a86acafcad851024927  ./.idea/compiler.xml
-3b512830038b45f27f372ff92d3a8bff1448f52d68bbfa2f51255267f0fbd641  ./.idea/.name
-a854d1ddd0b213c765e1bc63ebd0f720d68a78152c4ac79e42e6e9ad0a57d680  ./.idea/copyright/profiles_settings.xml
-29e0f991a818b89794cd1156bfd1c97596fe1547609d9d9ed78e43989ef45a12  ./.idea/workspace.xml
-35e068de75a499c0974585f01b4668c56f946dcba3a8238f4c1a5b6a467aa5aa  ./.idea/encodings.xml
-6323e12648862a0a96fc0d7877672817d6cd91e2c2a3c3d78f1090db23c6e88e  ./.idea/vcs.xml
-836e448ecf4cca1637a3cdbcb3f99362f257d0d0eb8e7f6b574292178051bdef  ./.idea/misc.xml
-9eea97a55ec12264136fcd54f8a446f080c3409a8b0f9d14e051f3ef36e941ce  ./.idea/modules.xml
 a840968176645684bb01aed376e067ab39614885f9eee44abe35a5f20ebe7fad  ./data-generator/extlib/xml-apis.jar
 c2d70c57c309a4ec1ea665e8d6715bb64ba8fbd18895ff726243d34f43819d9d  ./data-generator/extlib/javassist.jar
 9f5f5799707881451a39c1b2dd22b4e43b97a80698db7daf1c9697f545e24387  ./data-generator/extlib/log4j-1.2.15.jar
