@@ -1,5 +1,6 @@
 b993c2a5b3efdd1769edf62e3f085cc23ac16bc4cf48f73f7e8d4d7028b05699  ./engines/impala/wip.txt
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ./engines/impala/.gitignore
+5e5c21ee47e9740218542e3612ba78c3c2e3627aceff5796d54d7160a456c8db  ./engines/spark_sql/conf/engineSettings.conf
 6c17d2d2f56e7d66e04f05f64d47844d64f15280f4bede363384e79140920382  ./engines/hive/bin/dataGen
 a0432a3cca2f955222b5af995e6ac8725e5bbdaa301a0aa41743f775bd50d0f3  ./engines/hive/bin/showTimes
 01db29e72e60b6baf4836ff4834bc8280e1d5f4cab2993748097d991a8a0abc9  ./engines/hive/bin/showErrors
@@ -203,10 +204,9 @@ e421d1fc437632f34d259ba07515f6ed74d4d8d50402a3f9ce16a256fda80a0a  ./engines/hive
 690ccee295ef833dc9c4990b1027ac7c388bfd3eaddd9649b007fa5622862511  ./engines/hive/clean/dropTables.sql
 d81ce9504336c565b68efde5760e333dac6bb831b9f17cbbad2e834fe3493d1a  ./engines/hive/refresh/deprecated/hiveRefreshCreateLoad_double.sql
 3554a5b607acc6c3ca43b3c0614ad4ad22662c1e3a402b27edaf1f8f8896a013  ./engines/hive/refresh/hiveRefreshCreateLoad.sql
-0ca0369f6e7ba2516f88b64596197f5cb6631ff9562c235471b88a2755513c91  ./engines/hive/conf/engineSettings.conf
+d792bf1ba38bef452332d0f8290b9e63e6fed94d1c1e7013b8f24b939489621a  ./engines/hive/conf/engineSettings.conf
 b53b29e32c8e99742217d4eb0427ed5cbc0749cd5f45cf9e2d1da9eb5fbfa915  ./engines/hive/conf/engineSettings.sql
 69f2feea714500d7f108eb8d959e1ce6a42956d8f1a2ef7bf18d5b5f63aa65ff  ./engines/hive/conf/queryParameters.sql
-5e5c21ee47e9740218542e3612ba78c3c2e3627aceff5796d54d7160a456c8db  ./engines/spark-sql/conf/engineSettings.conf
 019b2dec79f9da6f02ed53b31884ecdd4d3a2204cec36fd127808cc310562de3  ./engines/biginsights/wip.txt
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ./engines/biginsights/.gitignore
 0d7a65d89b56ee154aa43ceab1050fc1600d339006687f5b17c6c63d48084fd4  ./bin/checkIntegrity
