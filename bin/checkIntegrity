@@ -39,7 +39,7 @@ runModule () {
 
   cd "$BIG_BENCH_HOME"
   # ignore .git directory and bigbench.sha256 file, hash all other files
-  find ./ -type d -name .git -prune -o -type f ! -name "$HASH_FILENAME" -exec sha256sum {} \; > "$TEMP_FILE"
+  find ./ -type d \( -name .git -o -name logs \) -prune -o -type f ! -name "$HASH_FILENAME" -exec sha256sum {} \; > "$TEMP_FILE"
   cd "$OLDPWD"
 
   echo
