@@ -209,7 +209,7 @@ b53b29e32c8e99742217d4eb0427ed5cbc0749cd5f45cf9e2d1da9eb5fbfa915  ./engines/hive
 5e5c21ee47e9740218542e3612ba78c3c2e3627aceff5796d54d7160a456c8db  ./engines/spark-sql/conf/engineSettings.conf
 019b2dec79f9da6f02ed53b31884ecdd4d3a2204cec36fd127808cc310562de3  ./engines/biginsights/wip.txt
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ./engines/biginsights/.gitignore
-2e4c63d7566e6fd243c594ce145ac30c46f0be1059ff8d2131f73272139650c6  ./bin/checkIntegrity
+0d7a65d89b56ee154aa43ceab1050fc1600d339006687f5b17c6c63d48084fd4  ./bin/checkIntegrity
 07563f2415f16eacc4aecdda14f6a1d3f5f2ab4fd059217e2a63140bdf2e158e  ./bin/runBenchmark
 29a86426e19b28de99852e6f9c5746aefacc8b2a4456ca039e07b53cf6a11e90  ./bin/zipLogs
 bc56e5f391161f927ef42222ef0dbdd9c208115cc0f4b59d8cfbfe70e7b7d8fb  ./bin/killAllHadoopJobs.sh
@@ -235,15 +235,6 @@ c05e32196ffb398cae0562e8548e8354875e6a0398593685ed5abb66b9bce037  ./tools/Hadoop
 cd711384856ea7c79e206ed424f4e371994c220d3f4c575ae3456fff3a62d871  ./.gitignore
 ca6a07839eabd45792f1ff38d1c9f80f8a57ef1294c12919adf373a2f9eb10cf  ./conf/bigBench.properties
 989ee7f8306cecf6e5e68fd75a8760e37761d53262d1708f77bf85c5c992798c  ./conf/userSettings.conf
-fd58cdb057fdb2af68c33c3142501bb7315d859e8df4774cf3a0ef3e9a517e4c  ./.idea/Big-Data-Benchmark-for-Big-Bench-TPC-PVT-REPO.iml
-d4f19ae6fd4833fdf942c32cc8b40d7cf70db578743a4a86acafcad851024927  ./.idea/compiler.xml
-3b512830038b45f27f372ff92d3a8bff1448f52d68bbfa2f51255267f0fbd641  ./.idea/.name
-a854d1ddd0b213c765e1bc63ebd0f720d68a78152c4ac79e42e6e9ad0a57d680  ./.idea/copyright/profiles_settings.xml
-29e0f991a818b89794cd1156bfd1c97596fe1547609d9d9ed78e43989ef45a12  ./.idea/workspace.xml
-35e068de75a499c0974585f01b4668c56f946dcba3a8238f4c1a5b6a467aa5aa  ./.idea/encodings.xml
-6323e12648862a0a96fc0d7877672817d6cd91e2c2a3c3d78f1090db23c6e88e  ./.idea/vcs.xml
-836e448ecf4cca1637a3cdbcb3f99362f257d0d0eb8e7f6b574292178051bdef  ./.idea/misc.xml
-9eea97a55ec12264136fcd54f8a446f080c3409a8b0f9d14e051f3ef36e941ce  ./.idea/modules.xml
 a840968176645684bb01aed376e067ab39614885f9eee44abe35a5f20ebe7fad  ./data-generator/extlib/xml-apis.jar
 c2d70c57c309a4ec1ea665e8d6715bb64ba8fbd18895ff726243d34f43819d9d  ./data-generator/extlib/javassist.jar
 9f5f5799707881451a39c1b2dd22b4e43b97a80698db7daf1c9697f545e24387  ./data-generator/extlib/log4j-1.2.15.jar
