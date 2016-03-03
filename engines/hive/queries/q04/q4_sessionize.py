@@ -1,5 +1,5 @@
 #"INTEL CONFIDENTIAL"
-#Copyright 2015  Intel Corporation All Rights Reserved. 
+#Copyright 2016 Intel Corporation All Rights Reserved. 
 #
 #The source code contained or described herein and all documents related to the source code ("Material") are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with Intel Corporation or its suppliers and licensors. The Material contains trade secrets and proprietary and confidential information of Intel or its suppliers and licensors. The Material is protected by worldwide copyright and trade secret laws and treaty provisions. No part of the Material may be used, copied, reproduced, modified, published, uploaded, posted, transmitted, distributed, or disclosed in any way without Intel's prior express written permission.
 #
@@ -40,8 +40,7 @@ if __name__ == "__main__":
 				perUser_sessionID_counter += 1
 				
 			last_click_time =tstamp
-			#print "%s\t%s\t%s" % (value,tstamp_str, user_sk+"_"+str(perUser_sessionID_counter) )
-			print "%s\t%s\t%s" % (value,tstamp_str, user_sk+"_"+str(perUser_sessionID_counter) )
+			print "%s\t%s\t%s_%s" % (value, tstamp_str, user_sk, str(perUser_sessionID_counter) )
 
 	except:
 		## should only happen if input format is not correct, like 4 instead of 5 tab separated values
@@ -49,4 +48,4 @@ if __name__ == "__main__":
 		logging.info("sys.argv[1] timeout: " +str(timeout) + " line from hive: \"" + line + "\"")
 		logging.exception("Oops:") 
 		raise
-		sys.exit(1)		
+		sys.exit(1)

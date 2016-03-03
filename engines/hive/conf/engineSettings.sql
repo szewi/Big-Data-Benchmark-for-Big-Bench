@@ -1,3 +1,9 @@
+--"INTEL CONFIDENTIAL"
+--Copyright 2016 Intel Corporation All Rights Reserved.
+--
+--The source code contained or described herein and all documents related to the source code ("Material") are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with Intel Corporation or its suppliers and licensors. The Material contains trade secrets and proprietary and confidential information of Intel or its suppliers and licensors. The Material is protected by worldwide copyright and trade secret laws and treaty provisions. No part of the Material may be used, copied, reproduced, modified, published, uploaded, posted, transmitted, distributed, or disclosed in any way without Intel's prior express written permission.
+--
+--No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
 --########### READ ME ################
 -- The default way to set hive options is doing it globally for your whole cluster (e.g. cloudera manager, ambari, hive-site.xml, ...)
@@ -14,6 +20,8 @@
 
 -- ###########################
 -- parallel order by. required by queries:
+-- Note the "bigbench." prefix! Actual enabling is query statement specific and 
+-- only activated where required to achive a deterministic output.
 -- ###########################
 set bigbench.hive.optimize.sampling.orderby=true;
 set bigbench.hive.optimize.sampling.orderby.number=20000;
@@ -22,6 +30,11 @@ set bigbench.hive.optimize.sampling.orderby.percent=0.1;
 -- ###########################
 -- output and itermediate table settings 
 -- ###########################
+-- BIG_BENCH_hive_default_fileformat_tmp_table is defined in ../engines/hive/conf/engineSettings.conf
+-- all CREATE <NEW/Temporary> TABLES/VIEWS will use the fileformat specified here.
+-- "LOAD_STAGE" file format and query result fileformat can be controlled independently.
+set hive.default.fileformat=${env:BIG_BENCH_hive_default_fileformat_tmp_table};
+
 -- if you cluster has good cpu's but limited network bandwith, this could speed up the exchange of intermediate results (this option should be turund on if you cluster has high 'net wait i/o%'
 -- set hive.exec.compress.intermediate=true;
 -- set mapred.map.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;
@@ -30,7 +43,7 @@ set bigbench.hive.optimize.sampling.orderby.percent=0.1;
 -- set hive.exec.compress.output=false;
 -- set mapred.output.compression.codec=org.apache.hadoop.io.compress.DefaultCodec;
 
--- set hive.default.fileformat=ORC;
+
 
 -- ###########################
 -- mappers settings 
@@ -148,7 +161,7 @@ set hive.optimize.ppd.storage;
 set hive.ppd.recognizetransivity;
 set hive.optimize.index.filter;
 --other
-set hive.optimize.sampling.orderby=true;
+set hive.optimize.sampling.orderby;
 set hive.optimize.sampling.orderby.number;
 set hive.optimize.sampling.orderby.percent;
 set bigbench.hive.optimize.sampling.orderby;

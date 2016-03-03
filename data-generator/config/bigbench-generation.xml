@@ -53,12 +53,15 @@
 	
 	
 	 -->
+
+	<property name="${interleaveWebClicks}" type="double">0</property>
 	
 	<!-- DEFAULT Scheduler for all Tables, if no table specific scheduler is specified-->
 	<!--  used for "normal" tables. Normal "non-refresh" tables are excluded from generation during refresh phase  -->
 	<scheduler name="DefaultScheduler">
-			<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner" staticTableOnAllNodes="false">
-				<prePartition><!--  
+		<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner"
+			staticTableOnAllNodes="false">
+			<prePartition><![CDATA[
 				pdgf.core.dataGenerator.scheduler.Partition partition =getParentPartitioner().getDefaultPrePartition(project, table);	
 				
 				//exclude non-refresh tables from generation during refresh phase.
@@ -66,14 +69,14 @@
 					partition.setExcluded(true);
 				}
 				return partition;							
-				-->
-				</prePartition>
-			</partitioner>
+				
+				]]></prePartition>
+		</partitioner>
 	</scheduler>
 	
 	<!-- DEFAULT output for all Tables, if no table specific output is specified-->
 	<output name="CSVRowOutput">
-		<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
+		<fileTemplate><![CDATA[outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding]]></fileTemplate>
 		<outputDir>output/</outputDir>
 		<fileEnding>.dat</fileEnding>
 		<delimiter>|</delimiter>
@@ -117,11 +120,12 @@
 			-->
 			<table name="customer">
 				<scheduler name="DefaultScheduler">
-					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
-					<prePartition><!--  
+					<partitioner
+						name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+						<prePartition><![CDATA[
 					if(${REFRESH_SYSTEM_ENABLED}>0){
 						int tableID = table.getTableID();
-						int updateID = 0;
+						int timeID = 0;
 						long lastTableRow=table.getSize()-1;
 						long rowStart;
 						long rowStop;
@@ -140,26 +144,25 @@
 							rowStart = 0;
 							rowStop = lastTableRow - refreshRows;
 						}
-						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, timeID,rowStart,rowStop,exclude);
 					}else{
 						//DEFAULT
 						return getParentPartitioner().getDefaultPrePartition(project, table);				
 					}
-				
-							
-					-->
-					</prePartition>
+					
+					]]></prePartition>
 					</partitioner>
 				</scheduler>
 			</table>
-			
+
 			<table name="customer_address">
 				<scheduler name="DefaultScheduler">
-					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
-					<prePartition><!--  
+					<partitioner
+						name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+						<prePartition><![CDATA[  
 					if(${REFRESH_SYSTEM_ENABLED}>0){
 						int tableID = table.getTableID();
-						int updateID = 0;
+						int timeID = 0;
 						long lastTableRow=table.getSize()-1;
 						long rowStart;
 						long rowStop;
@@ -178,27 +181,26 @@
 							rowStart = 0;
 							rowStop = lastTableRow - refreshRows;
 						}
-						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, timeID,rowStart,rowStop,exclude);
 					}else{
 						//DEFAULT
 						return getParentPartitioner().getDefaultPrePartition(project, table);				
-					}
-				
-							
-					-->
-					</prePartition>
+					}	
+					
+					]]></prePartition>
 					</partitioner>
 				</scheduler>
 			</table>
-			
+
 
 			<table name="item">
 				<scheduler name="DefaultScheduler">
-					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
-					<prePartition><!--  
+					<partitioner
+						name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+						<prePartition><![CDATA[
 					if(${REFRESH_SYSTEM_ENABLED}>0){
 						int tableID = table.getTableID();
-						int updateID = 0;
+						int timeID = 0;
 						long lastTableRow=table.getSize()-1;
 						long rowStart;
 						long rowStop;
@@ -217,26 +219,25 @@
 							rowStart = 0;
 							rowStop = lastTableRow - refreshRows;
 						}
-						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, timeID,rowStart,rowStop,exclude);
 					}else{
 						//DEFAULT
 						return getParentPartitioner().getDefaultPrePartition(project, table);				
 					}
-				
-							
-					-->
-					</prePartition>
+
+					]]></prePartition>
 					</partitioner>
 				</scheduler>
 			</table>
 
 			<table name="item_marketprices">
-			<scheduler name="DefaultScheduler">
-					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
-					<prePartition><!--  
+				<scheduler name="DefaultScheduler">
+					<partitioner
+						name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+						<prePartition><![CDATA[
 					if(${REFRESH_SYSTEM_ENABLED}>0){
 						int tableID = table.getTableID();
-						int updateID = 0;
+						int timeID = 0;
 						long lastTableRow=table.getSize()-1;
 						long rowStart;
 						long rowStop;
@@ -255,26 +256,138 @@
 							rowStart = 0;
 							rowStop = lastTableRow - refreshRows;
 						}
-						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, timeID,rowStart,rowStop,exclude);
 					}else{
 						//DEFAULT
 						return getParentPartitioner().getDefaultPrePartition(project, table);				
 					}
-				
-							
-					-->
-					</prePartition>
+	
+					
+					]]></prePartition>
 					</partitioner>
 				</scheduler>
+
+  <output name="SplitFileOutputWrapper">
+  <!-- DEFAULT output for all Tables, if no table specific output is specified-->
+    <output name="CSVRowOutput">
+      <fileTemplate><![CDATA[outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding]]></fileTemplate>
+      <outputDir>output/</outputDir>
+      <fileEnding>.dat</fileEnding>
+      <delimiter>|</delimiter>
+      <charset>UTF-8</charset>
+      <sortByRowID>true</sortByRowID>
+    </output>
+
+    <output name="StatisticsOutput" active="1">
+      <size>${item_size}</size><!-- a counter per item .. initialize later-->
+
+      <fileTemplate><![CDATA[outputDir + table.getName()+"_audit" +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding]]></fileTemplate>
+      <outputDir>output/</outputDir>
+      <fileEnding>.csv</fileEnding>
+      <delimiter>,</delimiter>
+      <header><!--"" + pdgf.util.Constants.DEFAULT_LINESEPARATOR-->
+      </header>
+      <footer></footer>
+
+      <tableChangedEventTemplate><![CDATA[    
+      //signature: (int tableID, int timeID, pdgf.core.dbSchema.Table table, pdgf.core.dbSchema.Project project, java.util.concurrent.atomic.AtomicLong[] counter, java.util.concurrent.ConcurrentHashMap keyValueStore, pdgf.output.StatisticsOutput output){ 
+      //reset counters
+      for ( int i = 0 ; i < counter.length; i++) {
+        counter[i].getAndSet(0L);
+      }
+    
+      ]]></tableChangedEventTemplate>
+    
+      <!-- Format the collected counter statistics -->
+      <formaterTemplate><![CDATA[     
+         //Because of the "refresh" system the actual "item" table size is dynamically determined during runtime.
+          
+        long realItemTableSize = project.getTable("item").getScheduler().getPartitioner().getPrePartition(project, project.getTable("item")).getRowStop();
+        long min=Long.MAX_VALUE;
+        long max=Long.MIN_VALUE;
+        long sum=0;
+        boolean monotonic=true;
+        java.util.ArrayList missing = new java.util.ArrayList();
+        java.util.ArrayList minConstraint = new java.util.ArrayList();
+        long minConstraintValue=(long)project.getXMLProperty("item_marketprice_min_competitors_per_item");
+        for (int i = 0; i < realItemTableSize; i++) {
+          long count=counter[i].get();
+          min=Math.min(min, count);
+          max=Math.max(max, count);
+          sum+=count;
+          if(count<=0){
+            monotonic=false;
+            missing.add(Integer.valueOf(i));
+          }else{
+            if (count < minConstraintValue){
+              minConstraint.add(Integer.valueOf(i));
+            }
+          }
+        }
+        double average = sum/(double)realItemTableSize;
+        buf.append("maxItems,realMaxItems,numCompetitors,minComPerITem,maxComPerItem,avgComPerItem,itemsWithoutCompetitors,itemsNotHavingMinCompetitors");
+        buf.append(pdgf.util.Constants.DEFAULT_LINESEPARATOR);
+        buf.append(counter.length);
+        buf.append(delimiter);
+        buf.append(realItemTableSize);
+        buf.append(delimiter);
+        buf.append(sum);
+        buf.append(delimiter);
+        buf.append(min);
+        buf.append(delimiter);
+        buf.append(max);
+        buf.append(delimiter);
+        buf.append(average);
+        buf.append(delimiter);
+        buf.append(missing.size());
+        buf.append(delimiter);
+        buf.append(minConstraint.size());
+        buf.append(pdgf.util.Constants.DEFAULT_LINESEPARATOR);
+        buf.append("List of item ID's with competitor count = 0:");
+        buf.append(pdgf.util.Constants.DEFAULT_LINESEPARATOR);
+        for (int i = 0; i < missing.size(); i++) {
+			buf.append(missing.get(i));
+            buf.append(delimiter);
+            buf.append(counter[((Number)missing.get(i)).intValue()]);
+            buf.append(pdgf.util.Constants.DEFAULT_LINESEPARATOR);
+		}
+        buf.append("List of item ID's with competitor count < ");
+        buf.append(minConstraintValue);
+        buf.append(":");
+        buf.append(pdgf.util.Constants.DEFAULT_LINESEPARATOR);
+        for (int i = 0; i < minConstraint.size(); i++) {
+          buf.append(minConstraint.get(i));
+          buf.append(delimiter);
+          buf.append(counter[((Number)minConstraint.get(i)).intValue()]);
+          buf.append(pdgf.util.Constants.DEFAULT_LINESEPARATOR);
+        }
+        System.out.println(buf.toString());
+        
+     ]]></formaterTemplate>
+    
+      <!-- collect statistics -->
+      <counterTemplate><![CDATA[ 
+      
+      	  long item_sk= ((Number)field[1].getValue()).longValue();
+	      if(item_sk>(long)counter.length){
+	    	  System.err.println("Item_markteprice audit system error. Not enough counters. " + Long.toString(item_sk));
+	      }
+	      counter[(int)item_sk].incrementAndGet();
+       
+      
+     ]]></counterTemplate>
+    </output>
+  </output>
 			</table>
-			
+
 			<table name="inventory">
 				<scheduler name="DefaultScheduler">
-					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
-					<prePartition><!--  
+					<partitioner
+						name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+						<prePartition><![CDATA[  
 					if(${REFRESH_SYSTEM_ENABLED}>0){
 						int tableID = table.getTableID();
-						int updateID = 0;
+						int timeID = 0;
 						long lastTableRow=table.getSize()-1;
 						long rowStart;
 						long rowStop;
@@ -293,25 +406,23 @@
 							rowStart = 0;
 							rowStop = lastTableRow - refreshRows;
 						}
-						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, timeID,rowStart,rowStop,exclude);
 					}else{
 						//DEFAULT
 						return getParentPartitioner().getDefaultPrePartition(project, table);				
 					}
-				
-							
-					-->
-					</prePartition>
+
+					]]></prePartition>
 					</partitioner>
 				</scheduler>
 			</table>
 
 			<!-- not refreshed tables  tables -->
-			<table name ="store_sales">
-				<output name ="MultiLineOutput">
+			<table name="store_sales">
+				<output name="MultiLineOutput">
 					<multilineFieldId>2</multilineFieldId>
 					<interleaveMultilines>false</interleaveMultilines>
-					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
+					<fileTemplate><![CDATA[outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding]]></fileTemplate>
 					<outputDir>output/</outputDir>
 					<fileEnding>.dat</fileEnding>
 					<delimiter>|</delimiter>
@@ -319,11 +430,12 @@
 					<sortByRowID>true</sortByRowID>
 				</output>
 				<scheduler name="DefaultScheduler">
-					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
-					<prePartition><!--  
+					<partitioner
+						name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+						<prePartition><![CDATA[ 
 					if(${REFRESH_SYSTEM_ENABLED}>0){
 						int tableID = table.getTableID();
-						int updateID = 0;
+						int timeID = 0;
 						long lastTableRow=table.getSize()-1;
 						long rowStart;
 						long rowStop;
@@ -342,25 +454,23 @@
 							rowStart = 0;
 							rowStop = lastTableRow - refreshRows;
 						}
-						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, timeID,rowStart,rowStop,exclude);
 					}else{
 						//DEFAULT
 						return getParentPartitioner().getDefaultPrePartition(project, table);				
 					}
-				
-							
-					-->
-					</prePartition>
-					</partitioner>
-				</scheduler>
-			</table>
-			
 
-			<table name ="store_returns">
-				<output name ="MultiLineOutput">
+					]]></prePartition>
+					</partitioner>
+				</scheduler>
+			</table>
+
+
+			<table name="store_returns">
+				<output name="MultiLineOutput">
 					<multilineFieldId>2</multilineFieldId>
 					<interleaveMultilines>false</interleaveMultilines>
-					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
+					<fileTemplate><![CDATA[outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding]]></fileTemplate>
 					<outputDir>output/</outputDir>
 					<fileEnding>.dat</fileEnding>
 					<delimiter>|</delimiter>
@@ -368,11 +478,12 @@
 					<sortByRowID>true</sortByRowID>
 				</output>
 				<scheduler name="DefaultScheduler">
-					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
-					<prePartition><!--  
+					<partitioner
+						name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+						<prePartition><![CDATA[ 
 					if(${REFRESH_SYSTEM_ENABLED}>0){
 						int tableID = table.getTableID();
-						int updateID = 0;
+						int timeID = 0;
 						long lastTableRow=table.getSize()-1;
 						long rowStart;
 						long rowStop;
@@ -391,24 +502,22 @@
 							rowStart = 0;
 							rowStop = lastTableRow - refreshRows;
 						}
-						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, timeID,rowStart,rowStop,exclude);
 					}else{
 						//DEFAULT
 						return getParentPartitioner().getDefaultPrePartition(project, table);				
 					}
-				
-							
-					-->
-					</prePartition>
+					
+					]]></prePartition>
 					</partitioner>
 				</scheduler>
 			</table>
-		
-			<table name ="web_sales">
-				<output name ="MultiLineOutput">
+
+			<table name="web_sales">
+				<output name="MultiLineOutput">
 					<multilineFieldId>3</multilineFieldId>
 					<interleaveMultilines>false</interleaveMultilines>
-					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
+					<fileTemplate><![CDATA[outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding]]></fileTemplate>
 					<outputDir>output/</outputDir>
 					<fileEnding>.dat</fileEnding>
 					<delimiter>|</delimiter>
@@ -416,11 +525,13 @@
 					<sortByRowID>true</sortByRowID>
 				</output>
 				<scheduler name="DefaultScheduler">
-					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
-					<prePartition><!--  
+					<partitioner
+						name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+						<prePartition>
+					<![CDATA[  
 					if(${REFRESH_SYSTEM_ENABLED}>0){
 						int tableID = table.getTableID();
-						int updateID = 0;
+						int timeID = 0;
 						long lastTableRow=table.getSize()-1;
 						long rowStart;
 						long rowStop;
@@ -439,25 +550,22 @@
 							rowStart = 0;
 							rowStop = lastTableRow - refreshRows;
 						}
-						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, timeID,rowStart,rowStop,exclude);
 					}else{
 						//DEFAULT
 						return getParentPartitioner().getDefaultPrePartition(project, table);				
 					}
 				
-							
-					-->
-					</prePartition>
+					]]></prePartition>
 					</partitioner>
 				</scheduler>
 			</table>
-			
 
-			<table name ="web_returns">
-				<output name ="MultiLineOutput">
+			<table name="web_returns">
+				<output name="MultiLineOutput">
 					<multilineFieldId>2</multilineFieldId>
 					<interleaveMultilines>false</interleaveMultilines>
-					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
+					<fileTemplate><![CDATA[outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding]]></fileTemplate>
 					<outputDir>output/</outputDir>
 					<fileEnding>.dat</fileEnding>
 					<delimiter>|</delimiter>
@@ -465,11 +573,12 @@
 					<sortByRowID>true</sortByRowID>
 				</output>
 				<scheduler name="DefaultScheduler">
-					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
-					<prePartition><!--  
+					<partitioner
+						name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+						<prePartition><![CDATA[  
 					if(${REFRESH_SYSTEM_ENABLED}>0){
 						int tableID = table.getTableID();
-						int updateID = 0;
+						int timeID = 0;
 						long lastTableRow=table.getSize()-1;
 						long rowStart;
 						long rowStop;
@@ -488,25 +597,23 @@
 							rowStart = 0;
 							rowStop = lastTableRow - refreshRows;
 						}
-						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, timeID,rowStart,rowStop,exclude);
 					}else{
 						//DEFAULT
 						return getParentPartitioner().getDefaultPrePartition(project, table);				
 					}
-				
-							
-					-->
-					</prePartition>
+
+					]]></prePartition>
 					</partitioner>
 				</scheduler>
 			</table>
-			
 
-			<table name ="web_clickstreams">
-				<output name ="MultiLineOutput">
+
+			<table name="web_clickstreams">
+				<output name="MultiLineOutput">
 					<multilineFieldId>3</multilineFieldId>
-					<interleaveMultilines>true</interleaveMultilines>
-					<fileTemplate>outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding</fileTemplate>
+					<interleaveMultilines>${interleaveWebClicks}</interleaveMultilines>
+					<fileTemplate><![CDATA[outputDir + table.getName() +(nodeCount!=1?"_"+pdgf.util.StaticHelper.zeroPaddedNumber(nodeNumber,nodeCount):"")+ fileEnding]]></fileTemplate>
 					<outputDir>output/</outputDir>
 					<fileEnding>.dat</fileEnding>
 					<delimiter>|</delimiter>
@@ -514,11 +621,12 @@
 					<sortByRowID>true</sortByRowID>
 				</output>
 				<scheduler name="DefaultScheduler">
-					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
-					<prePartition><!--  
+					<partitioner
+						name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+						<prePartition><![CDATA[  
 					if(${REFRESH_SYSTEM_ENABLED}>0){
 						int tableID = table.getTableID();
-						int updateID = 0;
+						int timeID = 0;
 						long lastTableRow=table.getSize()-1;
 						long rowStart;
 						long rowStop;
@@ -537,27 +645,26 @@
 							rowStart = 0;
 							rowStop = lastTableRow - refreshRows;
 						}
-						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, timeID,rowStart,rowStop,exclude);
 					}else{
 						//DEFAULT
 						return getParentPartitioner().getDefaultPrePartition(project, table);				
 					}
-				
-							
-					-->
-					</prePartition>
+
+					]]></prePartition>
 					</partitioner>
 				</scheduler>
-			</table>	
-			
+			</table>
+
 
 			<table name="product_reviews">
 				<scheduler name="DefaultScheduler">
-					<partitioner name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
-					<prePartition><!--  
+					<partitioner
+						name="pdgf.core.dataGenerator.scheduler.TemplatePartitioner">
+						<prePartition><![CDATA[  
 					if(${REFRESH_SYSTEM_ENABLED}>0){
 						int tableID = table.getTableID();
-						int updateID = 0;
+						int timeID = 0;
 						long lastTableRow=table.getSize()-1;
 						long rowStart;
 						long rowStop;
@@ -576,19 +683,16 @@
 							rowStart = 0;
 							rowStop = lastTableRow - refreshRows;
 						}
-						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, updateID,rowStart,rowStop,exclude);
+						return new pdgf.core.dataGenerator.scheduler.Partition(tableID, timeID,rowStart,rowStop,exclude);
 					}else{
 						//DEFAULT
 						return getParentPartitioner().getDefaultPrePartition(project, table);				
 					}
-				
-							
-					-->
-					</prePartition>
+
+					]]></prePartition>
 					</partitioner>
 				</scheduler>
 			</table>
-			
 		</tables>
 	</schema>
 </generation>

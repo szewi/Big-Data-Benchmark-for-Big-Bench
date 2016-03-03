@@ -1,5 +1,5 @@
 --"INTEL CONFIDENTIAL"
---Copyright 2015  Intel Corporation All Rights Reserved.
+--Copyright 2016 Intel Corporation All Rights Reserved.
 --
 --The source code contained or described herein and all documents related to the source code ("Material") are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with Intel Corporation or its suppliers and licensors. The Material contains trade secrets and proprietary and confidential information of Intel or its suppliers and licensors. The Material is protected by worldwide copyright and trade secret laws and treaty provisions. No part of the Material may be used, copied, reproduced, modified, published, uploaded, posted, transmitted, distributed, or disclosed in any way without Intel's prior express written permission.
 --
@@ -7,70 +7,70 @@
 
 
 -- TASK:
--- Build a model using logistic regression: based on existing users online
--- activities and demographics, for a visitor to an online store, predict the visitors
--- likelihood to be interested in a given item category.
--- input vectors to the machine learing algorithm are:
---    user_sk             serial
---    hasCollegeEducation [0,1]
---    isMale              [0,1]
---    hasClicksInCategory [0,1]
--- TODO: updated this description once improved q5 with more features is merged
+-- Build a model using logistic regression for a visitor to an online store: based on existing users online
+-- activities (interest in items of different categories) and demographics.
+-- This model will be used to predict if the visitor is interested in a given item category.
+-- Output the precision, accuracy and confusion matrix of model.
+-- Note: no need to actually classify existing users, as it will be later used to predict interests of unknown visitors.
 
+-- input vectors to the machine learning algorithm are:
+--  clicks_in_category BIGINT, -- used as label - number of clicks in specified category "q05_i_category"
+--  college_education  BIGINT, -- has college education [0,1]
+--  male               BIGINT, -- isMale [0,1]
+--  clicks_in_1        BIGINT, -- number of clicks in category id 1
+--  clicks_in_2        BIGINT, -- number of clicks in category id 2
+--  clicks_in_3        BIGINT, -- number of clicks in category id 3
+--  clicks_in_4        BIGINT, -- number of clicks in category id 4
+--  clicks_in_5        BIGINT, -- number of clicks in category id 5
+--  clicks_in_6        BIGINT  -- number of clicks in category id 6
+--  clicks_in_7        BIGINT  -- number of clicks in category id 7
 
--- Resources
-
---Result  --------------------------------------------------------------------
---keep result human readable
-set hive.exec.compress.output=false;
-set hive.exec.compress.output;
 
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE} (
-  c_customer_sk     STRING,
-  college_education STRING,
-  male              STRING,
-  label             STRING
-)
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
-STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}';
-
--- the real query part
+ --wcs_user_sk BIGINT,-- column is used to identify prediction
+ clicks_in_category BIGINT, --column is used as label, all following columns are used as input vector to the ml algorithm
+ college_education  BIGINT,
+ male               BIGINT,
+ clicks_in_1        BIGINT,
+ clicks_in_2        BIGINT,
+ clicks_in_3        BIGINT,
+ clicks_in_4        BIGINT,
+ clicks_in_5        BIGINT,
+ clicks_in_6        BIGINT,
+ clicks_in_7        BIGINT
+);
 
 INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
 SELECT
-  q05_tmp_Cust.c_customer_sk,
-  q05_tmp_Cust.college_education,
-  q05_tmp_Cust.male,
-  CASE WHEN q05_tmp_Cust.clicks_in_category > 2 THEN 1 ELSE 0 END AS label
-FROM (
-  SELECT
-    q05_tmp_cust_clicks.c_customer_sk AS c_customer_sk,
-    q05_tmp_cust_clicks.college_education AS college_education,
-    q05_tmp_cust_clicks.male AS male,
-    SUM(
-      CASE WHEN q05_tmp_cust_clicks.i_category = ${hiveconf:q05_i_category}
-      THEN 1
-      ELSE 0 END
-    ) AS clicks_in_category
-  FROM (
-    SELECT
-      ct.c_customer_sk AS c_customer_sk,
-      CASE WHEN cdt.cd_education_status IN (${hiveconf:q05_cd_education_status_IN})
-        THEN 1 ELSE 0 END AS college_education,
-      CASE WHEN cdt.cd_gender = ${hiveconf:q05_cd_gender}
-        THEN 1 ELSE 0 END AS male,
-      it.i_category AS i_category
-    FROM customer ct
-    INNER JOIN customer_demographics cdt ON ct.c_current_cdemo_sk = cdt.cd_demo_sk
-    INNER JOIN web_clickstreams wcst ON (wcst.wcs_user_sk = ct.c_customer_sk
-      AND wcst.wcs_user_sk IS NOT NULL)
-    INNER JOIN item it ON wcst.wcs_item_sk = it.i_item_sk
-  ) q05_tmp_cust_clicks
-  GROUP BY
-    q05_tmp_cust_clicks.c_customer_sk,
-    q05_tmp_cust_clicks.college_education,
-    q05_tmp_cust_clicks.male
-) q05_tmp_Cust
+  --wcs_user_sk,
+  clicks_in_category,
+  CASE WHEN cd_education_status IN (${hiveconf:q05_cd_education_status_IN}) THEN 1 ELSE 0 END AS college_education,
+  CASE WHEN cd_gender = ${hiveconf:q05_cd_gender} THEN 1 ELSE 0 END AS male,
+  clicks_in_1,
+  clicks_in_2,
+  clicks_in_3,
+  clicks_in_4,
+  clicks_in_5,
+  clicks_in_6,
+  clicks_in_7
+FROM( 
+  SELECT 
+    wcs_user_sk,
+    SUM( CASE WHEN i_category = ${hiveconf:q05_i_category} THEN 1 ELSE 0 END) AS clicks_in_category,
+    SUM( CASE WHEN i_category_id = 1 THEN 1 ELSE 0 END) AS clicks_in_1,
+    SUM( CASE WHEN i_category_id = 2 THEN 1 ELSE 0 END) AS clicks_in_2,
+    SUM( CASE WHEN i_category_id = 3 THEN 1 ELSE 0 END) AS clicks_in_3,
+    SUM( CASE WHEN i_category_id = 4 THEN 1 ELSE 0 END) AS clicks_in_4,
+    SUM( CASE WHEN i_category_id = 5 THEN 1 ELSE 0 END) AS clicks_in_5,
+    SUM( CASE WHEN i_category_id = 6 THEN 1 ELSE 0 END) AS clicks_in_6,
+    SUM( CASE WHEN i_category_id = 7 THEN 1 ELSE 0 END) AS clicks_in_7
+  FROM web_clickstreams
+  INNER JOIN item it ON (wcs_item_sk = i_item_sk
+                     AND wcs_user_sk IS NOT NULL)
+  GROUP BY  wcs_user_sk
+)q05_user_clicks_in_cat
+INNER JOIN customer ct ON wcs_user_sk = c_customer_sk
+INNER JOIN customer_demographics ON c_current_cdemo_sk = cd_demo_sk
 ;

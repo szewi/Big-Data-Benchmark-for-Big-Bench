@@ -1,5 +1,5 @@
 #"INTEL CONFIDENTIAL"
-#Copyright 2015  Intel Corporation All Rights Reserved. 
+#Copyright 2016 Intel Corporation All Rights Reserved. 
 #
 #The source code contained or described herein and all documents related to the source code ("Material") are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with Intel Corporation or its suppliers and licensors. The Material contains trade secrets and proprietary and confidential information of Intel or its suppliers and licensors. The Material is protected by worldwide copyright and trade secret laws and treaty provisions. No part of the Material may be used, copied, reproduced, modified, published, uploaded, posted, transmitted, distributed, or disclosed in any way without Intel's prior express written permission.
 #
@@ -93,14 +93,11 @@ if __name__ == "__main__":
 			for i in xrange(0,last_n_ViewsBuffer.size()):  
 				cur_item_sk, cur_date = last_n_ViewsBuffer.get(i)
 				#print "3)cur buffer content["+str(i)+"]: item: " + cur_item_sk + " item_date: " + str(cur_date) + " line date: " + str(wcs_date)
-				#is clicke before?
+				#is clicked before?
 				if cur_date <= wcs_date  and cur_date >= ( wcs_date - days_param ) :
-					#print "4)result: %s\t%s" % (purchasedItemFilter, cur_item_sk)
 					print "%s\t%s" % (purchasedItemFilter, cur_item_sk)
 					
 	
-		#append to buffer after checkt to dont add current checkt sold item to buffer
+		#append to buffer after check. This ensures that currently checked sold item itself is not in the buffer when writing buffer contents to hive. Avoids self paring: {x,x} e.g: {12,12}
 		last_n_ViewsBuffer.append((item_key_str,wcs_date))
-			
-	
-				
+

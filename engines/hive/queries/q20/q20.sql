@@ -1,11 +1,11 @@
 --"INTEL CONFIDENTIAL"
---Copyright 2015  Intel Corporation All Rights Reserved.
+--Copyright 2016 Intel Corporation All Rights Reserved.
 --
 --The source code contained or described herein and all documents related to the source code ("Material") are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with Intel Corporation or its suppliers and licensors. The Material contains trade secrets and proprietary and confidential information of Intel or its suppliers and licensors. The Material is protected by worldwide copyright and trade secret laws and treaty provisions. No part of the Material may be used, copied, reproduced, modified, published, uploaded, posted, transmitted, distributed, or disclosed in any way without Intel's prior express written permission.
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
-
+-- TASK:
 -- Customer segmentation for return analysis: Customers are separated
 -- along the following dimensions: return frequency, return order ratio (total
 -- number of orders partially or fully returned versus the total number of orders),
@@ -16,42 +16,46 @@
 
 -- IMPLEMENTATION NOTICE:
 -- hive provides the input for the clustering program
-
 -- The input format for the clustering is:
--- user surrogate key, order ratio (number of returns / number of orders), item ratio (number of returned items / number of ordered items), money ratio (returned money / payed money), number of returns
--- All ratios are between 0 and 1
--- Fields are separated by a single space
--- Example:
--- 1 0.25 0.5 0.75 42\n
+--   user surrogate key, 
+--   order ratio (number of returns / number of orders), 
+--   item ratio (number of returned items / number of ordered items), 
+--   money ratio (returned money / payed money), 
+--   number of returns
+
 
 -- Resources
 
------- create input table for mahout --------------------------------------
---keep result human readable
-set hive.exec.compress.output=false;
-set hive.exec.compress.output;
 
+-- This query requires parallel order by for fast and deterministic global ordering of final result
+set hive.optimize.sampling.orderby=${hiveconf:bigbench.hive.optimize.sampling.orderby};
+set hive.optimize.sampling.orderby.number=${hiveconf:bigbench.hive.optimize.sampling.orderby.number};
+set hive.optimize.sampling.orderby.percent=${hiveconf:bigbench.hive.optimize.sampling.orderby.percent};
+--debug print
+set hive.optimize.sampling.orderby;
+set hive.optimize.sampling.orderby.number;
+set hive.optimize.sampling.orderby.percent;
+
+--ML-algorithms expect double values as input for their Vectors. 
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE} (
-  user_sk       BIGINT,
-  orderRatio    decimal(15,7),
-  itemsRatio    decimal(15,7),
-  monetaryRatio decimal(15,7),
-  frequency     BIGINT
-)
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ' ' LINES TERMINATED BY '\n'
-STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}';
+   user_sk       BIGINT, --used as "label", all following values are used as Vector for ML-algorithm
+   orderRatio    double,
+   itemsRatio    double,
+   monetaryRatio double,
+   frequency     double
+);
+
 
 -- there are two possible version. Both are valid points of view
-
 -- version ONE where customers without returns are also part of the analysis
-INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
+INSERT INTO TABLE ${hiveconf:TEMP_TABLE} 
 SELECT
   ss_customer_sk AS user_sk,
-  IF ( (returns_count IS NULL) OR (orders_count IS NULL) OR ((returns_count / orders_count) IS NULL) , 0 , (returns_count / orders_count) ) AS orderRatio,
-  IF ( (returns_items IS NULL) OR (orders_items IS NULL) OR ((returns_items / orders_items) IS NULL) , 0 , (returns_items / orders_items) ) AS itemsRatio,
-  IF ( (returns_money IS NULL) OR (orders_money IS NULL) OR ((returns_money / orders_money) IS NULL) , 0 , (returns_money / orders_money) ) AS monetaryRatio,
-  IF (  returns_count IS NULL                                                                        , 0 ,  returns_count                 ) AS frequency
+  round(CASE WHEN ((returns_count IS NULL) OR (orders_count IS NULL) OR ((returns_count / orders_count) IS NULL) ) THEN 0.0 ELSE (returns_count / orders_count) END, 7) AS orderRatio,
+  round(CASE WHEN ((returns_items IS NULL) OR (orders_items IS NULL) OR ((returns_items / orders_items) IS NULL) ) THEN 0.0 ELSE (returns_items / orders_items) END, 7) AS itemsRatio,
+  round(CASE WHEN ((returns_money IS NULL) OR (orders_money IS NULL) OR ((returns_money / orders_money) IS NULL) ) THEN 0.0 ELSE (returns_money / orders_money) END, 7) AS monetaryRatio,
+  round(CASE WHEN ( returns_count IS NULL                                                                        ) THEN 0.0 ELSE  returns_count                 END, 0) AS frequency
 FROM
   (
     SELECT
@@ -78,8 +82,7 @@ FROM
     FROM store_returns
     GROUP BY sr_customer_sk
   ) returned ON ss_customer_sk=sr_customer_sk
-CLUSTER BY user_sk
---no total ordering with ORDER BY required, further processed by clustering algorithm
+ORDER BY user_sk
 ;
 
 

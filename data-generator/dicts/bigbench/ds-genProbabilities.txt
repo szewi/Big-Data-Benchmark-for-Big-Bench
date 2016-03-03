@@ -1,5 +1,35 @@
 -- 
 
+-- General layout: (<value>,<value>,.. : <weight>, <weight>,..);
+-- Note the : delimiter separating values from weights.
+-- A distribution list can have multiple columns for both values and weights.
+-- This eases the specification of multiple different properties of the same dataset.
+--
+-- In the following example, the weekdays are listed.
+-- You can choose from 3 value columns:
+--  * weekday name
+--  * isWorkDay {0,1}
+--  * isWeekend {0,1}
+-- From which you can choose the weekday using different distributions, based on current context and needs:
+--  * uniform  - every day has the same likleyhood
+--  * busyDaysIndustry - weekdays are more frequent then weekend days (industry does not do much businiess over weekend)
+--  * buysDaysRestaurants - where as restaurants on the other hand have their most bussy days on the weekend.
+-- 
+
+create exampleList;    -- used to identify a list by name 'exampleList'
+set weights = 3;         -- number for weight columns
+--set types for "values" is mandatory, specifing type for "weight" is optional (first add() row  determines type)
+set types = (varchar, int, int: int, double, double);   
+set names = (day, isWorkDay, isWeekend :  uniform , busyDaysIndustry, buysDaysRestaurants );    --set names is optional. Every column can be accessed by index starting at 0
+add ("Sunday",    0, 1: 1, 1.0   ,7.2 );
+add ("Monday",    1, 0: 1, 4.645 ,1.4 );
+add ("Tuesday",   1, 0: 1, 6.453 ,2.3 );
+add ("Wednesday", 1, 0: 1, 11.23 ,3.0 );
+add ("Thursday",  1, 0: 1, 6.1   ,3.1 );
+add ("Friday",    1, 0: 1, 5.4   ,5.0 );
+add ("Saturday",  0, 1: 1, 2.23  ,9.2 );
+
+
 --
 -- 
 --
@@ -20416,7 +20446,7 @@ add ("Unknown": 4);
 ------
 create return_reasons;
 set types = (varchar);
-set weights = 1; 
+set weights = 6; 
 add ("Package was damaged": 1, 0, 0, 0, 0, 0);
 add ("Stopped working": 1, 0, 0, 0, 0, 0);
 add ("Did not get it on time": 1, 0, 0, 0, 0, 0);

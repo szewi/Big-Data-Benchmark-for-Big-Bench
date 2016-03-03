@@ -1,4 +1,4 @@
-Copyright (c) 2015, Intel Corporation.
+Copyright (c) 2016, Intel Corporation.
 
 This Big Data Benchmark for BigBench Specification ("Software") is furnished under license and may only be used or copied in accordance with the terms of that license. No license, express or implied, by estoppel or otherwise, to any intellectual property rights is granted by this document. The Software is subject to change without notice, and should not be construed as a commitment by Intel Corporation to market, license, sell or support any product or technology. Unless otherwise provided for in the license under which this Software is provided, the Software is provided AS IS, with no warranties of any kind, express or implied. Except as expressly permitted by the Software license, neither Intel Corporation nor its suppliers assumes any responsibility or liability for any errors or inaccuracies that may appear herein. Except as expressly permitted by the Software license, no part of the Software may be reproduced, stored in a retrieval system, transmitted in any form, or distributed by any means without the express written consent of Intel Corporation.
 
@@ -6,7 +6,7 @@ UNDER DEVELOPMENT -- Post your questions on Google Groups https://groups.google.
 
 To collect performance metrics from Hadoop nodes and analyze the resource utilization draw automated charts using MS-Excel, PAT is available for download.
 
-https://github.com/intel-hadoop/PAT 
+https://github.com/intel-hadoop/PAT
 
 ======
 
@@ -24,13 +24,16 @@ This document is a development version and describes the BigBench installation a
 
 **Java**
 
-Java 1.7 is required. 64 bit is recommended. A suitable JDK is installed along with Cloudera (if using the parcel installation method)
+Java 1.7 (Oracle/OpenJDK) is required. 64 bit is recommended. A suitable JDK is installed along with Cloudera (if using the parcel installation method)
+Other JVM's are not supported.
 
 **Hadoop**
 
-* Hadoop 2.3. A suitable hadoop version is installed along with Cloudera (if using the parcel installation method)
-* Hive 0.14 recommended. A suitable hive version is installed along with Cloudera (if using the parcel installation method)
-* Mahout 0.9 A suitable mahout version is installed along with Cloudera (if using the parcel installation method)
+* Hadoop 2.3 >= A suitable hadoop version is installed along with Cloudera (if using the parcel installation method)
+* Hive 0.14 >= recommended. A suitable hive version is installed along with Cloudera (if using the parcel installation method)
+* Spark 1.5 >= recommended as ML framework. A suitable Spark version may not be included (yet) in your chosen hadoop distribution
+* (Deprecated) Mahout 0.9 A suitable mahout version is installed along with Cloudera (if using the parcel installation method)
+
 
 **Other necessary system packages**
 
@@ -103,11 +106,14 @@ If you have read and agree to these terms of use, please type (uppercase!): YES 
 YES
 ```
 
-### PDGF
-The data are being generated directly into HDFS (into the $BIG_BENCH_HDFS_RELATIVE_INIT_DATA_DIR directory, absolute HDFS path is $BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR).
+### Data Generation - with PDGF
+The data are being generated parallel directly into HDFS (into the $BIG_BENCH_HDFS_RELATIVE_INIT_DATA_DIR directory, absolute HDFS path is $BIG_BENCH_HDFS_ABSOLUTE_INIT_DATA_DIR).
+The degree of parallelism is determined by the driver option "-m" The number of map tasks used for data generation. (default: $BIG_BENCH_DEFAULT_MAP_TASKS)
 
-Default HDFS replication count is 1 (data is only stored on the generating node). You can change this in the $INSTALL_DIR/conf/userSettings.conf file by changing the variable
+Default HDFS replication count is 1 (data is only stored on the generating node). 
 `BIG_BENCH_DATAGEN_DFS_REPLICATION=<Replication count>'.
+
+Default settings can be changed in the $INSTALL_DIR/conf/userSettings.conf file.
 
 ## Using the BigBench driver
 
@@ -225,6 +231,11 @@ as well as a specific help for each module
 "$INSTALL_DIR/bin/bigBench" cleanData [-h]
 ```
 
+* cleanLogs: Cleans the log directory of leftover files from previous runs. Deletes log folders older than a day to free space. It does not touch the zip archives.
+```
+"$INSTALL_DIR/bin/bigBench" cleanLogs [-h]
+```
+
 * cleanMetastore: cleans the metastore dataset tables.
 ```
 "$INSTALL_DIR/bin/bigBench" cleanMetastore [-d <database name>] [-h] [-z <engine settings>]
@@ -280,16 +291,41 @@ as well as a specific help for each module
 "$INSTALL_DIR/bin/bigBench" validateQuery [-d <database name>] [-D <debug query part] [-h] [-p <benchmark phase>] -q <query number> [-t <stream number] [-y <query parameters>] [-z <engine settings>]
 ```
 
-* zipQueryLogs: generates a zip file of all logs in the logs directory. It is run by the driver after each complete benchmark run. A zip archive is created to save them before being overwritten.
+* zipLogs: generates a zip file of all logs in the logs directory. It is run after each complete benchmark run. All log files as well as the environment information zip files and the configuration files are moved into a timestamped subfolder. This subfolder is zipped additionally.
 ```
-"$INSTALL_DIR/bin/bigBench" zipQueryLogs [-h]
+"$INSTALL_DIR/bin/bigBench" zipLogs [-h]
 ```
 
-# FAQ 
+# FAQ
 This benchmark does not favour any platform and we ran this benchmark on many different distributions. But you got to start somewhere.
 It is not HIVE specify as well, but hive happens to be the first engine to be implemented.
 
 This FAQ is mostly based on our experiments with Hive on Yarn with CDH 5.x
+
+## DataGeneration stage fails
+
+```
+[..]
+==========
+Please check the log files for details
+==============
+Benchmark run terminated
+Reason: An error occured while running a command
+==============
+java.io.IOException: Error while generating dataset. More information in logfile: bigbench/logs/dataGeneration-run_query.log
+	at io.bigdatabenchmark.v1.driver.BigBench.generateData(BigBench.java:759)
+	at io.bigdatabenchmark.v1.driver.BigBench.run(BigBench.java:415)
+	at io.bigdatabenchmark.v1.driver.RunBigBench.main(RunBigBench.java:52)
+```
+
+The data generation tool stage is the first thing Big-Data-Benchmark-for-Big-Bench executes on your cluster. So its natural that this stage will be the first to hit any miss-configurations and incompatibilities.
+* you tried to run with an JDK other then Oracle/OpenJDK 1.7 64bit.
+* issues with access rights, locally or on the worker nodes.
+* the driver scripts are written for bash. Other shells may goof up. For instance: Mac OS is not compatible.
+
+You may want to check your MR/YARN logs if the data generator job was even started.
+If the job was successfully stared but terminated during execution, please manually check the logs from the yarn containers task attempts or similar logs from the worker nodes.
+
 
 ## Where do i put my cluster specific settings?
 Here: Big-Bench/conf/userSettings.conf
@@ -303,10 +339,10 @@ Where is my hdfs native libs folder for BIG_BENCH_HADOOP_LIBS_NATIVE?
 `find / -name "libhadoop.so" 2> /dev/null`
 
 
-What is my name node address for BIG_BENCH_HDFS_NAMENODE? 
+What is my name node address for BIG_BENCH_HDFS_NAMENODE?
 
 Look inside your hdfs-site.xml and locate this property value:
-``` 
+```
 <property>
     <name>dfs.namenode.servicerpc-address</name>
     <value>host.domain:8022</value>
@@ -325,10 +361,10 @@ You can place an optional file "hiveLocalSettings.sql" into a queries folder e.g
 Big-Bench/engines/hive/queries/q??/hiveLocalSettings.sql
 
 You can put your query specific settings into this file, and the benchmark will automatically load the file. The hiveLocalSettings.sql file gets loaded last, which allows you to override any previously made settings in ,e.g., Big-Bench/engines/hive/conf/engineSettings.sql.
-This way your settings are not overwritten by future github updates and there won't be any conflicts when updating the query files. 
+This way your settings are not overwritten by future github updates and there won't be any conflicts when updating the query files.
 
 
-## Underutilized cluster 
+## Underutilized cluster
 
 ### cluster setup
 Before "tuning" or asking in the google group, please ensure that your cluster is well configured and able to utilize all resources (cpu/mem/storage/netIO).
@@ -357,7 +393,7 @@ In CDH you can do this with: (just example values! follow a more sophisticated t
 **Gateway**
 Gateway BaseGroup --expand--> Resource management
 ```
-Container_Size (e.g.:  1,5Gb can be sufficient but you may require more if you run into "OutOfMemory" or "GC overhead exceeded" errors while executing this benchmark) 
+Container_Size (e.g.:  1,5Gb can be sufficient but you may require more if you run into "OutOfMemory" or "GC overhead exceeded" errors while executing this benchmark)
 mapreduce.map.memory.mb=Container_Size
 mapreduce.reduce.memory.mb=Container_Size
 mapreduce.map.java.opts.max.heap =0.75*Container_Size
@@ -385,7 +421,7 @@ ResourceManager BaseGroup --expand--> Resource management
 **Dynamic resource pools**
 (cluster -> dynamic resource pools -> configuration)
 ```
-If everything runs fine, do not set anything here (no additional restrictions). 
+If everything runs fine, do not set anything here (no additional restrictions).
 If you experience yarn deadlocks (yarn trying to allocate resources, but fails leading to MR-jobs waiting indefinitely for containers)  you may want set a limit.
 ```
 
@@ -424,7 +460,7 @@ Note: increasing the number of threads requires larger internal buffers so pleas
 
 Your final settings for 4 threads per map task should look like this:
   export BIG_BENCH_DATAGEN_HADOOP_JVM_ENV="java -DDEBUG_PRINT_PERIODIC_THREAD_DUMPS=5000 -Xmx600m "
-  export BIG_BENCH_DATAGEN_HADOOP_OPTIONS=" -workers 4 -ap 3000 " 
+  export BIG_BENCH_DATAGEN_HADOOP_OPTIONS=" -workers 4 -ap 3000 "
 
 ### Hive "loading"-stage is slow
 The hive loading stage is not only "moving" file in hdfs from the data/ dir into the hive/warehouse.
@@ -444,7 +480,7 @@ If you cant modify your hive-site.xml cluster globally, you can uncomment/add th
 to enable them for the whole benchmark, including the queries.
 
 ### Hive Query's are running slow
-Unfortunately there is no generic answer to this. 
+Unfortunately there is no generic answer to this.
 First: this is a long running benchmark with hundreds of distinct mr-Jobs. Each mr-Job has a significant amount of "scheduling" overhead of around ~1minute. So even if you are only processing no data at all, you still have to pay the price of scheduling everything (which is arround 1,5 hours! for a single wave of all 30 queries).
 There are several projects trying to reduces this problem like TEZ from the stinger imitative or Hive on Spark or SparkSQL. But with Hive on yarn, there is nothing you can really do about this.
 
@@ -467,7 +503,7 @@ But don't generalize this. Some stages simply don't have enough data to justify 
 Or the processed table is just to small (like the time or date table).
 Remember that more map/reduce tasks also implies more overhead. So don't overdo it as to much map tasks can hurt performance just like to few tasks.
 
-You can tune some parameters in the hive/engineSettings.sql file. 
+You can tune some parameters in the hive/engineSettings.sql file.
 Hive determines the number of map/reduce tasks based on the tables size. If you have a table of 670MB and set the max.split.size to 67000000 bytes, hive will start 10 map tasks to process this table (or maybe less if hive is able to reduce the dataset by using partitioning/bucketing)
 
 ```
@@ -475,11 +511,11 @@ set mapred.max.split.size=67108864;
 set mapred.min.split.size=1;
 set hive.exec.reducers.max=99999;
 ```
-** Example on how to boost your SF1GB runtime ** 
+** Example on how to boost your SF1GB runtime **
 
 MR guide (does not apply to TEZ or SPARK)
 ------------------------------------------------------------------
-The most important tuning parameter is  mapreduce.input.fileinputformat.split.maxsize which determines the number of map tasks started for a job. 
+The most important tuning parameter is  mapreduce.input.fileinputformat.split.maxsize which determines the number of map tasks started for a job.
 
 For SF1 start with rather small values:
 * set  values for in \Big-Data-Benchmark-for-Big-Bench\engines\hive\conf\engineSettings.sql to: (4Mb/8MB)
@@ -489,7 +525,7 @@ set hive.exec.reducers.bytes.per.reducer=8396800
 
 For SF 1000 you may want to start with 64MB or 128MB
 
-NOTICE: you wont get good cluster utilization by running with only SF 1 (=1GB) . Most time spent is from lauching hive/mahout instances (starting of jobs) and preparing and isolating the tests from each other 
+NOTICE: you wont get good cluster utilization by running with only SF 1 (=1GB) . Most time spent is from lauching hive/mahout instances (starting of jobs) and preparing and isolating the tests from each other
 
 There is not definitive formula to determine the correct split size settings for YOUR cluster as they are ScaleFactor SF and cluster size dependent.
 
@@ -502,7 +538,7 @@ You have to find a balance between your cluster showing good utilization and not
 
 A good query log to start with is query 10, as it is fairly simple.  If your settings are right, query 10 can show a ~98% CPU utilization of your cluster if you are not limited by I/O.
 
-TODO: some example values for sample cluster. We will provide some sample settings for SF 1000 (1TB) 
+TODO: some example values for sample cluster. We will provide some sample settings for SF 1000 (1TB)
 
 
 ## More detailed log files
@@ -533,7 +569,7 @@ yarn logs -applicationId <applicationID>  > yarnApplicationLog.log
 
 ### Execution of a MR Stage progresses quickly but then seems to "hang" at ~99%.
 
-This indicates a skew in the data. This means: most reducers handle only very little data, and some (1-2) have to handle most of the data.  This happens if some keys are very frequent in comparison to others. 
+This indicates a skew in the data. This means: most reducers handle only very little data, and some (1-2) have to handle most of the data.  This happens if some keys are very frequent in comparison to others.
 e.g.: this is the case for user_sk in web_clickstreams. 50% of all clicks have user_sk == NULL (indicating that the click-stream did not result in a purchase).
 When a query uses the "distribute by " keyword, hive distributes the workload by this key. This implies that every reducer handles a specific set of keys. The single reducer responsible for the "null" key then effectively has to process >50% of the total workload (as 50% of all keys are null).
 
@@ -545,7 +581,7 @@ set hive.groupby.skewindata=true;
 set hive.skewjoin.key=100000;
 -- read: https://issues.apache.org/jira/browse/HIVE-5888
 ```
-But be aware that turning on these options will produce worse! running times for data/queries that are not heavily skewed, which is the reason they are disabled by default. 
+But be aware that turning on these options will produce worse! running times for data/queries that are not heavily skewed, which is the reason they are disabled by default.
 
 
 ### Execution failed with exit status: 3
@@ -564,16 +600,16 @@ A) assign more memory to the local! Hadoop/HIVE JVM client because map-join chil
 Cloudera:
  * In cloudera manager home, click on "HIVE" service,
  * then on the HIVE service page click on "Configuration"
- * Gateway Default Group --(expand)--> Resource Management -> Client Java Heap Size in Bytes -> to e.g. 4Gb/8GB/... 
- 
+ * Gateway Default Group --(expand)--> Resource Management -> Client Java Heap Size in Bytes -> to e.g. 4Gb/8GB/...
+
 Hortonworks/Ambari:
 Its very well and counterintuitively hidden in
-* HDFS Service 
-* Configuration -> Advanced -> General --(expand)--> "Hadoop maximum Java heap size" -> to e.g. 4Gb/8GB/... 
+* HDFS Service
+* Configuration -> Advanced -> General --(expand)--> "Hadoop maximum Java heap size" -> to e.g. 4Gb/8GB/...
 
-B) Tune hives metric of estimating if joins should be autoconverted 
+B) Tune hives metric of estimating if joins should be autoconverted
 ```
-set hive.mapjoin.smalltable.filesize;  
+set hive.mapjoin.smalltable.filesize;
 ```
 The threshold (in bytes) for the input file size of the small tables; if the file size is smaller than this threshold, it will try to convert the common join into map join.
 ```
@@ -590,7 +626,7 @@ Cannot allocate memory
 There is insufficient memory for the Java Runtime Environment to continue.
 ```
 
-Native memory allocation (malloc) failed to allocate x bytes for committing reserved memory. 
+Native memory allocation (malloc) failed to allocate x bytes for committing reserved memory.
 
 Basically your kernel handed out more memory than actually available, in expectants that most programs actually never use (allocate) every last bit of memory they request. Now a program (in this case java) tries to allocate something in its virtual reserved memory area, but the kernel was wrong with his estimation of application memory consumption and there is no physical memory left available to fulfill the applications malloc request.
 http://www.oracle.com/technetwork/articles/servers-storage-dev/oom-killer-1911807.html
@@ -616,7 +652,7 @@ Causes:
 * some node terminated
 
 
-###  Caused by: java.lang.InstantiationException: org.apache.hadoop.hive.ql.parse.ASTNodeOrigin ### 
+###  Caused by: java.lang.InstantiationException: org.apache.hadoop.hive.ql.parse.ASTNodeOrigin ###
 OR
 
 * https://issues.apache.org/jira/browse/HIVE-6765

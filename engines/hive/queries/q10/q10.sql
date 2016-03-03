@@ -1,18 +1,18 @@
 --"INTEL CONFIDENTIAL"
---Copyright 2015  Intel Corporation All Rights Reserved.
+--Copyright 2016 Intel Corporation All Rights Reserved.
 --
 --The source code contained or described herein and all documents related to the source code ("Material") are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with Intel Corporation or its suppliers and licensors. The Material contains trade secrets and proprietary and confidential information of Intel or its suppliers and licensors. The Material is protected by worldwide copyright and trade secret laws and treaty provisions. No part of the Material may be used, copied, reproduced, modified, published, uploaded, posted, transmitted, distributed, or disclosed in any way without Intel's prior express written permission.
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
 
--- For all products, extract sentences from its product reviews that contain positive or negative sentiment 
--- and display for each item the sentiment polarity of the extracted sentences (POS OR NEG) 
+-- For all products, extract sentences from its product reviews that contain positive or negative sentiment
+-- and display for each item the sentiment polarity of the extracted sentences (POS OR NEG)
 -- and the sentence and word in sentence leading to this classification
 
 -- Resources
 ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/opennlp-maxent-3.0.3.jar;
-ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/opennlp-tools-1.5.3.jar;
+ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/opennlp-tools-1.6.0.jar;
 ADD JAR ${env:BIG_BENCH_QUERIES_DIR}/Resources/bigbenchqueriesmr.jar;
 CREATE TEMPORARY FUNCTION extract_sentiment AS 'io.bigdatabenchmark.v1.queries.q10.SentimentUDF';
 
@@ -50,7 +50,7 @@ INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
 SELECT item_sk, review_sentence, sentiment, sentiment_word
 FROM (--wrap in additional FROM(), because Sorting/distribute by with UDTF in select clause is not allowed
   SELECT extract_sentiment(pr_item_sk, pr_review_content) AS (item_sk, review_sentence, sentiment, sentiment_word)
-  FROM product_reviews 
+  FROM product_reviews
 ) extracted
 ORDER BY item_sk,review_sentence,sentiment,sentiment_word
 --CLUSTER BY instead of ORDER BY does not work to achieve global ordering. e.g. 2 reducers: first reducer will write keys 0,2,4,6.. into file 000000_0 and reducer 2 will write keys 1,3,5,7,.. into file 000000_1.concatenating these files does not produces a deterministic result if number of reducer changes.
