@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #"INTEL CONFIDENTIAL"
-#Copyright 2016 Intel Corporation All Rights Reserved. 
+#Copyright 2016-2017 Intel Corporation All Rights Reserved.
 #
 #The source code contained or described herein and all documents related to the source code ("Material") are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with Intel Corporation or its suppliers and licensors. The Material contains trade secrets and proprietary and confidential information of Intel or its suppliers and licensors. The Material is protected by worldwide copyright and trade secret laws and treaty provisions. No part of the Material may be used, copied, reproduced, modified, published, uploaded, posted, transmitted, distributed, or disclosed in any way without Intel's prior express written permission.
 #
@@ -74,8 +74,37 @@ query_run_main_method () {
       echo "========================="
 
       
-                      echo $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" ${input} --output ${output} --saveClassificationResult true --saveMetaInfo true --verbose false
-      runCmdWithErrorCheck $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar" ${input} --output ${output} --saveClassificationResult true --saveMetaInfo true --verbose false
+                      echo $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark-1x.jar" ${input} --output ${output} --saveClassificationResult true --saveMetaInfo true --verbose false
+      runCmdWithErrorCheck $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark-1x.jar" ${input} --output ${output} --saveClassificationResult true --saveMetaInfo true --verbose false
+
+      RETURN_CODE=$?
+      if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
+
+    ##########################
+    #run with spark 2
+    ##########################
+    elif [[ -z "$BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK" || "$BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK" == "spark-2" ]] ; then
+
+      # if pre-split by hive:
+      inputTableTraining="${BIG_BENCH_DATABASE}.${TEMP_TABLE1}"
+      inputTableTesting="${BIG_BENCH_DATABASE}.${TEMP_TABLE2}"
+      input="--fromHiveMetastore true --inputTraining ${inputTableTraining} --inputTesting ${inputTableTesting} --lambda 0"
+      #not pre-split by hive. let spark split
+      #inputTableTraining="${BIG_BENCH_DATABASE}.${TEMP_TABLE}"
+      #input="--fromHiveMetastore true --inputTraining ${inputTableTraining} --training-ratio 0.9 --lambda 0"
+
+      output="${RESULT_DIR}/"
+
+      echo "========================="
+      echo "$QUERY_NAME step 2/3: Train and Test Naive Bayes Classifier with spark - read from metastore table"
+      echo "training and testing data:" ${inputTableTraining}
+      echo "test data    :" ${TEMP_DIR2}
+      echo "OUT: $RESULT_DIR"
+      echo "========================="
+
+
+                      echo $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v2.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark-2x.jar" ${input} --output ${output} --saveClassificationResult true --saveMetaInfo true --verbose false
+      runCmdWithErrorCheck $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v2.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark-2x.jar" ${input} --output ${output} --saveClassificationResult true --saveMetaInfo true --verbose false
 
       RETURN_CODE=$?
       if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
@@ -106,8 +135,8 @@ query_run_main_method () {
       echo "========================="
 
       
-                      echo $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar"  --csvInputDelimiter "${csvDelimiter}" ${input} --output ${output} --saveClassificationResult true --saveMetaInfo true --verbose false
-      runCmdWithErrorCheck $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark.jar"  --csvInputDelimiter "${csvDelimiter}" ${input} --output ${output} --saveClassificationResult true --saveMetaInfo true --verbose false
+                      echo $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark-1x.jar"  --csvInputDelimiter "${csvDelimiter}" ${input} --output ${output} --saveClassificationResult true --saveMetaInfo true --verbose false
+      runCmdWithErrorCheck $BIG_BENCH_ENGINE_HIVE_ML_FRAMEWORK_SPARK_BINARY --class io.bigdatabenchmark.v1.queries.q28.NaiveBayesClassifier "$BIG_BENCH_QUERIES_DIR/Resources/bigbench-ml-spark-1x.jar"  --csvInputDelimiter "${csvDelimiter}" ${input} --output ${output} --saveClassificationResult true --saveMetaInfo true --verbose false
 
       RETURN_CODE=$?
       if [[ $RETURN_CODE -ne 0 ]] ;  then return $RETURN_CODE; fi
