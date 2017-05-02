@@ -147,8 +147,8 @@ object LogisticRegression {
     val confMat = multMetrics.confusionMatrix
 
     val metaInformation =
-    s"""Precision: $prec
-         |AUC: $auc
+    f"""Precision: $prec%.4f
+         |AUC: $auc%.4f
          |Confusion Matrix:
          |$confMat
          |""".stripMargin
