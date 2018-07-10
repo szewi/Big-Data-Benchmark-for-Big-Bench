@@ -33,8 +33,9 @@ set hive.exec.compress.output;
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE} (
- --wcs_user_sk BIGINT,-- column is used to identify prediction
- clicks_in_category BIGINT, --column is used as label, all following columns are used as input vector to the ml algorithm
+--wcs_user_sk BIGINT,-- column is used to identify prediction
+--column is used as label, all following columns are used as input vector to the ml algorithm
+ clicks_in_category BIGINT,
  college_education BIGINT,
  male BIGINT,
  clicks_in_1 BIGINT,
@@ -52,7 +53,7 @@ STORED AS TEXTFILE LOCATION '${hiveconf:TEMP_DIR}';
 
 INSERT INTO TABLE ${hiveconf:TEMP_TABLE}
 SELECT
-  --wcs_user_sk,
+--  wcs_user_sk,
   clicks_in_category,
   CASE WHEN cd_education_status IN (${hiveconf:q05_cd_education_status_IN}) THEN 1 ELSE 0 END AS college_education,
   CASE WHEN cd_gender = ${hiveconf:q05_cd_gender} THEN 1 ELSE 0 END AS male,

@@ -48,8 +48,10 @@ FROM
     WHERE c.wcs_web_page_sk = w.wp_web_page_sk
     AND   c.wcs_web_page_sk IS NOT NULL
     AND   c.wcs_user_sk     IS NOT NULL
-    AND   c.wcs_sales_sk    IS NULL --abandoned implies: no sale
-    DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec -- "sessionize" reducer script requires the cluster by wcs_user_sk and sort by tstamp
+--  abandoned implies: no sale
+    AND   c.wcs_sales_sk    IS NULL
+-- "sessionize" reducer script requires the cluster by wcs_user_sk and sort by tstamp
+    DISTRIBUTE BY wcs_user_sk SORT BY wcs_user_sk, tstamp_inSec
   ) clicksAnWebPageType
   REDUCE
     wcs_user_sk,
@@ -58,7 +60,8 @@ FROM
   USING 'python q4_sessionize.py ${hiveconf:q04_session_timeout_inSec}'
   AS (
     wp_type STRING,
-    tstamp BIGINT, --we require timestamp in further processing to keep output deterministic cross multiple reducers
+--  we require timestamp in further processing to keep output deterministic cross multiple reducers
+    tstamp BIGINT,
     sessionid STRING)
 ) sessionized
 ;
@@ -86,15 +89,16 @@ FROM
   (
     SELECT *
     FROM ${hiveconf:TEMP_TABLE1} sessions
-    DISTRIBUTE BY sessionid SORT BY sessionid, tstamp, wp_type --required by "abandonment analysis script"
+--  required by "abandonment analysis script"
+    DISTRIBUTE BY sessionid SORT BY sessionid, tstamp, wp_type
   ) distributedSessions
   REDUCE 
     wp_type,
-    --tstamp, --already sorted by time-stamp
-    sessionid --but we still need the sessionid within the script to identify session boundaries
+--  we still need the sessionid within the script to identify session boundaries
+    sessionid
 
-    -- script requires input tuples to be grouped by sessionid and ordered by timestamp ascending.
-    -- output one tuple: <pagecount> if a session's shopping cart is abandoned, else: nothing
+--  script requires input tuples to be grouped by sessionid and ordered by timestamp ascending.
+--  output one tuple: <pagecount> if a session's shopping cart is abandoned, else: nothing
     USING 'python q4_abandonedShoppingCarts.py'
     AS (pagecount BIGINT)
 ) abandonedShoppingCartsPageCountsPerSession

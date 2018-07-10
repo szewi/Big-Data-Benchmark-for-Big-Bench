@@ -17,18 +17,18 @@ DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
 CREATE TABLE ${hiveconf:TEMP_TABLE} AS
 SELECT
   inv_warehouse_sk,
- -- w_warehouse_name,
+-- w_warehouse_name,
   inv_item_sk,
   d_moy,
   cast( ( stdev / mean ) as decimal(15,5)) cov
 FROM (
-   --Iteration 1: Calculate the coefficient of variation and mean of every item
-   -- and warehouse of the given and the consecutive month
+-- Iteration 1: Calculate the coefficient of variation and mean of every item
+-- and warehouse of the given and the consecutive month
   SELECT
     inv_warehouse_sk,
     inv_item_sk,
     d_moy,
-    -- implicit group by d_moy using CASE filters inside the stddev_samp() and avg() UDF's. This saves us from requiring a self join for correlation of d_moy and d_moy+1 later on.
+--  implicit group by d_moy using CASE filters inside the stddev_samp() and avg() UDF's. This saves us from requiring a self join for correlation of d_moy and d_moy+1 later on.
     cast( stddev_samp( inv_quantity_on_hand ) as decimal(15,5)) stdev,
     cast(         avg( inv_quantity_on_hand ) as decimal(15,5)) mean
    
@@ -44,7 +44,8 @@ FROM (
     d_moy
 ) q23_tmp_inv_part
 --JOIN warehouse w ON inv_warehouse_sk = w.w_warehouse_sk
-WHERE mean > 0 --avoid "div by 0"
+--avoid "div by 0"
+WHERE mean > 0
   AND stdev/mean >= ${hiveconf:q23_coefficient} 
 ;
 
@@ -100,6 +101,3 @@ ORDER BY
 ;
   
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE};
-
-  
-  

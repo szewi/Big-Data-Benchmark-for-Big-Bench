@@ -17,6 +17,8 @@
 --keep result human readable
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
+set hive.strict.checks.cartesian.product=false;
+
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/
 DROP TABLE IF EXISTS ${hiveconf:RESULT_TABLE};
 CREATE TABLE ${hiveconf:RESULT_TABLE} (
@@ -64,5 +66,6 @@ JOIN (
 ) all_sales
 -- we don't need a 'ON' join condition. result is just two numbers.
 ORDER BY promotions, total
-LIMIT 100 -- kinda useless, result is one line with two numbers, but original tpc-ds query has it too.
+-- kinda useless, result is one line with two numbers, but original tpc-ds query has it too.
+LIMIT 100
 ;

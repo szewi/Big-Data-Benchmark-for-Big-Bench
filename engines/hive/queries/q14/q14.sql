@@ -18,7 +18,7 @@
 
 set hive.exec.compress.output=false;
 set hive.exec.compress.output;
-
+set hive.strict.checks.cartesian.product=false;
 
 
 --CREATE RESULT TABLE. Store query result externally in output_dir/qXXresult/

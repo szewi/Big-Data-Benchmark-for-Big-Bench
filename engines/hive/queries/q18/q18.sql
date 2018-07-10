@@ -5,6 +5,7 @@
 --
 --No license under any patent, copyright, trade secret or other intellectual property right is granted to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication, inducement, estoppel or otherwise. Any license under such intellectual property rights must be express and approved by Intel in writing.
 
+set hive.strict.checks.cartesian.product=false;
 
 -- Identify the stores with flat or declining sales in 3 consecutive months,
 -- check if there are any negative reviews regarding these stores available online.
@@ -18,33 +19,33 @@ CREATE TEMPORARY FUNCTION extract_NegSentiment AS 'io.bigdatabenchmark.v1.querie
 --STEP 1: calculate and filter stores with linear regression: stores with flat or declining sales in 3 consecutive months
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE1};
 CREATE TABLE IF NOT EXISTS ${hiveconf:TEMP_TABLE1} AS
-  -- join with "store" table to retrieve store name
+-- join with "store" table to retrieve store name
   SELECT s.s_store_sk, s.s_store_name
   FROM store s,
   (
-    --select ss_store_sk's with flat or declining sales in 3 consecutive months.
-    -- linear regression part of stores by analysing store_sales
+--    select ss_store_sk's with flat or declining sales in 3 consecutive months.
+--    linear regression part of stores by analysing store_sales
     SELECT
       temp.ss_store_sk,
       ((count(temp.x) * SUM(temp.xy) - SUM(temp.x) * SUM(temp.y)) / (count(temp.x) * SUM(temp.xx) - SUM(temp.x) * SUM(temp.x)) ) AS slope
 
-      -- intercept not required in further query
-      --,(SUM(temp.y) - ((count(temp.x) * SUM(temp.xy) - SUM(temp.x) * SUM(temp.y)) / (count(temp.x) * SUM(temp.xx) - SUM(temp.x) * SUM(temp.x)) ) * SUM(temp.x)) / count(temp.x) as intercept
+--      intercept not required in further query
+--      ,(SUM(temp.y) - ((count(temp.x) * SUM(temp.xy) - SUM(temp.x) * SUM(temp.y)) / (count(temp.x) * SUM(temp.xx) - SUM(temp.x) * SUM(temp.x)) ) * SUM(temp.x)) / count(temp.x) as intercept
 
-      -- More detailed version of the "allInOne" formulas for slope and intercept:
-      --SUM(temp.x)as sumX,
-      --SUM(temp.y)as sumY,
-      --SUM(temp.xy)as sumXY,
-      --SUM(temp.xx)as sumXSquared,
-      --count(temp.x) as N,
-      --N * sumXY - sumX * sumY AS numerator,
-      --N * sumXSquared - sumX*sumX AS denom
-      --numerator / denom as slope,
-      --(sumY - slope * sumX) / N as intercept
-      --(count(temp.x) * SUM(temp.xy) - SUM(temp.x) * SUM(temp.y)) AS numerator,
-      --(count(temp.x) * SUM(temp.xx) - SUM(temp.x) * SUM(temp.x)) AS denom
-      --numerator / denom as slope,
-      --(sumY - slope * sumX) / N as intercept
+--      More detailed version of the "allInOne" formulas for slope and intercept:
+--      SUM(temp.x)as sumX,
+--      SUM(temp.y)as sumY,
+--      SUM(temp.xy)as sumXY,
+--      SUM(temp.xx)as sumXSquared,
+--      count(temp.x) as N,
+--      N * sumXY - sumX * sumY AS numerator,
+--      N * sumXSquared - sumX*sumX AS denom
+--      numerator / denom as slope,
+--      (sumY - slope * sumX) / N as intercept
+--      (count(temp.x) * SUM(temp.xy) - SUM(temp.x) * SUM(temp.y)) AS numerator,
+--      (count(temp.x) * SUM(temp.xx) - SUM(temp.x) * SUM(temp.x)) AS denom
+--      numerator / denom as slope,
+--      (sumY - slope * sumX) / N as intercept
     FROM
     (
       SELECT
@@ -54,7 +55,7 @@ CREATE TABLE IF NOT EXISTS ${hiveconf:TEMP_TABLE1} AS
         s.ss_sold_date_sk * SUM(s.ss_net_paid) AS xy,
         s.ss_sold_date_sk*s.ss_sold_date_sk AS xx
       FROM store_sales s
-      --select date range
+--    select date range
       LEFT SEMI JOIN (
         SELECT d_date_sk
         FROM date_dim d
@@ -65,7 +66,8 @@ CREATE TABLE IF NOT EXISTS ${hiveconf:TEMP_TABLE1} AS
     ) temp
     GROUP BY temp.ss_store_sk
   ) regression_analysis
-  WHERE slope <= 0--flat or declining sales
+--flat or declining sales
+  WHERE slope <= 0
   AND s.s_store_sk = regression_analysis.ss_store_sk
 ;
 
@@ -73,12 +75,14 @@ CREATE TABLE IF NOT EXISTS ${hiveconf:TEMP_TABLE1} AS
 DROP TABLE IF EXISTS ${hiveconf:TEMP_TABLE2};
 CREATE TABLE IF NOT EXISTS ${hiveconf:TEMP_TABLE2} AS
 SELECT
-  CONCAT(s_store_sk,"_", s_store_name ) AS store_ID, --this could be any string we want to identify the store. but as store_sk is just a number and store_name is ambiguous we choose the concatenation of both
+--this could be any string we want to identify the store. but as store_sk is just a number and store_name is ambiguous we choose the concatenation of both
+  CONCAT(s_store_sk,"_", s_store_name ) AS store_ID,
   pr_review_date,
   pr_review_content
 -- THIS IS A CROSS JOIN! but fortunately the "stores_with_regression" table is very small
 FROM product_reviews pr, ${hiveconf:TEMP_TABLE1} stores_with_regression
-WHERE locate(lower(stores_with_regression.s_store_name), lower(pr.pr_review_content), 1) >= 1 --find store name in reviews
+--find store name in reviews
+WHERE locate(lower(stores_with_regression.s_store_name), lower(pr.pr_review_content), 1) >= 1
 ;
 
 
@@ -111,8 +115,9 @@ STORED AS ${env:BIG_BENCH_hive_default_fileformat_result_table} LOCATION '${hive
 -- the real query - filter
 INSERT INTO TABLE ${hiveconf:RESULT_TABLE}
 SELECT s_name, r_date, r_sentence, sentiment, sentiment_word
-FROM ( --wrap in additional FROM(), because Sorting/distribute by with UDTF in select clause is not allowed
-  --negative sentiment analysis of found reviews for stores with declining sales
+--wrap in additional FROM(), because Sorting/distribute by with UDTF in select clause is not allowed
+FROM (
+--  negative sentiment analysis of found reviews for stores with declining sales
   SELECT extract_NegSentiment(store_ID, pr_review_date, pr_review_content) AS ( s_name, r_date, r_sentence, sentiment, sentiment_word )
   FROM ${hiveconf:TEMP_TABLE2}
 ) extracted
