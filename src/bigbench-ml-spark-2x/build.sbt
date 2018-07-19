@@ -14,16 +14,15 @@ scalaVersion := "2.11.8"
 
 // additional libraries
 libraryDependencies ++= Seq(
-  "org.apache.spark" % "spark-core_2.11" % "2.1.0" % "provided",
-  "org.apache.spark" % "spark-sql_2.11" % "2.1.0",
-  "org.apache.spark" % "spark-mllib_2.11" % "2.1.0",
-  "org.apache.spark" % "spark-hive_2.11" % "2.1.0",
-  "org.apache.hadoop" % "hadoop-client" % "2.6.0"
+  "org.apache.spark" % "spark-core_2.11" % "2.3.0" % "provided",
+  "org.apache.spark" % "spark-sql_2.11" % "2.3.0",
+  "org.apache.spark" % "spark-mllib_2.11" % "2.3.0",
+  "org.apache.spark" % "spark-hive_2.11" % "2.3.0",
+  "org.apache.hadoop" % "hadoop-client" % "2.9.0"
 )
 
 resolvers ++= Seq(
   "JBoss Repository" at "http://repository.jboss.org/nexus/content/repositories/releases/",
-  "Spray Repository" at "http://repo.spray.cc/",
   "Cloudera Repository" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
   "Akka Repository" at "http://repo.akka.io/releases/",
   "Twitter4J Repository" at "http://twitter4j.org/maven2/",
